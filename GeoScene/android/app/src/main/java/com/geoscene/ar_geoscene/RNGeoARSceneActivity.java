@@ -41,9 +41,9 @@ public class RNGeoARSceneActivity extends ReactActivity {
     // CompletableFuture requires api level 24
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.scene_layout);
+        setContentView(R.layout.ar_scene_layout);
         arSceneView = findViewById(R.id.ar_scene_view);
-//        findViewById(R.id.go_back_button).setOnClickListener(view -> onBackPressed());
+        findViewById(R.id.go_back_btn).setOnClickListener(view -> onBackPressed());
 
         // Build a renderable from a 2D View.
         CompletableFuture<ViewRenderable> example2D =

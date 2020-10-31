@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.geoscene.ar_geoscene.RNGeoARSceneActivity">
+
+    <com.google.ar.sceneform.ArSceneView
+            android:id="@+id/ar_scene_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="top">
+
+    </com.google.ar.sceneform.ArSceneView>
+
+    <com.google.android.material.button.MaterialButton
+            android:id="@+id/go_back_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/go_back_btn" />
+
+</RelativeLayout>
