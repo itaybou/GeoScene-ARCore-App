@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GeoScene</string>
+    <string name="ar_geoscene_name">AR GeoScene</string>
 </resources>

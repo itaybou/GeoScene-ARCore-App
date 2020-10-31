@@ -185,7 +185,15 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    // AR dependencies
+    implementation "com.google.ar.sceneform:core:1.17.1"
+    implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
+    implementation 'com.github.appoly:ARCore-Location:1.2'
+
+    // Material design dependencies
+    implementation 'com.google.android.material:material:1.2.1'
+
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
