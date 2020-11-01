@@ -1,2 +1,2 @@
 # GeoScene
-Geographic scenery AR locations app
+Gelocation scenery AR locations app
