@@ -23,9 +23,9 @@ import com.google.ar.sceneform.rendering.ViewRenderable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import uk.co.appoly.arcorelocation.LocationMarker;
-import uk.co.appoly.arcorelocation.LocationScene;
-import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
+import com.geoscene.location_markers.LocationMarker;
+import com.geoscene.location_markers.LocationScene;
+import com.geoscene.utils.ARLocationPermissionHelper;
 
 public class RNGeoARSceneActivity extends ReactActivity {
     private boolean installRequested;

@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.geoscene.utils.ARLocationPermissionHelper;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;
@@ -18,8 +19,6 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
-
-import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
 
 /** Static utility methods to simplify creating multiple demo activities. */
 public class DemoUtils {
