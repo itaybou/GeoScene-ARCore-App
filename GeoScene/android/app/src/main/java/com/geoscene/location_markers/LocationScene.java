@@ -1,9 +1,11 @@
 package com.geoscene.location_markers;
 
 import android.app.Activity;
+import android.location.Location;
 import android.os.Handler;
 import android.util.Log;
 
+import com.geoscene.sensors.DeviceSensors;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Pose;
@@ -27,9 +29,8 @@ public class LocationScene {
 
     private float RENDER_DISTANCE = 25f;
     public ArSceneView mArSceneView;
-    public DeviceLocation deviceLocation;
-    public DeviceOrientation deviceOrientation;
     public Activity context;
+    public DeviceSensors sensors;
     public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
     // Anchors are currently re-drawn on an interval. There are likely better
     // ways of doing this, however it's sufficient for now.
@@ -57,27 +58,22 @@ public class LocationScene {
     private Session mSession;
     private DeviceLocationChanged locationChangedEvent;
 
-    public LocationScene(Activity context, ArSceneView mArSceneView) {
+    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors) {
         this.context = context;
         this.mSession = mArSceneView.getSession();
         this.mArSceneView = mArSceneView;
 
         startCalculationTask();
+        this.sensors = sensors;
+        this.sensors.setLocationEvent(() -> {
+            if (getLocationChangedEvent() != null) {
+                getLocationChangedEvent().onChange(sensors.getDeviceLocation());
+            }
 
-        deviceLocation = new DeviceLocation(context, this);
-        deviceOrientation = new DeviceOrientation(context);
-        deviceOrientation.resume();
-        //test();
-    }
-
-    private void test() {
-
-        float bearing = (float) LocationUtils.bearing(
-                48.31244200607186,
-                2.1290194140624408,
-                48.33577350525661,
-                2.073057805175722);
-        Log.d("brako", "OKKKKKK " + bearing);
+            if (refreshAnchorsAsLocationChanges()) {
+                refreshAnchors();
+            }
+        });
     }
 
     public boolean isDebugEnabled() {
@@ -209,6 +205,10 @@ public class LocationScene {
 //        }
     }
 
+    public Location deviceLocation() {
+        return sensors != null ? sensors.getDeviceLocation() : null;
+    }
+
     public void processFrame(Frame frame) {
         refreshAnchorsIfRequired(frame);
     }
@@ -221,14 +221,15 @@ public class LocationScene {
     }
 
     private void refreshAnchorsIfRequired(Frame frame) {
-        if (!anchorsNeedRefresh) {
+        if (sensors == null || !anchorsNeedRefresh) {
             return;
         }
-
         anchorsNeedRefresh = false;
         Log.i(TAG, "Refreshing anchors...");
 
-        if (deviceLocation == null || deviceLocation.currentBestLocation == null) {
+        Location deviceLocation = deviceLocation();
+        float deviceOrientation = sensors.getDeviceOrientation();
+        if (deviceLocation == null) {
             Log.i(TAG, "Location not yet established.");
             return;
         }
@@ -239,9 +240,9 @@ public class LocationScene {
                 int markerDistance = (int) Math.round(
                         LocationUtils.distance(
                                 marker.latitude,
-                                deviceLocation.currentBestLocation.getLatitude(),
+                                deviceLocation.getLatitude(),
                                 marker.longitude,
-                                deviceLocation.currentBestLocation.getLongitude(),
+                                deviceLocation.getLongitude(),
                                 0,
                                 0)
                 );
@@ -254,12 +255,12 @@ public class LocationScene {
                 }
 
                 float bearing = (float) LocationUtils.bearing(
-                        deviceLocation.currentBestLocation.getLatitude(),
-                        deviceLocation.currentBestLocation.getLongitude(),
+                        deviceLocation.getLatitude(),
+                        deviceLocation.getLongitude(),
                         marker.latitude,
                         marker.longitude);
 
-                float markerBearing = bearing - deviceOrientation.getOrientation();
+                float markerBearing = bearing - deviceOrientation;
 
                 // Bearing adjustment can be set if you are trying to
                 // correct the heading of north - setBearingAdjustment(10)
@@ -268,7 +269,7 @@ public class LocationScene {
 
                 double rotation = Math.floor(markerBearing);
 
-                Log.d(TAG, "currentDegree " + deviceOrientation.getOrientation()
+                Log.d(TAG, "currentDegree " + deviceOrientation
                         + " bearing " + bearing + " markerBearing " + markerBearing
                         + " rotation " + rotation + " distance " + markerDistance);
 
@@ -373,22 +374,6 @@ public class LocationScene {
     public void setBearingAdjustment(int i) {
         bearingAdjustment = i;
         anchorsNeedRefresh = true;
-    }
-
-    /**
-     * Resume sensor services. Important!
-     */
-    public void resume() {
-        deviceOrientation.resume();
-        deviceLocation.resume();
-    }
-
-    /**
-     * Pause sensor services. Important!
-     */
-    public void pause() {
-        deviceOrientation.pause();
-        deviceLocation.pause();
     }
 
     void startCalculationTask() {

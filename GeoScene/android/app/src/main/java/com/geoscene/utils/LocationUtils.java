@@ -6,6 +6,8 @@ package com.geoscene.utils;
 
 public class LocationUtils {
 
+
+
     /**
      * Bearing in degrees between two coordinates.
      * [0-360] Clockwise

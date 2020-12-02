@@ -1,5 +1,8 @@
 package com.geoscene.location_markers;
 
+import android.location.Location;
+import android.location.LocationListener;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
@@ -175,13 +178,14 @@ public class LocationNode extends AnchorNode {
     }
 
     public void scaleAndRotate() {
+        Location deviceLocation = locationScene.deviceLocation();
         for (Node n : getChildren()) {
             int markerDistance = (int) Math.ceil(
                     LocationUtils.distance(
                             locationMarker.latitude,
-                            locationScene.deviceLocation.currentBestLocation.getLatitude(),
+                            deviceLocation.getLatitude(),
                             locationMarker.longitude,
-                            locationScene.deviceLocation.currentBestLocation.getLongitude(),
+                            deviceLocation.getLongitude(),
                             0,
                             0)
             );

@@ -22,6 +22,10 @@ import com.geoscene.utils.KalmanLatLong;
 public class DeviceLocation implements LocationListener {
 
     private static final String TAG = DeviceLocation.class.getSimpleName();
+
+    private Context context;
+    private LocationManager locationManager;
+
     private static final int TWO_MINUTES = 1000 * 60 * 2;
     public Location currentBestLocation;
     private boolean isLocationManagerUpdatingLocation;
@@ -34,14 +38,12 @@ public class DeviceLocation implements LocationListener {
     private KalmanLatLong kalmanFilter;
     private int gpsCount = 0;
     private long runStartTimeInMillis;
-    private LocationManager locationManager;
-    private LocationScene locationScene;
     private int minimumAccuracy = 25;
-    private Context context;
 
-    public DeviceLocation(Context context, LocationScene locationScene) {
+    Runnable locationEvents;
+
+    public DeviceLocation(Context context) {
         this.context = context.getApplicationContext();
-        this.locationScene = locationScene;
         isLocationManagerUpdatingLocation = false;
         locationList = new ArrayList<>();
         noAccuracyLocationList = new ArrayList<>();
@@ -91,7 +93,7 @@ public class DeviceLocation implements LocationListener {
 
 
     public void startUpdatingLocation() {
-        if (this.isLocationManagerUpdatingLocation == false) {
+        if (!this.isLocationManagerUpdatingLocation) {
             isLocationManagerUpdatingLocation = true;
             runStartTimeInMillis = (long) (SystemClock.elapsedRealtimeNanos() / 1000000);
 
@@ -121,8 +123,8 @@ public class DeviceLocation implements LocationListener {
                 //criteria.setBearingAccuracy(Criteria.ACCURACY_HIGH);
                 //criteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);
 
-                Integer gpsFreqInMillis = 5000;
-                Integer gpsFreqInDistance = 1;  // in meters
+                int gpsFreqInMillis = 5000;
+                int gpsFreqInDistance = 1;  // in meters
 
                 //locationManager.addGpsStatusListener(this);
 
@@ -131,11 +133,7 @@ public class DeviceLocation implements LocationListener {
                 /* Battery Consumption Measurement */
                 gpsCount = 0;
 
-            } catch (IllegalArgumentException e) {
-                Log.e(TAG, e.getLocalizedMessage());
-            } catch (SecurityException e) {
-                Log.e(TAG, e.getLocalizedMessage());
-            } catch (RuntimeException e) {
+            } catch (IllegalArgumentException | SecurityException e) {
                 Log.e(TAG, e.getLocalizedMessage());
             }
         }
@@ -150,13 +148,9 @@ public class DeviceLocation implements LocationListener {
 
     private long getLocationAge(Location newLocation) {
         long locationAge;
-        if (android.os.Build.VERSION.SDK_INT >= 17) {
-            long currentTimeInMilli = (long) (SystemClock.elapsedRealtimeNanos() / 1000000);
-            long locationTimeInMilli = (long) (newLocation.getElapsedRealtimeNanos() / 1000000);
-            locationAge = currentTimeInMilli - locationTimeInMilli;
-        } else {
-            locationAge = System.currentTimeMillis() - newLocation.getTime();
-        }
+        long currentTimeInMilli = (long) (SystemClock.elapsedRealtimeNanos() / 1000000);
+        long locationTimeInMilli = (long) (newLocation.getElapsedRealtimeNanos() / 1000000);
+        locationAge = currentTimeInMilli - locationTimeInMilli;
         return locationAge;
     }
 
@@ -166,7 +160,7 @@ public class DeviceLocation implements LocationListener {
         if (currentBestLocation == null) {
             currentBestLocation = location;
 
-            locationEvents();
+            performLocationEvents();
         }
 
         long age = getLocationAge(location);
@@ -174,16 +168,11 @@ public class DeviceLocation implements LocationListener {
         if (age > 5 * 1000) { //more than 5 seconds
             Log.d(TAG, "Location is old");
             oldLocationList.add(location);
-
-            if (locationScene.isDebugEnabled())
-                Toast.makeText(context, "Rejected: old", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if (location.getAccuracy() <= 0) {
             Log.d(TAG, "Latitidue and longitude values are invalid.");
-            if (locationScene.isDebugEnabled())
-                Toast.makeText(context, "Rejected: invalid", Toast.LENGTH_SHORT).show();
             noAccuracyLocationList.add(location);
             return false;
         }
@@ -193,15 +182,12 @@ public class DeviceLocation implements LocationListener {
         if (horizontalAccuracy > getMinimumAccuracy()) { //10meter filter
             Log.d(TAG, "Accuracy is too low.");
             inaccurateLocationList.add(location);
-            if (locationScene.isDebugEnabled())
-                Toast.makeText(context, "Rejected: innacurate", Toast.LENGTH_SHORT).show();
             return false;
         }
 
 
         /* Kalman Filter */
         float Qvalue;
-
         long locationTimeInMillis = (long) (location.getElapsedRealtimeNanos() / 1000000);
         long elapsedTimeInMillis = locationTimeInMillis - runStartTimeInMillis;
 
@@ -229,8 +215,6 @@ public class DeviceLocation implements LocationListener {
             }
 
             kalmanNGLocationList.add(location);
-            if (locationScene.isDebugEnabled())
-                Toast.makeText(context, "Rejected: kalman filter", Toast.LENGTH_SHORT).show();
             return false;
         } else {
             kalmanFilter.consecutiveRejectCount = 0;
@@ -242,22 +226,24 @@ public class DeviceLocation implements LocationListener {
         currentSpeed = location.getSpeed();
         locationList.add(location);
 
-        locationEvents();
-
+        performLocationEvents();
 
         return true;
     }
 
-    public void locationEvents() {
-        if (locationScene.getLocationChangedEvent() != null) {
-            locationScene.getLocationChangedEvent().onChange(currentBestLocation);
-        }
-
-        if (locationScene.refreshAnchorsAsLocationChanges()) {
-            locationScene.refreshAnchors();
+    private void performLocationEvents() {
+        if(locationEvents != null) {
+            locationEvents.run();
         }
     }
 
+    protected Location getDeviceLocation() {
+        return currentBestLocation;
+    }
+
+    public void setLocationEvent(Runnable event) {
+        locationEvents = event;
+    }
 
     public void pause() {
         stopUpdatingLocation();

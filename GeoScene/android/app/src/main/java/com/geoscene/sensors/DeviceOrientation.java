@@ -21,9 +21,19 @@ public class DeviceOrientation implements SensorEventListener {
     private SensorManager mSensorManager;
     private float orientation = 0f;
 
+    private static final float LOW_PASS_ALPHA = 0.25f;
+
     public DeviceOrientation(Context context) {
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+    }
+
+    protected float[] lowPassFilter( float[] input, float[] output ) {
+        if ( output == null ) return input;
+        for ( int i = 0; i < input.length; i++ ) {
+            output[i] = output[i] + LOW_PASS_ALPHA * (input[i] - output[i]);
+        }
+        return output;
     }
 
     /**

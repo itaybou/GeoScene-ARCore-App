@@ -1,4 +1,4 @@
-package com.geoscene.ar_geoscene;
+package com.geoscene.ar.modules;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,6 +10,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.geoscene.ar.RNGeoARSceneActivity;
 import com.google.ar.core.ArCoreApk;
 
 public class RNGeoARSceneModule extends ReactContextBaseJavaModule {

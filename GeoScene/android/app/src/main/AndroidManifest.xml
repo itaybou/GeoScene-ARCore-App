@@ -8,6 +8,7 @@
     <!-- This tag indicates that this application requires ARCore. This results in the application
         only being visible in the Google Play Store on devices that support ARCore. -->
     <uses-feature android:name="android.hardware.camera.ar" android:required="true"/>
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
 
     <application
@@ -19,20 +20,25 @@
       android:theme="@style/AppTheme">
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
-
+    <activity
+            android:name=".LoadingActivity"
+            android:theme="@style/SplashTheme"
+            android:label="@string/app_name">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
         android:launchMode="singleTask"
-        android:windowSoftInputMode="adjustResize">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-      </activity>
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true"
+        />
         <activity
-            android:name=".ar_geoscene.RNGeoARSceneActivity"
+            android:name=".ar.RNGeoARSceneActivity"
             android:label="@string/ar_geoscene_name" />
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
     </application>

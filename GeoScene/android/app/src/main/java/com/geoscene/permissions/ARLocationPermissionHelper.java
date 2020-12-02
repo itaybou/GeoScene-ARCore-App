@@ -1,4 +1,4 @@
-package com.geoscene.utils;
+package com.geoscene.permissions;
 
 import android.Manifest;
 import android.app.Activity;
@@ -14,6 +14,7 @@ public final class ARLocationPermissionHelper {
     private static final int PERMISSION_CODE = 0;
     private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
     private static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
+    private static final String COARSE_LOCATION_PERMISSION = Manifest.permission.ACCESS_COARSE_LOCATION;
 
     /**
      * Check to see we have the necessary permissions for this app.
@@ -21,14 +22,14 @@ public final class ARLocationPermissionHelper {
     public static boolean hasPermission(Activity activity) {
         return ContextCompat.checkSelfPermission(activity, CAMERA_PERMISSION)
                 == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(activity, LOCATION_PERMISSION)
-                == PackageManager.PERMISSION_GRANTED;
+                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(activity, COARSE_LOCATION_PERMISSION) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
      * Check to see we have the necessary permissions for this app, and ask for them if we don't.
      */
     public static void requestPermission(Activity activity) {
-        ActivityCompat.requestPermissions(activity, new String[]{CAMERA_PERMISSION, LOCATION_PERMISSION},
+        ActivityCompat.requestPermissions(activity, new String[]{CAMERA_PERMISSION, LOCATION_PERMISSION, COARSE_LOCATION_PERMISSION},
                 PERMISSION_CODE);
     }
 

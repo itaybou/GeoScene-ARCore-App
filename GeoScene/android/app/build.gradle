@@ -128,6 +128,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+    }
+
     defaultConfig {
         applicationId "com.geoscene"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -185,14 +191,25 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
+    // Splash screen dependencies
+    implementation project(':react-native-splash-screen')
+
     // AR dependencies
     implementation "com.google.ar.sceneform:core:1.17.1"
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.17.1"
+
+    // Retrofit & Gson dependency
+    implementation 'com.squareup.retrofit2:retrofit:2.7.1'
+    implementation 'com.squareup.retrofit2:converter-gson:2.7.1'
+
+    // ArcGIS dependency
+    implementation 'com.esri.arcgisruntime:arcgis-android:100.9.0'
 
     // Material design dependencies
     implementation 'com.google.android.material:material:1.2.1'
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
@@ -223,4 +240,5 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

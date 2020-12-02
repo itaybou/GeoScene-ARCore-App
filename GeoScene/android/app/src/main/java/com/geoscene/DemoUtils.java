@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.geoscene.utils.ARLocationPermissionHelper;
+import com.geoscene.permissions.ARLocationPermissionHelper;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;

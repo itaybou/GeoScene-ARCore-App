@@ -1,4 +1,4 @@
-package com.geoscene.ar_geoscene;
+package com.geoscene.ar;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,9 +8,17 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
 import com.facebook.react.ReactActivity;
 import com.geoscene.DemoUtils;
 import com.geoscene.R;
+import com.geoscene.elevation.open_topo.OpenTopoService;
+import com.geoscene.elevation.open_topo.OpenTopoClient;
+import com.geoscene.sensors.DeviceSensors;
+import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Session;
 import com.google.ar.core.TrackingState;
@@ -25,14 +33,16 @@ import java.util.concurrent.ExecutionException;
 
 import com.geoscene.location_markers.LocationMarker;
 import com.geoscene.location_markers.LocationScene;
-import com.geoscene.utils.ARLocationPermissionHelper;
+import com.geoscene.permissions.ARLocationPermissionHelper;
 
+@Deprecated
 public class RNGeoARSceneActivity extends ReactActivity {
     private boolean installRequested;
     private boolean hasFinishedLoading = false;
 
     private ArSceneView arSceneView;
     private ViewRenderable exampleLayoutRenderable;
+    private DeviceSensors sensors;
 
     private LocationScene locationScene;
 
@@ -43,7 +53,11 @@ public class RNGeoARSceneActivity extends ReactActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ar_scene_layout);
         arSceneView = findViewById(R.id.ar_scene_view);
-        findViewById(R.id.go_back_btn).setOnClickListener(view -> onBackPressed());
+        OpenTopoClient.getTopoData();
+        sensors = DeviceSensorsManager.initialize(this);
+
+//        ViewShed viewshed = new ViewShed(20, getApplicationContext(), this);
+//        viewshed.calculateViewshed(34.666223f, 31.780799f);
 
         // Build a renderable from a 2D View.
         CompletableFuture<ViewRenderable> example2D =
@@ -88,7 +102,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
                         if (locationScene == null) {
                             // If our locationScene object hasn't been setup yet, this is a good time to do it
                             // We know that here, the AR components have been initiated.
-                            locationScene = new LocationScene(this, arSceneView);
+                            locationScene = new LocationScene(this, arSceneView, sensors);
 
                             // Now lets create our location markers.
                             // First, a layout
@@ -138,10 +152,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (locationScene != null) {
-            locationScene.resume();
-        }
+        sensors.resume();
 
         if (arSceneView.getSession() == null) {
             // If the session wasn't created yet, don't resume rendering.
@@ -173,16 +184,14 @@ public class RNGeoARSceneActivity extends ReactActivity {
     @Override
     public void onPause() {
         super.onPause();
-
         arSceneView.pause();
+        sensors.pause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         arSceneView.destroy();
-
     }
 
 //    @Override
