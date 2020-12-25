@@ -61,7 +61,7 @@ class Cell {
   void display() {
     // Color calculated using sine wave
     if(rgb == null) {
-      int coloring = Math.round(map(elevation, -600, 1050, 255, 0));
+      int coloring = Math.round(map(elevation, 50, 2500, 255, 0));
       fill(coloring);
       stroke(coloring);
     } else if(!alpha) {

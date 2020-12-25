@@ -1,18 +1,14 @@
-package com.geoscene.elevation.open_topo;
-
-import android.icu.text.UFormat;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
+package open_topo;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import mercator.BoundingBox;
+import mercator.Coordinate;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import org.javatuples.Pair;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -27,6 +23,8 @@ public class OpenTopoClient {
     public static Retrofit retrofit;
 
     private static long debugTime;
+
+    private static Raster raster;
 
     public static final int TIMEOUT_MIN = 2;
 
@@ -49,42 +47,38 @@ public class OpenTopoClient {
         return retrofit;
     }
 
-    public static void getTopoData() {
+    public static void getTopoData(BoundingBox bbox, CountDownLatch latch) {
         debugTime = System.currentTimeMillis();
         Retrofit retrofit= getRetrofitClient();
         OpenTopoService api = retrofit.create(OpenTopoService.class);
-        Log.d(TAG, "retrofit!");
-        Call<ResponseBody> call = api.getElevationData(DEM,31.432719f, 31.923523f, 34.904703f, 35.517811f, FORMAT);
-        Log.d(TAG, call.request().toString());
-        call.enqueue(new Callback<ResponseBody>() {
+        Call<ResponseBody> call = api.getElevationData(DEM, bbox.getSouth(), bbox.getNorth(), bbox.getWest(), bbox.getEast(), FORMAT);
+        System.out.println("("+bbox.getSouth()+ "," + bbox.getNorth()+ "," + bbox.getWest()+ "," + bbox.getEast() + ")");
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<ResponseBody> call, Response<ResponseBody> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "server contacted and has file");
                     new Thread(() -> {
-                        // do background stuff here
                         assert response.body() != null;
-                        Log.d(TAG, call.request().toString());
-                        Log.d(TAG, "Request time: " + (System.currentTimeMillis() - debugTime) + " ms");
                         try {
-                            ArcASCIIGridParser.parseASCIIGrid(response.body().byteStream());
+                            raster = ASCIIGridParser.parseASCIIGrid(response.body().byteStream());
+                            latch.countDown();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-
-                        Log.d(TAG, "file download was a success? ");
                     }).start();
                 }else {
-                    Log.d(TAG, "server contact failed");
+                    System.out.println("KAKA");
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(TAG, t.toString());
-                Log.e(TAG, call.request().toString());
-                Log.e(TAG, "error");
+                System.out.println("BASSA");
             }
         });
+    }
+
+    public static Raster getRaster() {
+        return raster;
     }
 }

@@ -116,8 +116,8 @@ int[] calcCorners(int x, int y, int r) {
 }
 
 void setup() {
-  size(1500, 1200);
-  String[] lines = loadStrings("raster.asc");
+  size(1200, 1000);
+  String[] lines = loadStrings("raster4.asc");
   for (int i = 0 ; i < HEADERS_SIZE; i++) {
     String[] items = split(lines[i], "        ");
     if(items[0].equals("ncols")) {
@@ -138,7 +138,7 @@ void setup() {
     }
   }
   println("(rows: " + rows + ", cols: " + cols + ")");
-  observer = new Cell(Math.round(cols / 2), Math.round(rows / 2), 8, 8, grid[Math.round(cols / 2)][Math.round(rows / 2)].getElevation(), new int[]{2, 180, 200});
+  observer = new Cell(Math.round(cols / 2), Math.round(rows / 2), 8, 8, grid[Math.round(cols / 2)][Math.round(rows / 2)].getElevation(), new int[]{255, 0, 0});
   bresenhamCircle = calcCircularPerimeter(observer.getX(), observer.getY(), RADIUS);
   
   int[] cor = calcCorners(observer.getX(), observer.getY(), RADIUS);

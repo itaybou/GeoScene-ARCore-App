@@ -21,10 +21,6 @@ import com.geoscene.sensors.DeviceLocationChanged;
 import com.geoscene.sensors.DeviceOrientation;
 import com.geoscene.utils.LocationUtils;
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class LocationScene {
 
     private float RENDER_DISTANCE = 25f;

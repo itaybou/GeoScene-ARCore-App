@@ -1,37 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.9"
+        android:orientation="horizontal">
 
+    <ImageView
+            android:layout_width="match_parent"
+            android:paddingTop="60dp"
+            android:layout_height="200dp"
+            android:translationZ="200dp"
+            android:background="@null"
+            android:src="@drawable/marker"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/location_marker"
+            android:layout_centerInParent="true" />
+
+<androidx.cardview.widget.CardView
+        android:id="@+id/card_viewspOffet"
+        android:elevation="2dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:translationZ="10dp"
+        android:layout_margin="8dp"
+        android:paddingBottom="100dp"
+        app:cardUseCompatPadding="true"
+
+        app:cardCornerRadius="20dp"
+        app:cardElevation="2dp">
+
+    <!-- Media -->
+    <!-- Title, secondary and supporting text -->
     <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:elevation="1dp"
-            android:alpha="0.8"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:padding="16dp">
 
-        <!-- Media -->
-            <!-- Title, secondary and supporting text -->
-            <TextView
-                    android:id="@+id/distance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceHeadline6"
-                    />
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/name"
+                    android:textSize="30dp"
                     android:layout_marginTop="8dp"
-                    android:text="asdfdf"
+                    android:text="Ashdod"
                     android:textAppearance="?attr/textAppearanceBody2"
-                    android:textColor="?android:attr/textColorSecondary"
-                    />
+                    android:textColor="?android:attr/textColorSecondary" />
+
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="sfsdfsdf"
-                    android:textAppearance="?attr/textAppearanceBody2"
-                    android:textColor="?android:attr/textColorSecondary"
-                    />
+                    android:textSize="20dp"
+                    android:id="@+id/distance"
+                    android:text="2000m"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textColor="?android:attr/textColorSecondary" />
 
         </LinearLayout>
+
+        <ImageView
+                android:layout_width="40dp"
+                android:paddingTop="60dp"
+                android:layout_height="100dp"
+                android:translationZ="200dp"
+                android:background="@null"
+                android:src="@drawable/marker"
+                android:layout_centerHorizontal="false"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="@string/location_marker"
+                android:layout_centerInParent="true" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+</RelativeLayout>

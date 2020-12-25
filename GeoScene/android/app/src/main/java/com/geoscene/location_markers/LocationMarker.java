@@ -3,10 +3,6 @@ package com.geoscene.location_markers;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class LocationMarker {
 
     // Location in real-world terms
