@@ -1,59 +1,67 @@
 package com.geoscene.viewshed;
-import android.app.Activity;
-import android.content.Context;
+
 import android.util.Log;
-import android.widget.Toast;
 
-import com.esri.arcgisruntime.concurrent.Job;
-import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.data.Feature;
-import com.esri.arcgisruntime.data.FeatureCollectionTable;
-import com.esri.arcgisruntime.data.FeatureSet;
-import com.esri.arcgisruntime.data.Field;
-import com.esri.arcgisruntime.geometry.Geometry;
-import com.esri.arcgisruntime.geometry.GeometryType;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.SpatialReference;
-import com.esri.arcgisruntime.loadable.LoadStatus;
-import com.esri.arcgisruntime.mapping.ArcGISMap;
-import com.esri.arcgisruntime.mapping.Basemap;
-import com.esri.arcgisruntime.mapping.view.Graphic;
-import com.esri.arcgisruntime.tasks.geoprocessing.GeoprocessingFeatures;
-import com.esri.arcgisruntime.tasks.geoprocessing.GeoprocessingJob;
-import com.esri.arcgisruntime.tasks.geoprocessing.GeoprocessingParameters;
-import com.esri.arcgisruntime.tasks.geoprocessing.GeoprocessingResult;
-import com.esri.arcgisruntime.tasks.geoprocessing.GeoprocessingTask;
-import com.geoscene.R;
+import com.geoscene.elevation.Elevation;
+import com.geoscene.elevation.Raster;
+import com.geoscene.elevation.open_topography.CellType;
+import com.geoscene.utils.Coordinate;
+import com.geoscene.viewshed.algorithms.BresenhamCircle;
+import com.geoscene.viewshed.algorithms.BresenhamLine;
 
-import java.util.ArrayList;
+import org.javatuples.Pair;
+
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class ViewShed {
-    private int radius;
+    static final int HEIGHT_TOLERENCE = 0; // maybe not true
+    static final int DISTANCE_PRICE = 4;
+    private static CellType[][] viewshed;
 
-    Activity activity;
-    Context context;
-
-    private final int WEB_MERCATOR = 3857;
-
-    private GeoprocessingJob mGeoprocessingJob;
-
-    private static List<Geometry> geometries = null;
-
-    // objects that implement Loadable must be class fields to prevent being garbage collected before loading
-    private FeatureCollectionTable mFeatureCollectionTable;
-
-    public ViewShed(int radius, Context context, Activity activity) {
-        this.radius = radius;
-        this.context = context;
-        this.activity = activity;
-
+    static double calcluateSlope(Cell source, Cell target, int distancePrice) {
+        double deltaZ = target.getValue() - source.getValue() - distancePrice;
+        double deltaXY = Math.sqrt(Math.pow(target.getX() - source.getX(), 2) + Math.pow(target.getY() - source.getY(), 2));
+        return deltaZ / deltaXY;
     }
 
-    public void calculateViewshed(float lat, float lon) {
+    public static CellType[][] calculateViewshed(Raster raster, double observerLat, double observerLon, double observerAltitude) {
+        Pair<Integer, Integer> observerLocation = raster.getRowColByCoordinates(new Coordinate(observerLat, observerLon));
+        double observerElevation = raster.getElevation(observerLocation.getValue0(), observerLocation.getValue1());
+        int radius = (Math.min(raster.getCols(), raster.getRows()) / 2) - 1;
+        Log.d("VIEWSHED", observerAltitude + ", " + observerElevation);
+        Cell observerCell = new Cell(observerLocation.getValue0(), observerLocation.getValue1(), observerElevation);
+//        int[] corners = calcCorners((int) source.getX(), (int) source.getY(), raster.getCols(), raster.getRows(), radius);
+//        int x1 = corners[0];
+//        int x2 = corners[1];
+//        int y1 = corners[2];
+//        int y2 = corners[3];
+//        int pw = x2 - x1 + 1;
+//        int ph = y2 - y1 + 1;
+        CellType[][] viewshed = new CellType[raster.getRows()][raster.getCols()];
+        List<Cell> perimeter = BresenhamCircle.calculateBresenhamCircle((int) observerCell.getX(), (int) observerCell.getY(), raster.getCols(), raster.getRows(), radius);
 
+        for (Cell cell : perimeter) {
+            double maxSlope = Double.NEGATIVE_INFINITY;
+            List<Cell> line = BresenhamLine.calculateBresenhamLine((int) observerCell.getX(), (int) observerCell.getY(), (int) cell.getX(), (int) cell.getY());
+            int lineLength = line.size();
+//            for (Cell lineCell : line) {
+//                double slope = calcluateSlope(observerCell, new Cell((int) lineCell.getX(), (int) lineCell.getY(), raster.getElevation((int) lineCell.getX(), (int) lineCell.getY())));
+//                if (slope >= maxSlope) {
+//                    maxSlope = slope;
+//                    viewshed[(int) lineCell.getY()][(int) lineCell.getX()] = CellType.VIEWSHED;
+//                }
+//            }
+            for (int i = 0;  i < line.size(); ++i) {
+                Cell lineCell = line.get(i);
+                int distancePrice = i >= (Math.round((double)line.size() / 2)) ? (int) ((i - (Math.round((double) line.size() / 2)) + 1) * DISTANCE_PRICE) : 0;
+                double slope = calcluateSlope(observerCell, new Cell((int) lineCell.getX(), (int) lineCell.getY(), raster.getElevation((int) lineCell.getX(), (int) lineCell.getY())), distancePrice);
+                if (slope >= maxSlope) {
+                    maxSlope = slope;
+                    viewshed[(int) lineCell.getY()][(int) lineCell.getX()] = CellType.VIEWSHED;
+                }
+            }
+        }
+        return viewshed;
     }
+
 }

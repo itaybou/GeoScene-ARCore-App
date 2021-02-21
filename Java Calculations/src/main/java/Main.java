@@ -1,8 +1,8 @@
 import mercator.BoundingBox;
 import mercator.Coordinate;
-import open_topo.CellType;
-import open_topo.OpenTopoClient;
-import open_topo.Raster;
+import open_topography.CellType;
+import open_topography.OpenTopographyClient;
+import open_topography.Raster;
 import org.javatuples.Pair;
 import overpass.OverpassInterpreter;
 
@@ -27,11 +27,11 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         int size = 100;
         long time = System.currentTimeMillis();
-        BoundingBox bbox = new BoundingBox(new Coordinate(31.712730622002724, 34.580646038992704), 5); //PADDING_KM);
-        OpenTopoClient.getTopoData(bbox, latch);
+        BoundingBox bbox = new BoundingBox(new Coordinate(31.78086875795883, 34.691286898459865), 5); //PADDING_KM);
+        OpenTopographyClient.getTopolographyData(bbox, latch);
         latch.await();
 
-        Raster raster = OpenTopoClient.getRaster();
+        Raster raster = OpenTopographyClient.getRaster();
         System.out.println((System.currentTimeMillis() - time)  / 1000 + "sec");
 
         String path = "raster.asc";
@@ -49,7 +49,7 @@ public class Main {
 
         out.close();
 
-        Pair<Integer, Integer> observer = raster.getRowColByCoordinates(new Coordinate(31.712730622002724, 34.580646038992704));
+        Pair<Integer, Integer> observer = raster.getRowColByCoordinates(new Coordinate(31.78086875795883, 34.691286898459865));
         System.out.println(raster.getElevation(observer.getValue0(),  observer.getValue1()));
         System.out.println(observer.getValue0() + "," + observer.getValue1());
         System.out.println(raster.getCols() + "," + raster.getRows());

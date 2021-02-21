@@ -2,8 +2,8 @@ package overpass;
 
 import fov_analyzer.FOVAnalyzer;
 import mercator.SphericalMercator;
-import open_topo.CellType;
-import open_topo.Raster;
+import open_topography.CellType;
+import open_topography.Raster;
 import overpass.queries.output.OutputModificator;
 import overpass.queries.output.OutputOrder;
 import overpass.queries.output.OutputVerbosity;
@@ -12,7 +12,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import java.awt.*;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,10 +28,10 @@ public class OverpassInterpreter {
                 .way()
                 .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village")))
                 .around(50000, 31.712730622002724, 34.580646038992704)
-                .prepareNext()
-                .way()
-                .tagMultiple("natural", new HashSet<>(Arrays.asList("sand", "wood", "peak")))
-                .around(50000, 31.712730622002724, 34.580646038992704)
+//                .prepareNext()
+//                .way()
+//                .tagMultiple("natural", new HashSet<>(Arrays.asList("sand", "wood", "peak")))
+//                .around(50000, 31.712730622002724, 34.580646038992704)
 //                .prepareNext()
 //                .rel()
 //                .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village")))
@@ -40,6 +39,7 @@ public class OverpassInterpreter {
                 .end()
                 .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
 
+        System.out.println(query.build());
         interpret(query.build(), raster, viewshed);
     }
 

@@ -117,7 +117,7 @@ int[] calcCorners(int x, int y, int r) {
 
 void setup() {
   size(1500, 1200);
-  String[] lines = loadStrings("raster15.asc");
+  String[] lines = loadStrings("raster10.asc");
   for (int i = 0 ; i < HEADERS_SIZE; i++) {
     String[] items = split(lines[i], "        ");
     if(items[0].equals("ncols")) {

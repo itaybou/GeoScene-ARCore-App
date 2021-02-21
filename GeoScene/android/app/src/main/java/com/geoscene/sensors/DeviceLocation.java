@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import com.geoscene.location_markers.LocationScene;
 import com.geoscene.utils.KalmanLatLong;
@@ -81,6 +82,7 @@ public class DeviceLocation implements LocationListener {
     @Override
     public void onProviderEnabled(String provider) {
         try {
+            Log.d("LOCATION", locationManager.toString());
             locationManager.requestLocationUpdates(provider, 0, 0, this);
         } catch (SecurityException e) {
 
@@ -134,7 +136,7 @@ public class DeviceLocation implements LocationListener {
                 gpsCount = 0;
 
             } catch (IllegalArgumentException | SecurityException e) {
-                Log.e(TAG, e.getLocalizedMessage());
+                Log.e(TAG, Objects.requireNonNull(e.getLocalizedMessage()));
             }
         }
     }

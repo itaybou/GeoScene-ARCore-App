@@ -137,11 +137,7 @@ public class LocationNode extends AnchorNode {
                         || isOverlapping(n, ray, center, cameraPosition)
                         || isOverlapping(n, ray, right, cameraPosition);
 
-                if (isOverlapping) {
-                    setEnabled(false);
-                } else {
-                    setEnabled(true);
-                }
+                setEnabled(!isOverlapping);
             }
         }
 

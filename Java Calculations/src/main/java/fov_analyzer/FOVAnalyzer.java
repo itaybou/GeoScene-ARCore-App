@@ -1,9 +1,8 @@
 package fov_analyzer;
 
 import mercator.Coordinate;
-import mercator.SphericalMercator;
-import open_topo.CellType;
-import open_topo.Raster;
+import open_topography.CellType;
+import open_topography.Raster;
 import org.javatuples.Pair;
 import overpass.OverpassQueryResult;
 
@@ -11,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FOVAnalyzer {
 
