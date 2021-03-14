@@ -27,6 +27,7 @@ export const PlacesStackRoutes: React.FC<StackProps> = ({}) => {
       initialRouteName="Places"
       screenOptions={{
         header: Header,
+        animationEnabled: false,
       }}>
       <Stack.Screen name="Places" component={Register} />
     </Stack.Navigator>

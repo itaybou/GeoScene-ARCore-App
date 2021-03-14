@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { SettingsContext, SettingsType } from './SettingsProvider';
 import { Theme, Themes, ThemesType } from '../themes/Themes';
 
@@ -13,9 +13,9 @@ interface ThemeProviderProps {
 export const ThemeContext = React.createContext<Theme>(Themes.light);
 
 const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, theme }) => {
-  useEffect(() => {
+  useLayoutEffect(() => {
     StatusBar.setBarStyle(theme === 'light' ? 'dark-content' : 'light-content');
-    StatusBar.setBackgroundColor(Themes[theme].colors.cards);
+    StatusBar.setBackgroundColor(Themes[theme].colors.tabs);
   }, [theme]);
 
   return (

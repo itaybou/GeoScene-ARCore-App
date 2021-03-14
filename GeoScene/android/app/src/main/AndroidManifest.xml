@@ -1,9 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.geoscene">
+        xmlns:tools="http://schemas.android.com/tools"
+        package="com.geoscene">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION/ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"  />
 
     <!-- This tag indicates that this application requires ARCore. This results in the application
         only being visible in the Google Play Store on devices that support ARCore. -->
@@ -37,9 +41,9 @@
         android:windowSoftInputMode="adjustResize"
         android:exported="true"
         />
-        <activity
-            android:name=".ar.RNGeoARSceneActivity"
-            android:label="@string/ar_geoscene_name" />
+<!--        <activity-->
+<!--            android:name=".ar.RNGeoARSceneActivity"-->
+<!--            android:label="@string/ar_geoscene_name" />-->
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
     </application>
 

@@ -1,3 +1,4 @@
+import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
 import { SettingsType } from '../SettingsProvider';
 import { ThemeType } from '../../themes/Themes';
@@ -5,12 +6,6 @@ import { name as appName } from '../../../../app.json';
 import { useAsyncStorage } from '../../utils/hooks/useAsyncStorage';
 
 export const SETTINGS_KEY = `${appName}::settings`;
-
-type ActionMap<M extends { [index: string]: any }> = {
-  [Key in keyof M]: M[Key] extends undefined
-    ? { type: Key }
-    : { type: Key; payload: M[Key] };
-};
 
 export enum SettingsActionTypes {
   SET_SETTINGS,
@@ -40,7 +35,7 @@ const SettingsReducer = (state: SettingsStateType, action: SettingsActions) => {
       return action.payload.settings;
     case SettingsActionTypes.CHANGE_THEME:
       const newState = { ...state, theme: action.payload.theme };
-      AsyncStorage.setItem(`${appName}::settings`, JSON.stringify(newState));
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;
     default:
       throw new Error();

@@ -13,7 +13,7 @@ import java.util.List;
 
 public class FOVAnalyzer {
 
-    public static List<Pair<String, Coordinate>> intersectVisiblePlaces(Raster raster, CellType[][] viewshed, PointsOfInterest placesResult) throws FileNotFoundException {
+    public static List<Pair<String, Coordinate>> intersectVisiblePlaces(Raster raster, CellType[][] viewshed, PointsOfInterest placesResult) {
         List<Pair<String, Coordinate>> visibleLocations = new ArrayList<>();
         for (PointsOfInterest.Element element : placesResult.elements) {
             if (element.type.equals("node")) {

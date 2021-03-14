@@ -4,7 +4,10 @@ import com.facebook.react.ReactActivity;
 
 import org.devio.rn.splashscreen.SplashScreen;
 import org.devio.rn.splashscreen.SplashScreenReactPackage;
-import android.os.Bundle; // import this
+
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.os.Bundle;
 
 public class MainActivity extends ReactActivity {
 
@@ -21,4 +24,5 @@ public class MainActivity extends ReactActivity {
   protected String getMainComponentName() {
     return "GeoScene";
   }
+
 }

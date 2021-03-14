@@ -2,24 +2,14 @@ package com.geoscene.elevation.open_topography;
 
 import android.util.Log;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.geoscene.elevation.Raster;
-import com.geoscene.elevation.TopographyProvider;
-import com.geoscene.utils.DataCallback;
-import com.geoscene.utils.mercator.BoundingBox;
+import com.geoscene.utils.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.ViewShed;
 
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 
@@ -47,7 +37,7 @@ public class OpenTopographyClient {
         openTopographyAPI = retrofit.create(OpenTopographyService.class);
     }
 
-    public Single<Raster> fetchTopographyData(BoundingBox bbox, double altitude) {
+    public Single<Raster> fetchTopographyData(BoundingBoxCenter bbox, double altitude) {
         double latitude = bbox.getCenter().getLat();
         double longitude = bbox.getCenter().getLon();
         return openTopographyAPI.getElevationData(DEM, bbox.getSouth(), bbox.getNorth(), bbox.getWest(), bbox.getEast(), FORMAT)

@@ -1,6 +1,41 @@
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { TabRoutes } from './../TabRoutes';
+
+export type AppRoutesParamList = {
+  Internal: InternalRoutesParamList;
+  External: ExternalRoutesParamList;
+};
+
+export type AppStackRouteNavProps<T extends keyof AppRoutesParamList> = {
+  navigation: StackNavigationProp<AppRoutesParamList, T>;
+  route: RouteProp<AppRoutesParamList, T>;
+};
+
+export type InternalRoutesParamList = {
+  Internal: TabRoutesParamList;
+};
+
+export type InternalStackRouteNavProps<
+  T extends keyof InternalRoutesParamList
+> = {
+  navigation: StackNavigationProp<InternalRoutesParamList, T>;
+  route: RouteProp<InternalRoutesParamList, T>;
+};
+
+export type ExternalRoutesParamList = {
+  Profile: undefined;
+  Messages: undefined;
+  ProfileSettings: undefined;
+};
+
+export type ExternalStackRouteNavProps<
+  T extends keyof ExternalRoutesParamList
+> = {
+  navigation: StackNavigationProp<ExternalRoutesParamList, T>;
+  route: RouteProp<ExternalRoutesParamList, T>;
+};
 
 export type TabRoutesParamList = {
   Home: undefined;

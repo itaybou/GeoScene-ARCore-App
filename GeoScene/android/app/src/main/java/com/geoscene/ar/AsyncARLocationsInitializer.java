@@ -3,13 +3,19 @@ package com.geoscene.ar;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.geoscene.DemoUtils;
 import com.geoscene.R;
 import com.geoscene.elevation.Elevation;
@@ -50,10 +56,13 @@ public class AsyncARLocationsInitializer {
     private DeviceSensors sensors;
     private Context context;
 
-    public AsyncARLocationsInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView) {
+    private GeoARSceneFragment ARFragment;
+
+    public AsyncARLocationsInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, GeoARSceneFragment ARFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
+        this.ARFragment = ARFragment;
         CompletableFuture<ViewRenderable> locationMarkerCard =
                 ViewRenderable.builder()
                         .setView(context, R.layout.location_marker_card)
@@ -90,20 +99,28 @@ public class AsyncARLocationsInitializer {
                         // If our locationScene object hasn't been setup yet, this is a good time to do it
                         // We know that here, the AR components have been initiated.
                         locationScene = new LocationScene(activity, arSceneView, sensors);
-                        locationScene.setOffsetOverlapping(true);
+                        locationScene.setOffsetOverlapping(false);
                         // Now lets create our location markers.
                         // First, a layout
                         Elevation elevation = new Elevation();
                         Places places = new Places();
+
 //                                try {
 //                                    elevation.fetchElevationRaster(sensors);
 //                                } catch (InterruptedException e) {
 //                                    e.printStackTrace();
 //                                }
+                        Log.d("START", "started");
                         final CompositeDisposable disposable = new CompositeDisposable();
-                        Single<Raster> elevationData = elevation.fetchElevationRaster(sensors).subscribeOn(Schedulers.computation());
-                        Single<PointsOfInterest> placesData = places.searchPlaces(sensors).subscribeOn(Schedulers.io());
-                        Single<ElevationLocationData> chainedAPICall = elevationData.zipWith(placesData, ElevationLocationData::new).subscribeOn(Schedulers.io());
+                        ARFragment.dispatchLoadingProgress("Retrieving places and elevation data around you.");
+                        Single<Raster> elevationData = elevation.fetchElevationRaster(sensors)
+                                .doOnSuccess(s -> ARFragment.dispatchLoadingProgress("Elevation data retrieved and analyzed"))
+                                .subscribeOn(Schedulers.computation()); // computation
+                        Single<PointsOfInterest> placesData = places.searchPlaces(sensors)
+                                .doOnSuccess(s -> ARFragment.dispatchLoadingProgress("Places around you retrieved."))
+                                .subscribeOn(Schedulers.io());
+                        Single<ElevationLocationData> chainedAPICall = elevationData.zipWith(placesData, ElevationLocationData::new)
+                                .subscribeOn(Schedulers.io());
 
                         chainedAPICall
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -111,25 +128,21 @@ public class AsyncARLocationsInitializer {
                                     @Override
                                     public void onSuccess(@NonNull ElevationLocationData data) {
                                         Log.d("SUCCESS", "just a message");
-
-                                        List<Pair<String, Coordinate>> visibleLocations = null;
-                                        try {
-                                            visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
-                                        } catch (FileNotFoundException e) {
-                                            e.printStackTrace();
-                                        }
+                                        ARFragment.dispatchLoadingProgress("Determining your field of view.");
+                                        List<Pair<String, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
 
                                         Log.d("LOCATIONS", visibleLocations.toString());
+                                        ARFragment.dispatchLoadingProgress("Field of view determined successfully.");
                                         for (Pair<String, Coordinate> visibleLocation : visibleLocations) {
                                             ViewRenderable.builder()
                                                     .setView(context, R.layout.location_marker_card)
                                                     .build().thenAccept(renderable -> {
                                                 double locationLat = visibleLocation.getValue1().getLat();
                                                 double locationLon = visibleLocation.getValue1().getLon();
-                                                LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, getLocationMarkerNode(renderable));
-                                                layoutLocationMarker.setHeight(2);
-                                                layoutLocationMarker.setScaleModifier(0.2f);
-                                                layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_FIXED_SIZE);
+                                                LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, getLocationMarkerNode(renderable, visibleLocation.getValue0()));
+//                                                layoutLocationMarker.setHeight(2);
+//                                                layoutLocationMarker.setScaleModifier(0.2f);
+                                                layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
 
                                                 // An example "onRender" event, called every frame
                                                 // Updates the layout with the markers distance
@@ -145,6 +158,8 @@ public class AsyncARLocationsInitializer {
                                                 locationScene.mLocationMarkers.add(layoutLocationMarker);
                                             });
                                         }
+                                        ARFragment.dispatchLoadingProgress("Starting Augmented reality scene.");
+                                        ARFragment.dispatchReady();
                                     }
 
                                     @Override
@@ -169,15 +184,17 @@ public class AsyncARLocationsInitializer {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private Node getLocationMarkerNode(ViewRenderable renderable) {
+    private Node getLocationMarkerNode(ViewRenderable renderable, String locationName) {
         Node base = new Node();
         base.setRenderable(renderable);
         // Add  listeners etc here
         View eView = renderable.getView();
         eView.setOnTouchListener((v, event) -> {
-            Toast.makeText(context, "Location marker touched.", Toast.LENGTH_LONG)
-                    .show();
+            ARFragment.dispatchName(locationName);
             return false;
+//            Toast.makeText(context, "Location marker touched.", Toast.LENGTH_LONG)
+//                    .show();
+//            return false;
         });
 
         return base;

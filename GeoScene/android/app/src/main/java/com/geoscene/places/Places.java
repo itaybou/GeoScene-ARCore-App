@@ -19,7 +19,7 @@ import static com.geoscene.places.overpass.queries.output.OutputFormat.JSON;
 
 public class Places {
 
-    OverpassClient overpassClient;
+    POIClient overpassClient;
     private final static int RADIUS_METER = 50000;
 
     public Places() {
@@ -52,6 +52,6 @@ public class Places {
                 .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
 
 //        System.out.println(query.build());
-        return overpassClient.executeOverpassQuery(query.build());
+        return overpassClient.executeQuery(query.build());
     }
 }

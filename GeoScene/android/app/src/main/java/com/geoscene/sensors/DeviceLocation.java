@@ -1,15 +1,23 @@
 package com.geoscene.sensors;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Criteria;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
+import android.location.OnNmeaMessageListener;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -29,6 +37,7 @@ public class DeviceLocation implements LocationListener {
 
     private static final int TWO_MINUTES = 1000 * 60 * 2;
     public Location currentBestLocation;
+    public Double currentBestAltitude;
     private boolean isLocationManagerUpdatingLocation;
     private ArrayList<Location> locationList;
     private ArrayList<Location> oldLocationList;
@@ -52,6 +61,7 @@ public class DeviceLocation implements LocationListener {
         inaccurateLocationList = new ArrayList<>();
         kalmanNGLocationList = new ArrayList<>();
         kalmanFilter = new KalmanLatLong(3);
+        currentBestAltitude = null;
 
         startUpdatingLocation();
     }
@@ -99,7 +109,6 @@ public class DeviceLocation implements LocationListener {
             isLocationManagerUpdatingLocation = true;
             runStartTimeInMillis = (long) (SystemClock.elapsedRealtimeNanos() / 1000000);
 
-
             locationList.clear();
 
             oldLocationList.clear();
@@ -108,6 +117,7 @@ public class DeviceLocation implements LocationListener {
             kalmanNGLocationList.clear();
 
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            LocationProvider gpsLocationProvider = locationManager.getProvider(LocationManager.GPS_PROVIDER);
 
             //Exception thrown when GPS or Network provider were not available on the user's device.
             try {
@@ -131,6 +141,27 @@ public class DeviceLocation implements LocationListener {
                 //locationManager.addGpsStatusListener(this);
 
                 locationManager.requestLocationUpdates(gpsFreqInMillis, gpsFreqInDistance, criteria, this, null);
+                currentBestLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+
+                // Parse altitude above sea level, Detailed description of NMEA string here http://aprs.gids.nl/nmea/#gga
+//                OnNmeaMessageListener onNmeaMessageListener = (nmea, timestamp) -> {
+//                    if (nmea.startsWith("$")) {
+//                        String[] tokens = nmea.split(",");
+//                        String type = tokens[0];
+//                        if (type.startsWith("$GPGGA")) {
+//                            if (!tokens[9].isEmpty()) {
+//                                currentBestAltitude = Double.parseDouble(tokens[9]);
+//                            }
+//                        }
+//                    }
+//                    Log.d("NMEA", nmea);
+//                };
+//                if(gpsLocationProvider != null && gpsLocationProvider.supportsAltitude()) {
+//                    Location altitudeLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                    if(altitudeLocation != null && altitudeLocation.hasAltitude()) {
+//                        currentBestAltitude = altitudeLocation.getAltitude();
+//                    } else currentBestAltitude = null;
+//                }
 
                 /* Battery Consumption Measurement */
                 gpsCount = 0;
@@ -181,7 +212,7 @@ public class DeviceLocation implements LocationListener {
 
         //setAccuracy(newLocation.getAccuracy());
         float horizontalAccuracy = location.getAccuracy();
-        if (horizontalAccuracy > getMinimumAccuracy()) { //10meter filter
+        if (horizontalAccuracy > getMinimumAccuracy()) { // 10meter filter
             Log.d(TAG, "Accuracy is too low.");
             inaccurateLocationList.add(location);
             return false;
@@ -234,7 +265,7 @@ public class DeviceLocation implements LocationListener {
     }
 
     private void performLocationEvents() {
-        if(locationEvents != null) {
+        if (locationEvents != null) {
             locationEvents.run();
         }
     }
@@ -242,6 +273,7 @@ public class DeviceLocation implements LocationListener {
     protected Location getDeviceLocation() {
         return currentBestLocation;
     }
+
 
     public void setLocationEvent(Runnable event) {
         locationEvents = event;
@@ -253,5 +285,9 @@ public class DeviceLocation implements LocationListener {
 
     public void resume() {
         startUpdatingLocation();
+    }
+
+    public Double getAltitude() {
+        return currentBestAltitude;
     }
 }

@@ -1,11 +1,11 @@
 package com.geoscene.elevation;
 
-import com.geoscene.utils.mercator.BoundingBox;
+import com.geoscene.utils.mercator.BoundingBoxCenter;
 
 import java.util.concurrent.CountDownLatch;
 
 public interface TopographyProvider {
 
-    static void fetchTopographyData(BoundingBox bbox, CountDownLatch latch) {};
+    static void fetchTopographyData(BoundingBoxCenter bbox, CountDownLatch latch) {};
     Raster getRaster();
 }

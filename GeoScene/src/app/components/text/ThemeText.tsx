@@ -6,7 +6,7 @@ import { useTheme } from '../../utils/hooks/Hooks';
 export const ThemeText: React.FC<TextProps> = (props) => {
   const theme = useTheme();
   return (
-    <Text {...props} style={{ color: theme.colors.text }}>
+    <Text {...props} style={[{ color: theme.colors.text }, props.style]}>
       {props.children}
     </Text>
   );

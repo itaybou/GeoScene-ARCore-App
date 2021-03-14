@@ -2,6 +2,7 @@ package com.geoscene.places.overpass;
 
 import android.util.Log;
 
+import com.geoscene.places.POIClient;
 import com.geoscene.places.PointsOfInterest;
 
 import io.reactivex.rxjava3.core.Single;
@@ -10,7 +11,7 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class OverpassClient {
+public class OverpassClient implements POIClient {
 
     public static final String BASE_URL = "https://overpass-api.de";
     private final OverpassService operpassAPI;
@@ -25,8 +26,7 @@ public class OverpassClient {
         operpassAPI = retrofit.create(OverpassService.class);
     }
 
-    public Single<PointsOfInterest> executeOverpassQuery(String query) {
-        long time = System.currentTimeMillis();
+    public Single<PointsOfInterest> executeQuery(String query) {
         return operpassAPI.executeSearchQuery(query).map(x -> {
             Log.d("RESPONSE", x.elements.toString());
             return x;

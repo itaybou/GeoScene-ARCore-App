@@ -1,11 +1,10 @@
+import { Button, Image } from 'react-native';
 import {
   HomeRoutesParamList,
   HomeStackRouteNavProps,
 } from '../params/RoutesParamList';
-import { useGeolocation, useSettings } from '../../utils/hooks/Hooks';
+import { useGeolocation, useSettings, useTheme } from '../../utils/hooks/Hooks';
 
-import { Button } from 'react-native';
-import { Card } from 'react-native-elements';
 import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
 import { PageCard } from '../../components/layout/PageCard';
@@ -20,12 +19,24 @@ interface StackProps {}
 
 const Stack = createStackNavigator<HomeRoutesParamList>();
 
+const appLogo = require('../../assets/img/logo.png');
+
 function Register({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
   const location = useGeolocation(accurateOptions);
   const { state, dispatch } = useSettings();
 
   return (
     <Center>
+      <Image
+        source={appLogo}
+        style={{
+          width: 400,
+          marginBottom: 5,
+          height: 60,
+          resizeMode: 'contain',
+          backgroundColor: 'transparent',
+        }}
+      />
       <ThemeText>Route name: {route.name}</ThemeText>
       <PageCard>
         {location.loading ? (
@@ -59,11 +70,13 @@ function Register({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
 }
 
 export const HomeStackRoutes: React.FC<StackProps> = ({}) => {
+  const theme = useTheme();
   return (
     <Stack.Navigator
       initialRouteName="Home"
       screenOptions={{
         header: Header,
+        animationEnabled: false,
       }}>
       <Stack.Screen name="Home" component={Register} />
     </Stack.Navigator>

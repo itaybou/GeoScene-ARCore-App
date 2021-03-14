@@ -1,14 +1,19 @@
 package com.geoscene.sensors;
 
 import android.content.Context;
+import android.hardware.GeomagneticField;
 import android.hardware.SensorEventListener;
 import android.location.Location;
 import android.location.LocationListener;
+
+import org.javatuples.Pair;
 
 public class DeviceSensorsManager implements DeviceSensors {
 
     DeviceLocation location;
     DeviceOrientation orientation;
+
+    private static DeviceSensors sensors;
 
     private DeviceSensorsManager(Context context) {
         location = new DeviceLocation(context);
@@ -16,8 +21,10 @@ public class DeviceSensorsManager implements DeviceSensors {
     }
 
     public static DeviceSensors initialize(Context context) {
-        DeviceSensors sensors = new DeviceSensorsManager(context);
-        sensors.resume();
+        if(sensors == null) {
+            sensors = new DeviceSensorsManager(context);
+            sensors.resume();
+        }
         return sensors;
     }
 
@@ -27,8 +34,23 @@ public class DeviceSensorsManager implements DeviceSensors {
     }
 
     @Override
-    public float getDeviceOrientation() {
+    public double getDeviceAltitude() {
+        Double altitude = location.getAltitude();
+        return altitude != null ? altitude : 0;
+    }
+
+    @Override
+    public Pair<Integer, Integer> getDeviceOrientation() {
+        return orientation.getDeviceOrientation();
+    }
+
+    @Override
+    public float getOrientation() {
         return orientation.getOrientation();
+    }
+
+    public GeomagneticField getGeomagneticField() {
+        return new GeomagneticField((float)location.getDeviceLocation().getLatitude(), (float)location.getDeviceLocation().getLongitude(), (float)location.getDeviceLocation().getAltitude(), location.getDeviceLocation().getTime());
     }
 
     @Override

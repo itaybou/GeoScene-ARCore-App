@@ -2,12 +2,14 @@ package com.geoscene.location_markers;
 
 import android.location.Location;
 import android.location.LocationListener;
+import android.util.Log;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
@@ -15,6 +17,8 @@ import com.google.ar.sceneform.math.Vector3;
 import java.util.ArrayList;
 
 import com.geoscene.utils.LocationUtils;
+import com.google.ar.sceneform.rendering.Color;
+import com.google.ar.sceneform.rendering.Light;
 
 public class LocationNode extends AnchorNode {
 
@@ -26,8 +30,8 @@ public class LocationNode extends AnchorNode {
     private double distanceInAR;
     private float scaleModifier = 1F;
     private float height = 0F;
-    private float gradualScalingMinScale = 0.8F;
-    private float gradualScalingMaxScale = 1.4F;
+    private float gradualScalingMinScale = 0.2F;
+    private float gradualScalingMaxScale = 1.0F;
 
     private LocationMarker.ScalingMode scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN;
     private LocationScene locationScene;
@@ -152,24 +156,24 @@ public class LocationNode extends AnchorNode {
     }
 
     private boolean isOverlapping(Node n, Ray ray, Vector3 target, Vector3 cameraPosition) {
-        Vector3 nodeDirection = Vector3.subtract(target, cameraPosition);
-        ray.setDirection(nodeDirection);
-
-        ArrayList<HitTestResult> hitTestResults = locationScene.mArSceneView.getScene().hitTestAll(ray);
-        if (hitTestResults.size() > 0) {
-
-            HitTestResult closestHit = null;
-            for (HitTestResult hit : hitTestResults) {
-                //Get the closest hit on enabled Node
-                if (hit.getNode() != null && hit.getNode().isEnabled()) {
-                    closestHit = hit;
-                    break;
-                }
-            }
-
-            // if closest hit is not the current node, it is hidden behind another node that is closer
-            return closestHit != null && closestHit.getNode() != n;
-        }
+//        Vector3 nodeDirection = Vector3.subtract(target, cameraPosition);
+//        ray.setDirection(nodeDirection);
+//
+//        ArrayList<HitTestResult> hitTestResults = locationScene.mArSceneView.getScene().hitTestAll(ray);
+//        if (hitTestResults.size() > 0) {
+//
+//            HitTestResult closestHit = null;
+//            for (HitTestResult hit : hitTestResults) {
+//                //Get the closest hit on enabled Node
+//                if (hit.getNode() != null && hit.getNode().isEnabled()) {
+//                    closestHit = hit;
+//                    break;
+//                }
+//            }
+//
+//            // if closest hit is not the current node, it is hidden behind another node that is closer
+//            return closestHit != null && closestHit.getNode() != n;
+//        }
         return false;
     }
 
@@ -203,8 +207,10 @@ public class LocationNode extends AnchorNode {
                             + direction.y * direction.y + direction.z * direction.z);
                     break;
                 case GRADUAL_TO_MAX_RENDER_DISTANCE:
+                    scale = (float) Math.sqrt(direction.x * direction.x
+                            + direction.y * direction.y + direction.z * direction.z);
                     float scaleDifference = gradualScalingMaxScale - gradualScalingMinScale;
-                    scale = (gradualScalingMinScale + ((locationScene.getDistanceLimit() - markerDistance) * (scaleDifference / locationScene.getDistanceLimit()))) * renderDistance;
+                    scale *= (gradualScalingMinScale + ((locationScene.getDistanceLimit() - markerDistance) * (scaleDifference / locationScene.getDistanceLimit()))); //* renderDistance;
                     break;
                 case GRADUAL_FIXED_SIZE:
                     scale = (float) Math.sqrt(direction.x * direction.x
@@ -218,9 +224,11 @@ public class LocationNode extends AnchorNode {
             scale *= scaleModifier;
 
             //Log.d("LocationScene", "scale " + scale);
-            n.setWorldPosition(new Vector3(n.getWorldPosition().x, getHeight(), n.getWorldPosition().z));
+            Vector3 worldPosition = n.getWorldPosition();
+            n.setWorldPosition(new Vector3(worldPosition.x, getHeight(), worldPosition.z));
             Quaternion lookRotation = Quaternion.lookRotation(direction, Vector3.up());
             n.setWorldRotation(lookRotation);
+            n.setLight(Light.builder(Light.Type.DIRECTIONAL).setColor(new Color(0xFFFFFFFF)).build());
             n.setWorldScale(new Vector3(scale, scale, scale));
         }
     }

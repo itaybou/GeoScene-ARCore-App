@@ -4,7 +4,9 @@ import com.geoscene.utils.Coordinate;
 
 import org.javatuples.Pair;
 
-public class BoundingBox {
+import java.util.stream.Stream;
+
+public class BoundingBoxCenter {
     // Semi-axes of WGS-84 geoidal reference
     private static final double WGS84_a = 6378137.0; // Major semiaxis [m]
     private static final double WGS84_b = 6356752.3; // Minor semiaxis [m]
@@ -12,7 +14,7 @@ public class BoundingBox {
     private Pair<Coordinate, Coordinate> bbox;
     private Coordinate center;
 
-    public BoundingBox(Coordinate center, double halfSideInKm) {
+    public BoundingBoxCenter(Coordinate center, double halfSideInKm) {
         bbox = getBoundingBox(center, halfSideInKm);
         this.center = center;
     }
@@ -37,23 +39,23 @@ public class BoundingBox {
         return Math.sqrt((An * An + Bn * Bn) / (Ad * Ad + Bd * Bd));
     }
 
-    private static Pair<Coordinate, Coordinate> getBoundingBox(Coordinate center, double halfSideInKm) {
+    private static Pair<Coordinate, Coordinate> getBoundingBox(Coordinate center, double sideKM) {
         // Bounding box surrounding the point at given coordinates,
         // assuming local approximation of Earth surface as a sphere
         // of radius given by WGS84
         double lat = deg2rad(center.getLat());
         double lon = deg2rad(center.getLon());
-        double halfSide = 1000 * halfSideInKm;
+        double halfSideMeter = 1000 * (sideKM / 2);
 
         // Radius of Earth at given latitude
         double radius = WGS84EarthRadius(lat);
         // Radius of the parallel at given latitude
         double pradius = radius * Math.cos(lat);
 
-        double latMin = lat - halfSide / radius;
-        double latMax = lat + halfSide / radius;
-        double lonMin = lon - halfSide / pradius;
-        double lonMax = lon + halfSide / pradius;
+        double latMin = lat - halfSideMeter / radius;
+        double latMax = lat + halfSideMeter / radius;
+        double lonMin = lon - halfSideMeter / pradius;
+        double lonMax = lon + halfSideMeter / pradius;
 
         return new Pair<>(
                 new Coordinate(rad2deg(latMin), rad2deg(lonMin)),
@@ -79,5 +81,9 @@ public class BoundingBox {
 
     public Coordinate getCenter() {
         return center;
+    }
+
+    public String toString() {
+        return String.format("[%s,%s,%s,%s]", getSouth(), getWest(), getNorth(), getEast());
     }
 }

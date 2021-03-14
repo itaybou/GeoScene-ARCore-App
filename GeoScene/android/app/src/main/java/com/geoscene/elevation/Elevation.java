@@ -1,21 +1,15 @@
 package com.geoscene.elevation;
 
-import android.hardware.SensorManager;
 import android.location.Location;
 import android.util.Log;
 
-import androidx.recyclerview.widget.AsyncListUtil;
-
+import com.geoscene.constants.LocationConstants;
 import com.geoscene.elevation.open_topography.OpenTopographyClient;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.DataCallback;
-import com.geoscene.utils.mercator.BoundingBox;
+import com.geoscene.utils.mercator.BoundingBoxCenter;
 
 import org.javatuples.Pair;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import io.reactivex.rxjava3.core.Single;
 
@@ -32,9 +26,10 @@ public class Elevation {
 
     public Single<Raster> fetchElevationRaster(DeviceSensors sensors) {
         Location deviceLocation = sensors.getDeviceLocation();
-        BoundingBox bbox = new BoundingBox(new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude()), 5); //PADDING_KM);
+        BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude()), LocationConstants.OBSERVER_BBOX); //PADDING_KM);
         Log.d("BBOX", bbox.getSouth() + "," + bbox.getNorth() + "," + bbox.getEast() + "," + bbox.getWest());
-        return openTopographyClient.fetchTopographyData(bbox, deviceLocation.getAltitude());
+        Log.d("ALTITUDE", String.valueOf(sensors.getDeviceAltitude()));
+        return openTopographyClient.fetchTopographyData(bbox, sensors.getDeviceAltitude());
     }
 
     private void setObserver(Location deviceLocation) {

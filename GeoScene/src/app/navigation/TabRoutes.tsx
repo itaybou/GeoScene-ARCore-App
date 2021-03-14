@@ -78,78 +78,76 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
   const theme = useTheme();
 
   return (
-    <NavigationContainer>
-      <Tabs.Navigator
-        initialRouteName="Home"
-        tabBarOptions={{
-          ...{
-            alignItems: 'center',
-            justifyContent: 'center',
-            activeTintColor: theme.colors.accent,
-            inactiveTintColor: theme.colors.inactiveTint,
-          },
-          ...{
-            tabStyle: styles.tabsStyle,
-            labelStyle: styles.labelStyle,
-            style: {
-              ...styles.tabBarStyle,
-              ...{
-                backgroundColor: theme.colors.tabs,
-                borderTopColor: theme.colors.border,
-              },
+    <Tabs.Navigator
+      initialRouteName="Home"
+      tabBarOptions={{
+        ...{
+          alignItems: 'center',
+          justifyContent: 'center',
+          activeTintColor: theme.colors.accent,
+          inactiveTintColor: theme.colors.inactiveTint,
+        },
+        ...{
+          tabStyle: styles.tabsStyle,
+          labelStyle: styles.labelStyle,
+          style: {
+            ...styles.tabBarStyle,
+            ...{
+              backgroundColor: theme.colors.tabs,
+              borderTopColor: theme.colors.border,
             },
           },
-        }}>
-        <Tabs.Screen
-          name="Home"
-          component={HomeStackRoutes}
-          options={{
-            tabBarButton: TabBarButton,
-            tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-            title: 'Home',
-          }}
-        />
-        <Tabs.Screen
-          name="Places"
-          component={PlacesStackRoutes}
-          options={{
-            tabBarButton: TabBarButton,
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon name="location-pin" color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="Scene"
-          component={SceneStackRoutes}
-          options={({ route }) => ({
-            tabBarIcon: containsNavigationTab(route)
-              ? TabBarCenterButton
-              : () => null,
-            tabBarLabel: () => null,
-            tabBarVisible: containsNavigationTab(route),
-          })}
-        />
-        <Tabs.Screen
-          name="Maps"
-          component={MapsStackRoutes}
-          options={{
-            tabBarButton: TabBarButton,
-            tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="Settings"
-          component={SettingsStackRoutes}
-          options={{
-            tabBarButton: TabBarButton,
-            tabBarIcon: ({ color }) => (
-              <TabBarIcon name="settings" color={color} />
-            ),
-          }}
-        />
-      </Tabs.Navigator>
-    </NavigationContainer>
+        },
+      }}>
+      <Tabs.Screen
+        name="Home"
+        component={HomeStackRoutes}
+        options={{
+          tabBarButton: TabBarButton,
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          title: 'Home',
+        }}
+      />
+      <Tabs.Screen
+        name="Places"
+        component={PlacesStackRoutes}
+        options={{
+          tabBarButton: TabBarButton,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="location-pin" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Scene"
+        component={SceneStackRoutes}
+        options={({ route }) => ({
+          tabBarIcon: containsNavigationTab(route)
+            ? TabBarCenterButton
+            : () => null,
+          tabBarLabel: () => null,
+          tabBarVisible: containsNavigationTab(route),
+        })}
+      />
+      <Tabs.Screen
+        name="Maps"
+        component={MapsStackRoutes}
+        options={{
+          tabBarButton: TabBarButton,
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="Settings"
+        component={SettingsStackRoutes}
+        options={{
+          tabBarButton: TabBarButton,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="settings" color={color} />
+          ),
+        }}
+      />
+    </Tabs.Navigator>
   );
 };
 
