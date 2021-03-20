@@ -81,6 +81,7 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
     <Tabs.Navigator
       initialRouteName="Home"
       tabBarOptions={{
+        keyboardHidesTabBar: true,
         ...{
           alignItems: 'center',
           justifyContent: 'center',

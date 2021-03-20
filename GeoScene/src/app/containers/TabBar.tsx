@@ -1,6 +1,6 @@
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import React from 'react';
 // import Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '@react-navigation/native';
 
@@ -14,6 +14,7 @@ export const TabBar: React.FC<TabBarProps> = ({ children }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.primary }]}>
       <Text>Hello</Text>
       {children}
+
       {/* <View>
             <Icon name='area-chart' style={grid.icon_green} />
             <Text style={grid.text_green}>{label}</Text>

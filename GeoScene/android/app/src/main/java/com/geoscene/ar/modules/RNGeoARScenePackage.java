@@ -29,6 +29,5 @@ public class RNGeoARScenePackage implements ReactPackage {
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Collections.singletonList(new RNGeoARSceneViewManager(reactContext));
-
     }
 }

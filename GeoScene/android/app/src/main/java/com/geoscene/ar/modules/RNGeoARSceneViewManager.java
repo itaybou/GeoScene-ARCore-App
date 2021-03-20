@@ -98,6 +98,7 @@ public class RNGeoARSceneViewManager extends ViewGroupManager<FrameLayout> {
                 .replace(reactNativeARViewId, ARfragment, String.valueOf(reactNativeARViewId))
 //                .replace(reactNativeMapsViewId, mapsFragment, String.valueOf(reactNativeMapsViewId))
                 .commit();
+        ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager().executePendingTransactions();
 
         addView(parentLayout, ARfragment.getView(), ViewGroup.LayoutParams.MATCH_PARENT);
     }

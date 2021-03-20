@@ -21,6 +21,7 @@ import com.geoscene.DemoUtils;
 import com.geoscene.R;
 import com.geoscene.constants.LocationConstants;
 import com.geoscene.permissions.ARLocationPermissionHelper;
+import com.geoscene.places.PointsOfInterest;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.geoscene.utils.Coordinate;
@@ -160,9 +161,10 @@ public class GeoARSceneFragment extends Fragment {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
-    public void dispatchName(String name) {
+    public void dispatchLocation(PointsOfInterest.Element location) {
         WritableMap event = Arguments.createMap();
-        event.putString("name", name);
+        event.putString("en_name", location.tags.nameEng);
+        event.putString("heb_name", location.tags.nameHeb);
         reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
                 getId(),
                 "locationMarkerTouch",

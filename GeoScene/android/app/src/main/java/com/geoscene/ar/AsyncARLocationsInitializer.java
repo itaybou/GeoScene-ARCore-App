@@ -129,11 +129,11 @@ public class AsyncARLocationsInitializer {
                                     public void onSuccess(@NonNull ElevationLocationData data) {
                                         Log.d("SUCCESS", "just a message");
                                         ARFragment.dispatchLoadingProgress("Determining your field of view.");
-                                        List<Pair<String, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
+                                        List<Pair<PointsOfInterest.Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
 
                                         Log.d("LOCATIONS", visibleLocations.toString());
                                         ARFragment.dispatchLoadingProgress("Field of view determined successfully.");
-                                        for (Pair<String, Coordinate> visibleLocation : visibleLocations) {
+                                        for (Pair<PointsOfInterest.Element, Coordinate> visibleLocation : visibleLocations) {
                                             ViewRenderable.builder()
                                                     .setView(context, R.layout.location_marker_card)
                                                     .build().thenAccept(renderable -> {
@@ -151,8 +151,7 @@ public class AsyncARLocationsInitializer {
                                                     TextView nameTextView = eView.findViewById(R.id.name);
                                                     TextView distanceTextView = eView.findViewById(R.id.distance);
                                                     distanceTextView.setText(node.getDistance() + "M");
-                                                    nameTextView.setText(visibleLocation.getValue0());
-
+                                                    nameTextView.setText(visibleLocation.getValue0().tags.name);
                                                 });
                                                 // Adding the marker
                                                 locationScene.mLocationMarkers.add(layoutLocationMarker);
@@ -184,13 +183,13 @@ public class AsyncARLocationsInitializer {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private Node getLocationMarkerNode(ViewRenderable renderable, String locationName) {
+    private Node getLocationMarkerNode(ViewRenderable renderable, PointsOfInterest.Element location) {
         Node base = new Node();
         base.setRenderable(renderable);
         // Add  listeners etc here
         View eView = renderable.getView();
         eView.setOnTouchListener((v, event) -> {
-            ARFragment.dispatchName(locationName);
+            ARFragment.dispatchLocation(location);
             return false;
 //            Toast.makeText(context, "Location marker touched.", Toast.LENGTH_LONG)
 //                    .show();

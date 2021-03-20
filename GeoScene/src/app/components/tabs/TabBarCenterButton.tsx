@@ -1,6 +1,7 @@
 import { Image, StyleSheet, View } from 'react-native';
 
 import React from 'react';
+import useKeyboardPadding from '../../utils/hooks/useKeyboardPadding';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface TabBarCenterProps {
@@ -22,8 +23,9 @@ export const TabBarCenterButton: React.FC<TabBarCenterProps> = ({
   focused,
 }) => {
   const theme = useTheme();
+  const { keyboardActive } = useKeyboardPadding();
 
-  return focused ? (
+  return keyboardActive ? null : focused ? (
     <View
       style={[
         styles.buttonBorder,

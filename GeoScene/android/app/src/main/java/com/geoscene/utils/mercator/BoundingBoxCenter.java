@@ -63,6 +63,10 @@ public class BoundingBoxCenter {
         );
     }
 
+    public static Coordinate getLatLonByRowCol(int x, int y, double latitude, double longitude) {
+        return new Coordinate(latitude  + (y * 90 / WGS84EarthRadius(latitude)) * (180 / Math.PI), longitude + (x * 90 / WGS84EarthRadius(latitude)) * (180 / Math.PI) / Math.cos(latitude * Math.PI/180));
+    }
+
     public double getSouth() {
         return bbox.getValue0().getLat();
     }

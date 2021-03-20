@@ -50,6 +50,14 @@ public class Raster {
         return rows;
     }
 
+    public double getxLowerLeftCorner() {
+        return xLowerLeftCorner;
+    }
+
+    public double getyLowerLeftCorner() {
+        return yLowerLeftCorner;
+    }
+
     public CellType[][] getViewshed() {
         return viewshed;
     }

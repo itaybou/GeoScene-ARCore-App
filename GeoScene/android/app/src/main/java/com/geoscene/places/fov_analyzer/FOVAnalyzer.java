@@ -13,14 +13,14 @@ import java.util.List;
 
 public class FOVAnalyzer {
 
-    public static List<Pair<String, Coordinate>> intersectVisiblePlaces(Raster raster, CellType[][] viewshed, PointsOfInterest placesResult) {
-        List<Pair<String, Coordinate>> visibleLocations = new ArrayList<>();
+    public static List<Pair<PointsOfInterest.Element, Coordinate>> intersectVisiblePlaces(Raster raster, CellType[][] viewshed, PointsOfInterest placesResult) {
+        List<Pair<PointsOfInterest.Element, Coordinate>> visibleLocations = new ArrayList<>();
         for (PointsOfInterest.Element element : placesResult.elements) {
             if (element.type.equals("node")) {
                 Coordinate nodeCoordinates = new Coordinate(element.lat, element.lon);
                 Pair<Integer, Integer> node = raster.getRowColByCoordinates(nodeCoordinates);
                 if (element.tags.name != null && viewshed[node.getValue1()][node.getValue0()] == CellType.VIEWSHED) {
-                    visibleLocations.add(new Pair<>(element.tags.name, nodeCoordinates));
+                    visibleLocations.add(new Pair<>(element, nodeCoordinates));
                 }
             } else {
                 Coordinate minCoordinate = new Coordinate(element.bounds.minlat, element.bounds.minlon);
@@ -38,7 +38,7 @@ public class FOVAnalyzer {
                 for (int y = minY; y < minY + dy && !intersection; ++y) {
                     for (int x = minX; x < minX + dx && !intersection; ++x) {
                         if (viewshed[y][x] == CellType.VIEWSHED) {
-                            Pair<String, Coordinate> location = new Pair<>(element.tags.name, new Coordinate(
+                            Pair<PointsOfInterest.Element, Coordinate> location = new Pair<>(element, new Coordinate(
                                     (minCoordinate.getLat() + maxCoordinate.getLat()) / 2,
                                     (minCoordinate.getLon() + maxCoordinate.getLon()) / 2));
                             visibleLocations.add(location);

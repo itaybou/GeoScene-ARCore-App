@@ -53,6 +53,7 @@ interface WebViewScreenProps {
   name: string;
   onMessage?: (event: WebViewMessageEvent) => void;
   injectedCode?: string;
+  showWebControls: boolean;
 }
 
 export const WebViewScreen: React.FC<WebViewScreenProps> = ({
@@ -61,6 +62,7 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
   name,
   onMessage,
   injectedCode,
+  showWebControls = true,
 }) => {
   const theme = useTheme();
   const [canGoBack, setCanGoBack] = useState<boolean>(false);
@@ -95,7 +97,7 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
     <>
       <WebView
         ref={webviewRef}
-        style={[styles.container, style]}
+        style={[styles.container, style, { bottom: showWebControls ? 50 : 0 }]}
         source={{ uri: currentUrl }}
         originWhitelist={['https://*']}
         startInLoadingState={true}
@@ -113,42 +115,44 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
           setCurrentUrl(navState.url);
         }}
       />
-      <View
-        style={[
-          styles.tabBarContainer,
-          { backgroundColor: theme.colors.tabs },
-        ]}>
-        <WebViewButton
-          text="Back"
-          iconName="arrow-left-circle"
-          handler={backButtonHandler}
-          disabled={!canGoBack}
-        />
-        <WebViewButton
-          text="Refresh"
-          iconName="refresh"
-          handler={refreshButtonHandler}
-          disabled={false}
-        />
-        <WebViewButton
-          text={name}
-          iconName="direction"
-          handler={initialButtonHandler}
-          disabled={currentUrl === uri}
-        />
-        <WebViewButton
-          text="Next"
-          iconName="arrow-right-circle"
-          handler={frontButtonHandler}
-          disabled={!canGoForward}
-        />
-      </View>
+      {showWebControls && (
+        <View
+          style={[
+            styles.tabBarContainer,
+            { backgroundColor: theme.colors.tabs },
+          ]}>
+          <WebViewButton
+            text="Back"
+            iconName="arrow-left-circle"
+            handler={backButtonHandler}
+            disabled={!canGoBack}
+          />
+          <WebViewButton
+            text="Refresh"
+            iconName="refresh"
+            handler={refreshButtonHandler}
+            disabled={false}
+          />
+          <WebViewButton
+            text={name}
+            iconName="direction"
+            handler={initialButtonHandler}
+            disabled={currentUrl === uri}
+          />
+          <WebViewButton
+            text="Next"
+            iconName="arrow-right-circle"
+            handler={frontButtonHandler}
+            disabled={!canGoForward}
+          />
+        </View>
+      )}
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, bottom: 50 },
+  container: { flex: 1 },
   loadingContainer: {
     position: 'absolute',
     height: '100%',

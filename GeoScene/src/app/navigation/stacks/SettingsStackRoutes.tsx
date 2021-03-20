@@ -13,6 +13,7 @@ import { ThemeProvider } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useState } from 'react';
 import useTheme from '../../utils/hooks/useTheme';
+import useUser from '../../utils/hooks/useUser';
 
 interface StackProps {}
 
@@ -24,6 +25,10 @@ function Register({ route }: SettingsStackRouteNavProps<'Settings'>) {
   let [ShowComment, setShowModelComment] = useState<boolean>(false);
   let [animateModal, setanimateModal] = useState<boolean>(false);
 
+  const theme = useTheme();
+
+  const { state, dispatch } = useUser();
+
   return (
     <View
       style={{
@@ -31,13 +36,13 @@ function Register({ route }: SettingsStackRouteNavProps<'Settings'>) {
         flexDirection: 'row',
         alignSelf: 'flex-end',
       }}>
-      <AnimatedSwipeView
+      {/* <AnimatedSwipeView
         toValue={width}
         fromValue={0}
         duration={500}
         isViewOpen={ShowComment}>
         <Text>Hello World</Text>
-      </AnimatedSwipeView>
+      </AnimatedSwipeView> */}
     </View>
   );
 

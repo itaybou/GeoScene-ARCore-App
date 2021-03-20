@@ -32,6 +32,7 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
 
     public final int COMMAND_CREATE = 1;
     public final int COMMAND_DISPLAY = 2;
+    public final int COMMAND_SET_BBOX = 3;
 
     public RNMapsViewManager(ReactApplicationContext reactContext) {
         super();
@@ -58,7 +59,8 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
                 "CREATE", COMMAND_CREATE,
-                "DISPLAY", COMMAND_DISPLAY
+                "DISPLAY", COMMAND_DISPLAY,
+                "SET_BBOX", COMMAND_SET_BBOX
         );
     }
 
@@ -66,20 +68,27 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
     public void receiveCommand(@NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
         Log.d(REACT_TAG,"command received: " + commandId + " view id: " + args);
         super.receiveCommand(root, commandId, args);
+        Log.d("MAPS", args.toString());
         int commandNo = Integer.parseInt(commandId);
-        int arg;
         switch(commandNo) {
             case COMMAND_CREATE:
-                arg = args.getInt(0);
-                createMapsFragment(root, arg);
+                createMapsFragment(root, args.getInt(0), args.getBoolean(1), args.getBoolean(2), args.getBoolean(3), args.getBoolean(4));
                 break;
             case COMMAND_DISPLAY:
-                arg = args.getInt(0);
-                displayMapsFragment(root, arg);
+                displayMapsFragment(root, args.getInt(0));
+                break;
+            case COMMAND_SET_BBOX:
+                setMapBoundingBox(root, args.getInt(0), args.getDouble(1), args.getDouble(2), args.getInt(3), args.getBoolean(4));
                 break;
             default:
                 Log.w(REACT_TAG, "Invalid command recieved from ReactNative");
         }
+    }
+
+    private void setMapBoundingBox(FrameLayout root, int reactNativeMapsViewId, double latitude, double longitude, int radius, boolean placeMarker) {
+        Log.d(REACT_TAG, Integer.toString(reactNativeMapsViewId));
+
+        mapsFragment.zoomToBoundingBox(latitude, longitude, radius, placeMarker);
     }
 
     private void displayMapsFragment(FrameLayout parentLayout, int reactNativeMapsViewId) {
@@ -88,7 +97,7 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
         mapsFragment.zoomToBoundingBox();
     }
 
-    private void createMapsFragment(FrameLayout parentLayout, int reactNativeMapsViewId) {
+    private void createMapsFragment(FrameLayout parentLayout, int reactNativeMapsViewId, boolean useCompassOrientation, boolean useObserverLocation, boolean enableZoom, boolean enableLocationMarkerTap) {
 
         ViewGroup parentView = (ViewGroup) parentLayout.findViewById(reactNativeMapsViewId).getParent();
         //organizeLayout(parentView);
@@ -102,13 +111,14 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
 
 
         //final MapsFragment mapsFragment = new MapsFragment();
-        mapsFragment = new MapsFragment();
+        mapsFragment = new MapsFragment(reactContext, useCompassOrientation, useObserverLocation, enableZoom, enableLocationMarkerTap);
 
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
                 .replace(reactNativeMapsViewId, mapsFragment, String.valueOf(reactNativeMapsViewId))
 //                .replace(reactNativeMapsViewId, mapsFragment, String.valueOf(reactNativeMapsViewId))
                 .commit();
+        ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager().executePendingTransactions();
 
         addView(parentLayout, mapsFragment.getView(), ViewGroup.LayoutParams.MATCH_PARENT);
 
@@ -128,6 +138,15 @@ public class RNMapsViewManager extends ViewGroupManager<FrameLayout> {
 //                MapBuilder.of("registrationName", "onLocationMarkerTouch")
 //        );
 //    }
+
+    @Nullable
+    @Override
+    public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
+        return MapBuilder.of(
+                "mapSingleTap",
+                MapBuilder.of("registrationName", "onMapSingleTap")
+        );
+    }
 
     private void organizeLayout(ViewGroup parentView) {
         Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {

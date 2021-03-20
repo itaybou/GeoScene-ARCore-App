@@ -39,7 +39,7 @@ public class OverpassInterpreter {
                 .end()
                 .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
 
-        System.out.println(query.build());
+
         interpret(query.build(), raster, viewshed);
     }
 
@@ -49,6 +49,7 @@ public class OverpassInterpreter {
             OverpassServiceProvider.get().interpreter(query).enqueue(new Callback<>() {
                 @Override
                 public void onResponse(Call<OverpassQueryResult> call, Response<OverpassQueryResult> response) {
+                    System.out.println(response);
                     if (response.isSuccessful()) {
                         System.out.println("Query time 50km: " + ((double) (System.currentTimeMillis() - time) / 1000) + "sec");
                         assert response.body() != null;
@@ -63,6 +64,8 @@ public class OverpassInterpreter {
                                             " | lon, lat: (" + e.lon + ", " + e.lat + "), " +
                                             "XY: (" + SphericalMercator.lon2x(e.lon) + ", " + SphericalMercator.lat2y(e.lat) + ")");
                         });
+                    } else {
+                        System.out.println(response.code());
                     }
                 }
 

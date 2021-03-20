@@ -6,6 +6,7 @@ import com.geoscene.elevation.Elevation;
 import com.geoscene.elevation.Raster;
 import com.geoscene.elevation.open_topography.CellType;
 import com.geoscene.utils.Coordinate;
+import com.geoscene.utils.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.algorithms.BresenhamCircle;
 import com.geoscene.viewshed.algorithms.BresenhamLine;
 
@@ -14,6 +15,7 @@ import org.javatuples.Pair;
 import java.util.List;
 
 public class ViewShed {
+    public static final String TAG = "VIEWSHED";
     static final int HEIGHT_TOLERENCE = 0; // maybe not true
     static final int DISTANCE_PRICE = 4;
     private static CellType[][] viewshed;
@@ -26,6 +28,8 @@ public class ViewShed {
 
     public static CellType[][] calculateViewshed(Raster raster, double observerLat, double observerLon, double observerAltitude) {
         Pair<Integer, Integer> observerLocation = raster.getRowColByCoordinates(new Coordinate(observerLat, observerLon));
+        Log.d(TAG, observerLat + ", " + observerLon);
+        Log.d(TAG, BoundingBoxCenter.getLatLonByRowCol(observerLocation.getValue0(), observerLocation.getValue1(), raster.getyLowerLeftCorner(), raster.getxLowerLeftCorner()).toString());
         double observerElevation = raster.getElevation(observerLocation.getValue0(), observerLocation.getValue1());
         int radius = (Math.min(raster.getCols(), raster.getRows()) / 2) - 1;
         Log.d("VIEWSHED", observerAltitude + ", " + observerElevation);

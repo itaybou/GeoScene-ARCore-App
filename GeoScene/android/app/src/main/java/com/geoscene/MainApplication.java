@@ -29,12 +29,9 @@ public class MainApplication extends Application implements ReactApplication {
         @Override
         protected List<ReactPackage> getPackages() {
           List<ReactPackage> packages = new PackageList(this).getPackages();
-            //packages.add(new OrientationPackage());
-//            packages.add(new OrientationPackage());
             packages.add(new RNMapsPackage());
             packages.add(new RNGeoARScenePackage());
             packages.add(new OAuthManagerPackage());
-
 
             return packages;
         }

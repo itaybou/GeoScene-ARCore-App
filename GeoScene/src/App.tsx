@@ -42,7 +42,7 @@ interface AppProps {}
 
 const App: React.FC<AppProps> = ({}) => {
   useEffect(() => {
-    console.log('hello');
+    console.log('hello2');
   }, []);
 
   return (
