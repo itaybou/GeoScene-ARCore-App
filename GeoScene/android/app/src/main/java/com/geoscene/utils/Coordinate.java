@@ -4,6 +4,8 @@ public class Coordinate {
     private double lat;
     private double lon;
 
+    public Coordinate() {}
+
     public Coordinate(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;

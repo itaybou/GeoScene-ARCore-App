@@ -10,6 +10,7 @@ import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
 import React from 'react';
 import { ThemeProvider } from '@react-navigation/native';
+import { createChangeset } from '../../api/osm/OSMApi';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useState } from 'react';
 import useTheme from '../../utils/hooks/useTheme';
@@ -36,6 +37,10 @@ function Register({ route }: SettingsStackRouteNavProps<'Settings'>) {
         flexDirection: 'row',
         alignSelf: 'flex-end',
       }}>
+      <Button
+        title="Create Changeset"
+        onPress={() => console.log(createChangeset())}
+      />
       {/* <AnimatedSwipeView
         toValue={width}
         fromValue={0}

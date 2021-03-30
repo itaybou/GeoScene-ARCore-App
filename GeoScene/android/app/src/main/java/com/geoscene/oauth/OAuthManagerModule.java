@@ -168,21 +168,22 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
   public void makeRequest(
     final String providerName, 
     final String urlString,
+    final boolean rawResponse,
     final ReadableMap params, 
     final Callback onComplete) {
 
       Log.i(TAG, "makeRequest called for " + providerName + " to " + urlString);
       try {
-        HashMap<String,Object> cfg = this.getConfiguration(providerName);
+        HashMap<String, Object> cfg = this.getConfiguration(providerName);
         final String authVersion = (String) cfg.get("auth_version");
 
         URL url;
         try {
           if (urlString.contains("http")) {
             url = new URL(urlString);
-          }  else {
+          } else {
             String apiHost = (String) cfg.get("api_url");
-            url  = new URL(apiHost + urlString);
+            url = new URL(apiHost + urlString);
           }
           Log.d(TAG, url.toString());
         } catch (MalformedURLException ex) {
@@ -192,7 +193,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
         }
 
         String httpMethod;
-        if (params.hasKey("method")) { 
+        if (params.hasKey("method")) {
           httpMethod = params.getString("method");
         } else {
           httpMethod = "GET";
@@ -217,25 +218,26 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
           httpVerb = Verb.TRACE;
         } else {
           httpVerb = Verb.GET;
-        }        
-        
+        }
+
         ReadableMap requestParams = null;
         if (params != null && params.hasKey("params")) {
           requestParams = params.getMap("params");
         }
         OAuthRequest request = oauthRequestWithParams(providerName, cfg, authVersion, httpVerb, url, requestParams);
+        if (params != null && params.hasKey("headers")) {
+          ReadableMap headers = params.getMap("headers");
+          ReadableMapKeySetIterator iter = headers.keySetIterator();
+          while (iter.hasNextKey()) {
+            String key = iter.nextKey();
+            request.addHeader(key, headers.getString(key));
+          }
+        }
 
         if (authVersion.equals("1.0")) {
-          final OAuth10aService service = 
-            OAuthManagerProviders.getApiFor10aProvider(providerName, cfg, requestParams, null);
+          final OAuth10aService service =
+                  OAuthManagerProviders.getApiFor10aProvider(providerName, cfg, requestParams, null);
           OAuth1AccessToken token = _credentialsStore.get(providerName, OAuth1AccessToken.class);
-          
-          service.signRequest(token, request);
-        } else if (authVersion.equals("2.0")) {
-          final OAuth20Service service =
-            OAuthManagerProviders.getApiFor20Provider(providerName, cfg, requestParams, null);
-          OAuth2AccessToken token = _credentialsStore.get(providerName, OAuth2AccessToken.class);
-
           service.signRequest(token, request);
         } else {
           // Some kind of error here
@@ -246,7 +248,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
           onComplete.invoke(err);
           return;
         }
-        
+
         final Response response = request.send();
         String rawBody = response.getBody();
 
@@ -257,10 +259,16 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
 //        if(rawBody.contains("<") || rawBody.contains(">"))
 //          rawBody = XML.toJSONObject(rawBody).toString();
 
-        WritableMap resp = Arguments.createMap();
-        resp.putInt("status", response.getCode());
-        resp.putString("data", U.xmlToJson(rawBody, Json.JsonStringBuilder.Step.COMPACT, U.Mode.REPLACE_EMPTY_VALUE_WITH_NULL));
-        onComplete.invoke(null, resp);
+        Log.d(TAG, response.getHeaders() + ", " + response.getBody());
+
+        if (!rawResponse) {
+          WritableMap resp = Arguments.createMap();
+          resp.putInt("status", response.getCode());
+          resp.putString("data", U.xmlToJson(rawBody, Json.JsonStringBuilder.Step.COMPACT, U.Mode.REPLACE_EMPTY_VALUE_WITH_NULL));
+          onComplete.invoke(null, resp);
+        } else {
+          onComplete.invoke(null, rawBody);
+        }
  
       } catch (IOException ex) {
         Log.e(TAG, "IOException when making request: " + ex.getMessage());

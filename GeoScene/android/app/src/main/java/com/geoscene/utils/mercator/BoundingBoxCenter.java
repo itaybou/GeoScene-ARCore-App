@@ -6,6 +6,10 @@ import org.javatuples.Pair;
 
 import java.util.stream.Stream;
 
+import io.realm.RealmModel;
+import io.realm.RealmObject;
+import io.realm.annotations.RealmClass;
+
 public class BoundingBoxCenter {
     // Semi-axes of WGS-84 geoidal reference
     private static final double WGS84_a = 6378137.0; // Major semiaxis [m]
@@ -13,6 +17,8 @@ public class BoundingBoxCenter {
 
     private Pair<Coordinate, Coordinate> bbox;
     private Coordinate center;
+
+    public BoundingBoxCenter() { }
 
     public BoundingBoxCenter(Coordinate center, double halfSideInKm) {
         bbox = getBoundingBox(center, halfSideInKm);
@@ -85,6 +91,10 @@ public class BoundingBoxCenter {
 
     public Coordinate getCenter() {
         return center;
+    }
+
+    public boolean isBoundingBoxContains(BoundingBoxCenter other) {
+        return other.getWest() >= getWest() && other.getSouth() >= getSouth() && other.getNorth() <= getNorth() && other.getEast() <= getEast();
     }
 
     public String toString() {

@@ -19,6 +19,7 @@ const identity = (props) => props;
 /**
  * Manager is the OAuth layer
  **/
+
 export default class OAuthManager {
   constructor(appName, opts = {}) {
     invariant(
@@ -69,14 +70,19 @@ export default class OAuthManager {
     return promisify('getSavedAccount')(provider, options);
   }
 
-  makeRequest(provider, url, opts = {}) {
+  makeRequest(provider, url, rawResponse: boolean, opts = {}) {
     const options = Object.assign({}, this._options, opts, {
       app_name: this.appName,
     });
 
     console.log('making request', provider, url, opts);
 
-    return promisify('makeRequest')(provider, url, options).then((response) => {
+    return promisify('makeRequest')(
+      provider,
+      url,
+      rawResponse ?? false,
+      options,
+    ).then((response) => {
       // Little bit of a hack to support Android until we have a better
       // way of decoding the JSON response on the Android side
       if (response && response.data && typeof response.data === 'string') {

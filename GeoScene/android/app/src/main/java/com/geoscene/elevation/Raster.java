@@ -50,6 +50,10 @@ public class Raster {
         return rows;
     }
 
+    public double getCellSize() {
+        return cellSize;
+    }
+
     public double getxLowerLeftCorner() {
         return xLowerLeftCorner;
     }

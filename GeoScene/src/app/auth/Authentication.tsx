@@ -3,9 +3,9 @@ import OAuthManager from './Auth';
 import React from 'react';
 import { UserActionTypes } from '../providers/reducers/UserReducer';
 
-const manager = new OAuthManager('GeoScene');
+export const authManager = new OAuthManager('GeoScene');
 
-manager.addProvider({
+authManager.addProvider({
   osm: {
     auth_version: '1.0',
     authorize_url: 'https://www.openstreetmap.org/oauth/authorize',
@@ -22,13 +22,20 @@ const config = {
   },
 };
 
-manager.configure(config);
+authManager.configure(config);
 
 export const getActiveUser = async () => {
   try {
-    const details = await manager.makeRequest('osm', 'api/0.6/user/details', {
-      method: 'GET',
-    });
+    const details = await authManager.makeRequest(
+      'osm',
+      'api/0.6/user/details',
+      false,
+      {
+        method: 'GET',
+      },
+    );
+
+    console.log(details?.data?.osm?.user);
     return {
       name: details.data.osm.user['-display_name'],
       img: details.data.osm.user.img['-href'],
@@ -43,7 +50,8 @@ export const getActiveUser = async () => {
 };
 
 export const auth = async (dispatch: React.Dispatch<any>) => {
-  manager
+  await deauth(dispatch);
+  authManager
     .authorize('osm')
     .then(async (resp) => {
       console.log(resp);
@@ -57,10 +65,10 @@ export const auth = async (dispatch: React.Dispatch<any>) => {
 };
 
 export const deauth = async (dispatch: React.Dispatch<any>) => {
-  manager
+  authManager
     .deauthorize('osm')
     .then(async (resp) => {
-      console.log(resp);
+      console.log('deauth ' + resp);
       dispatch({
         type: UserActionTypes.SIGN_IN,
         payload: { user: null },
@@ -71,7 +79,7 @@ export const deauth = async (dispatch: React.Dispatch<any>) => {
 
 export const authorizationDetails = async () => {
   try {
-    const response = await manager.savedAccount('osm');
+    const response = await authManager.savedAccount('osm');
     return response;
   } catch (err) {
     return null;

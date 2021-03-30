@@ -229,6 +229,14 @@ dependencies {
     //
     implementation 'com.github.javadev:underscore:1.64'
 
+//    implementation 'com.facebook.stetho:stetho:1.5.1'
+//    implementation 'com.uphyca:stetho_realm:2.1.0'
+//    implementation 'com.uphyca:stetho_realm:2.3.0'
+
+    // Stetho for debugging using chrome inspect tool
+//    debugImplementation 'com.facebook.stetho:stetho:1.5.0'
+//    debugImplementation 'com.facebook.stetho:stetho-okhttp3:1.5.0'
+
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.jetbrains:annotations:15.0'

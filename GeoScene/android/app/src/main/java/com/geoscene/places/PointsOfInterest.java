@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.RealmList;
+import io.realm.RealmObject;
+
 public class PointsOfInterest {
     @SerializedName("elements")
     public List<Element> elements = new ArrayList<>();

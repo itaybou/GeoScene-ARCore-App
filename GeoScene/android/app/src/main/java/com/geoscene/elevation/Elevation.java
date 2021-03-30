@@ -4,6 +4,7 @@ import android.location.Location;
 import android.util.Log;
 
 import com.geoscene.constants.LocationConstants;
+import com.geoscene.data_access.StorageAccess;
 import com.geoscene.elevation.open_topography.OpenTopographyClient;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.utils.Coordinate;

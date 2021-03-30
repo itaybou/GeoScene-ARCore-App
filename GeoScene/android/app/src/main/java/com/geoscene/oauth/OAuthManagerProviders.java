@@ -136,6 +136,7 @@ public class OAuthManagerProviders {
     final String access_token,
     @Nullable final ReadableMap params
   ) {
+    String a = "a";
     if (params != null && params.hasKey("params")) {
       ReadableMapKeySetIterator iterator = params.keySetIterator();
       while (iterator.hasNextKey()) {
@@ -154,6 +155,10 @@ public class OAuthManagerProviders {
             throw new IllegalArgumentException("Could not read object with key: " + key);
         }
       }
+    }
+    if(params != null && params.hasKey("body")) {
+      String body = params.getString("body");
+      request.setPayload(body);
     }
     return request;
   }
