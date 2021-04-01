@@ -18,10 +18,10 @@ export const getPermissions = async () => {
 //    return details;
 //  };
 
-export const addNewLocation = async (lat, lon, name, description) => {
+export const addNewLocation = async (lat, lon, name, nameHE, description) => {
   const csID = await createChangeset();
-  const nodeID = await createNode(csID, lat, lon, name, description);
-  console.log(nodeID);
+  const nodeID = await createNode(csID, lat, lon, name, nameHe description);
+  //console.log(nodeID);
 };
 
 export const createChangeset = async () => {
@@ -32,7 +32,7 @@ export const createChangeset = async () => {
     .up()
     .ele('tag', { k: 'comment', v: 'adding new node' })
     .end({ pretty: true, allowEmpty: false });
-  //   console.log(perm.data.osm.permissions);
+     //console.log(xml);
   const id = await authManager.makeRequest(
     'osm',
     'api/0.6/changeset/create',
@@ -50,10 +50,12 @@ export const createChangeset = async () => {
 };
 
 
-export const createNode = async (csID:string, lat:string, lon:string, name:string, description) => {
+export const createNode = async (csID:string, lat:string, lon:string, name:string, nameHE:string, description) => {
   const xml = xmlBuilder
-    .ele('node', { k: 'cangeset', v: csID }, { k: 'lat', v: lat }, { k: 'lon', v: lon } )
+    .ele('node', { 'changeset': csID, 'lat': lat, 'lon': lon })
     .ele('tag', { k: 'name', v: name })
+    .up()
+    .ele('tag', { k: 'name:he', v: nameHE })
     .up()
     .ele('tag', { k: 'description', v: description })
     .end({ pretty: true, allowEmpty: false });
