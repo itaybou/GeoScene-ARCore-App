@@ -54,4 +54,18 @@ public class Places {
 //        System.out.println(query.build());
         return overpassClient.executeQuery(query.build());
     }
+
+    //filter pois by username
+    private Single<PointsOfInterest> searchUserPOIs(String userName) {
+        OverpassQuery query = new OverpassQuery()
+                .format(JSON)
+                .timeout(30)
+                .filterQuery()
+                .node()
+                .tag("user", userName)
+                .end()
+                .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
+        System.out.println(query.build());
+        return overpassClient.executeQuery(query.build());
+    }
 }
