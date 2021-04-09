@@ -24,13 +24,14 @@
   <component name="ChangeListManager">
     <list default="true" id="e1088dfb-e730-41e2-a861-c9b2773e2e2a" name="Default Changelist" comment="fetch nodes by username function">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeoScene/android/app/src/main/java/com/geoscene/places/Places.java" beforeDir="false" afterPath="$PROJECT_DIR$/GeoScene/android/app/src/main/java/com/geoscene/places/Places.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GeoScene/src/app/api/osm/OSMApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GeoScene/src/app/api/osm/OSMApi.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[2478b7043c017ece]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -114,6 +115,15 @@
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
@@ -125,10 +135,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="392" y="0" key="#Unnamed/0.0.1366.728@0.0.1366.728" timestamp="1617740681620" />
-    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1617741034315">
+    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1617980096429">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.728@0.0.1366.728" timestamp="1617741034315" />
+    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.728@0.0.1366.728" timestamp="1617980096429" />
     <state x="463" y="119" key="FileChooserDialogImpl" timestamp="1617143498184">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -144,7 +154,7 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="java-method">
           <url>file://$PROJECT_DIR$/GeoScene/android/app/src/main/java/com/geoscene/places/Places.java</url>
           <line>34</line>
-          <properties class="com.geoscene.places.Places" method="searchAround">
+          <properties class="com.geoscene.places.Places">
             <option name="EMULATED" value="true" />
           </properties>
           <option name="timeStamp" value="1" />

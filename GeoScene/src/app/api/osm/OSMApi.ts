@@ -20,7 +20,7 @@ export const getPermissions = async () => {
 
 export const addNewLocation = async (lat, lon, name, nameHE, description) => {
   const csID = await createChangeset();
-  const nodeID = await createNode(csID, lat, lon, name, nameHe description);
+  const nodeID = await createNode(csID, lat, lon, name, nameHE, description);
   //console.log(nodeID);
 };
 
@@ -58,6 +58,35 @@ export const createNode = async (csID:string, lat:string, lon:string, name:strin
     .ele('tag', { k: 'name:he', v: nameHE })
     .up()
     .ele('tag', { k: 'description', v: description })
+    .up()
+    .ele('tag', { k: 'created_by', v: 'GeoScene' })
+    .end({ pretty: true, allowEmpty: false });
+    console.log(xml);
+  const id = await authManager.makeRequest(
+    'osm',
+    'api/0.6/node/create',
+    true,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'text/xml' },
+      params: {
+        body: xml,
+      },
+    },
+  );
+  return id;
+};
+
+export const updateNode = async (csID:string, nodeID) => {
+  const xml = xmlBuilder
+    .ele('node', { 'changeset': csID, 'lat': lat, 'lon': lon })
+    .ele('tag', { k: 'name', v: name })
+    .up()
+    .ele('tag', { k: 'name:he', v: nameHE })
+    .up()
+    .ele('tag', { k: 'description', v: description })
+    .up()
+    .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: true, allowEmpty: false });
   const id = await authManager.makeRequest(
     'osm',
