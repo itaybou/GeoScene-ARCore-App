@@ -16,6 +16,7 @@ interface ThemeButtonProps {
   onPress: () => void;
   text?: string;
   icon?: string;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -24,6 +25,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
   icon,
   style,
   onPress,
+  disabled = false,
 }) => {
   const theme = useTheme();
   return (
@@ -33,6 +35,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
         style,
         { backgroundColor: theme.colors.accent_secondary },
       ]}
+      disabled={disabled}
       onPress={onPress}
       underlayColor={theme.colors.accent_secondary_dark}
       activeOpacity={0.2}>

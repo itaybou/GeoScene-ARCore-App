@@ -2,6 +2,7 @@ export interface Theme {
   colors: {
     primary: string;
     accent: string;
+    error: string;
     accent_bright: string;
     background: string;
     accent_secondary: string;
@@ -32,6 +33,7 @@ export const Themes: Readonly<{ dark: Theme; light: Theme }> = Object.freeze({
   dark: {
     colors: {
       primary: '#94CF51',
+      error: '#C04F64',
       background: '#121212',
       accent: '#94CF51',
       accent_bright: '#c2e49b',
@@ -49,6 +51,7 @@ export const Themes: Readonly<{ dark: Theme; light: Theme }> = Object.freeze({
   light: {
     colors: {
       primary: '#94CF51',
+      error: '#A60422',
       background: '#f1f1f1',
       accent: '#94CF51',
       accent_bright: '#c2e49b',

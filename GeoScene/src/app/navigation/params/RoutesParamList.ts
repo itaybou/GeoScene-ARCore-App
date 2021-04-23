@@ -1,3 +1,4 @@
+import { AddPlaceProps } from '../../containers/screens/places/AddPlace';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -38,8 +39,8 @@ export type ExternalStackRouteNavProps<
 };
 
 export type TabRoutesParamList = {
-  Home: undefined;
-  Places: undefined;
+  Home: HomeRoutesParamList;
+  Places: PlacesRoutesParamList;
   Scene: SceneRoutesParamList;
   Maps: undefined;
   Settings: undefined;
@@ -61,6 +62,7 @@ export type HomeStackRouteNavProps<T extends keyof HomeRoutesParamList> = {
 
 export type PlacesRoutesParamList = {
   Places: undefined;
+  AddPlace: AddPlaceProps;
   DownloadPlace: undefined;
   UserPlaces: undefined;
 };

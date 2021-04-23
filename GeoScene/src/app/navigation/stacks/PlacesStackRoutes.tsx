@@ -13,6 +13,7 @@ import {
 } from '../params/RoutesParamList';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
+import { AddPlace } from '../../containers/screens/places/AddPlace';
 import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
 import { LocationSearchBar } from '../../components/input/LocationSearchBar';
@@ -37,6 +38,10 @@ function Register({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
   return (
     <Center>
       <Text>Route name: {route.name}</Text>
+      <ThemeButton
+        onPress={() => navigation.navigate('AddPlace')}
+        text="Add Place"
+      />
       <ThemeButton
         onPress={() => navigation.navigate('DownloadPlace')}
         text="Download Places"
@@ -244,6 +249,7 @@ export const PlacesStackRoutes: React.FC<StackProps> = ({}) => {
         animationEnabled: false,
       }}>
       <Stack.Screen name="Places" component={Register} />
+      <Stack.Screen name="AddPlace" component={AddPlace} />
       <Stack.Screen name="DownloadPlace" component={DownloadPlace} />
       <Stack.Screen name="UserPlaces" component={UserPlaces} />
     </Stack.Navigator>

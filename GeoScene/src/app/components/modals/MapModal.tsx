@@ -16,15 +16,18 @@ import useTheme from '../../utils/hooks/useTheme';
 interface MapModalProps {
   showSlider: boolean;
   title?: string;
-  buttonText: string;
+  buttonText?: string;
   isVisible: boolean;
   showButtonIcon: boolean;
   shownPlace: {
-    latitude: number | undefined;
-    longitude: number | undefined;
+    latitude: number | null | undefined;
+    longitude: number | null | undefined;
   } | null;
-  customComponent?: JSX.Element;
+  customComponent?: JSX.Element | null;
+  enableLocationTap?: boolean;
+  enableZoom?: boolean;
   showBoundingCircle: boolean;
+  onMapSingleTap?: (event: any) => void;
   hide: () => void;
   onButtonPress?: (value: any) => void;
 }
@@ -42,6 +45,9 @@ export const MapModal: React.FC<MapModalProps> = ({
   showButtonIcon,
   onButtonPress,
   title,
+  onMapSingleTap,
+  enableZoom = false,
+  enableLocationTap = false,
 }) => {
   const theme = useTheme();
   const mapRef = useRef<number | null>(null);
@@ -114,10 +120,11 @@ export const MapModal: React.FC<MapModalProps> = ({
           },
         ]}>
         <NativeMapView
-          enableZoom={false}
+          enableZoom={enableZoom}
           showBoundingCircle={showBoundingCircle}
           useObserverLocation={false}
-          enableLocationTap={false}
+          onMapSingleTap={onMapSingleTap}
+          enableLocationTap={enableLocationTap}
           style={styles.map}
           ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
         />

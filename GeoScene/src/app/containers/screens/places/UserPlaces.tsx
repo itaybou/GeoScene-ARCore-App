@@ -31,7 +31,7 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
     await promisify(
       'getUserPOIs',
       Overpass,
-    )('Lior Hassan')
+    )(state.user?.name)
       .then((response) => {
         setPlaces(JSON.parse(response?.data));
         setLoading(false);
