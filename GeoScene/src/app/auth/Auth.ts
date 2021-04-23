@@ -4,11 +4,10 @@
  */
 import { AsyncStorage, NativeModules } from 'react-native';
 
+import { OAuthManagerBridge } from '../../native/NativeModulesBridge';
 import defaultProviders from './authProviders';
 import invariant from 'invariant';
-import promisify from './promisify';
-
-const OAuthManagerBridge = NativeModules.OAuthManager;
+import promisify from '../api/promisify';
 
 let configured = false;
 const STORAGE_KEY = 'ReactNativeOAuth';
@@ -43,7 +42,7 @@ export default class OAuthManager {
     const options = Object.assign({}, this._options, opts, {
       app_name: this.appName,
     });
-    return promisify('authorize')(provider, options);
+    return promisify('authorize', OAuthManagerBridge)(provider, options);
   }
 
   savedAccounts(opts = {}) {
@@ -67,7 +66,7 @@ export default class OAuthManager {
     const options = Object.assign({}, this._options, {
       app_name: this.appName,
     });
-    return promisify('getSavedAccount')(provider, options);
+    return promisify('getSavedAccount', OAuthManagerBridge)(provider, options);
   }
 
   makeRequest(provider, url, rawResponse: boolean, opts = {}) {
@@ -77,7 +76,7 @@ export default class OAuthManager {
 
     console.log('making request', provider, url, opts);
 
-    return promisify('makeRequest')(
+    return promisify('makeRequest', OAuthManagerBridge)(
       provider,
       url,
       rawResponse ?? false,
@@ -93,7 +92,7 @@ export default class OAuthManager {
   }
 
   deauthorize(provider) {
-    return promisify('deauthorize')(provider);
+    return promisify('deauthorize', OAuthManagerBridge)(provider);
   }
 
   providers() {
@@ -157,7 +156,7 @@ export default class OAuthManager {
 
     validate(config);
 
-    return promisify('configureProvider')(name, config);
+    return promisify('configureProvider', OAuthManagerBridge)(name, config);
   }
 
   configureProviders(providerConfigs) {

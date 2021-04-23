@@ -20,7 +20,7 @@ public class DeviceSensorsManager implements DeviceSensors {
         orientation = new DeviceOrientation(context);
     }
 
-    public static DeviceSensors initialize(Context context) {
+    public static DeviceSensors getSensors(Context context) {
         if(sensors == null) {
             sensors = new DeviceSensorsManager(context);
             sensors.resume();

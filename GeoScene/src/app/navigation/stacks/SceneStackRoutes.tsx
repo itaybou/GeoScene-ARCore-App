@@ -1,10 +1,8 @@
 import {
-  ARViewFragment,
-  MapsViewFragment,
-} from '../../../native/NativeViewsBridge';
-import {
   ActivityIndicator,
+  Alert,
   Animated,
+  BackHandler,
   Dimensions,
   Easing,
   GestureResponderEvent,
@@ -16,6 +14,7 @@ import {
   View,
   findNodeHandle,
 } from 'react-native';
+import { NativeARView, NativeMapView } from '../../../native/NativeViewsBridge';
 import React, {
   useCallback,
   useEffect,
@@ -27,6 +26,7 @@ import {
   SceneRoutesParamList,
   SceneStackRouteNavProps,
 } from '../params/RoutesParamList';
+import { useSettings, useTheme } from '../../utils/hooks/Hooks';
 
 import { Button } from 'react-native';
 import { Center } from '../../components/layout/Center';
@@ -37,8 +37,8 @@ import { StatusBar } from 'react-native';
 import { TabBarIcon } from '../../components/tabs/TabBarIcon';
 import { ThemeText } from '../../components/text/ThemeText';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation';
 import { useRoute } from '@react-navigation/core';
-import { useTheme } from '../../utils/hooks/Hooks';
 
 interface StackProps {}
 interface LocationNameProps {
@@ -83,6 +83,7 @@ const ANIMATION_TIMING_CONFIG = {
 
 function AR({ route }: SceneStackRouteNavProps<'AR'>) {
   const theme = useTheme();
+  const { state } = useSettings();
 
   const [ready, setReady] = useState<boolean>(false);
   const [ARDisplayed, setARDisplayed] = useState<boolean>(false);
@@ -114,8 +115,26 @@ function AR({ route }: SceneStackRouteNavProps<'AR'>) {
   const ARManager = UIManager.getViewManagerConfig('ARView');
   const MapsManager = UIManager.getViewManagerConfig('MapView');
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     Orientation.lockToLandscapeLeft();
+    const backAction = () => {
+      let disableGoBack = null;
+      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+        {
+          text: 'Cancel',
+          onPress: () => (disableGoBack = true),
+          style: 'cancel',
+        },
+        { text: 'YES', onPress: () => (disableGoBack = false) },
+      ]);
+      return disableGoBack ?? false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
     // setWidth(Dimensions.get('window').width);
     // setHeight(Dimensions.get('window').height);
     // console.log(androidARViewId.current);
@@ -133,40 +152,37 @@ function AR({ route }: SceneStackRouteNavProps<'AR'>) {
 
     return () => {
       console.log('unmount AR');
+      backHandler.remove();
       StatusBar.setHidden(false);
       Orientation.unlockAllOrientations();
     };
   }, []);
 
-  const displayAR = useCallback(
-    (nativeRef) => {
-      arRef.current = findNodeHandle(nativeRef);
-      if (arRef.current && !ARDisplayed) {
-        UIManager.dispatchViewManagerCommand(
-          arRef.current,
-          ARManager.Commands.CREATE.toString(),
-          [arRef.current],
-        );
-        setARDisplayed(true);
-      }
-    },
-    [ARManager.Commands.CREATE, ARDisplayed],
-  );
+  useEffect(() => {
+    if (arRef.current && !ARDisplayed) {
+      UIManager.dispatchViewManagerCommand(
+        arRef.current,
+        ARManager.Commands.CREATE.toString(),
+        [arRef.current, state.determineViewshed, state.visibleRadius],
+      );
+      setARDisplayed(true);
+    }
+  }, [ARManager.Commands.CREATE, ARDisplayed]);
 
-  const displayMap = useCallback(
-    (nativeRef) => {
-      mapRef.current = findNodeHandle(nativeRef);
-      if (mapRef.current && !mapDisplayed) {
-        UIManager.dispatchViewManagerCommand(
-          mapRef.current,
-          MapsManager.Commands.CREATE.toString(),
-          [mapRef.current, true, true, false, false], // map referece, use compass orientation, use observe location, enable zoom
-        );
-        setMapDisplayed(true);
-      }
-    },
-    [MapsManager.Commands.CREATE, mapDisplayed],
-  );
+  // const displayAR = useCallback(
+  //   (nativeRef) => {
+  //     arRef.current = findNodeHandle(nativeRef);
+  //     if (arRef.current && !ARDisplayed) {
+  //       UIManager.dispatchViewManagerCommand(
+  //         arRef.current,
+  //         ARManager.Commands.CREATE.toString(),
+  //         [arRef.current],
+  //       );
+  //       setARDisplayed(true);
+  //     }
+  //   },
+  //   [ARManager.Commands.CREATE, ARDisplayed],
+  // );
 
   // const viewReady = useCallback(() => {
   //   setReady(true);
@@ -233,12 +249,13 @@ function AR({ route }: SceneStackRouteNavProps<'AR'>) {
             // height,
             display: ready ? 'flex' : 'none',
           }}>
-          <ARViewFragment
+          <NativeARView
             style={{
               //height,
               flex: 1,
             }}
-            ref={(nativeRef) => displayAR(nativeRef)}
+            ref={(nativeRef) => (arRef.current = findNodeHandle(nativeRef))}
+            onUseCache={(event) => console.log('cache: ' + event.nativeEvent)}
             onLocationMarkerTouch={(event) => {
               const { en_name, heb_name } = event.nativeEvent;
               setLocationName({ en_name, heb_name });
@@ -276,8 +293,8 @@ function AR({ route }: SceneStackRouteNavProps<'AR'>) {
                 if (!mapShown) {
                   UIManager.dispatchViewManagerCommand(
                     mapRef.current,
-                    MapsManager.Commands.DISPLAY.toString(),
-                    [mapRef.current],
+                    MapsManager.Commands.ZOOM_BBOX.toString(),
+                    [],
                   );
                   setLoadingMap(false);
                 }
@@ -292,11 +309,13 @@ function AR({ route }: SceneStackRouteNavProps<'AR'>) {
               )}
             </Center>
           )}
-          <MapsViewFragment
+          <NativeMapView
+            useObserverLocation={true}
+            useCompassOrientation={true}
             style={{
               flex: loadingMap ? 0 : 1,
             }}
-            ref={(nativeRef) => displayMap(nativeRef)}
+            ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
           />
         </Animated.View>
       </View>

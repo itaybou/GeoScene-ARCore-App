@@ -62,6 +62,7 @@ export type HomeStackRouteNavProps<T extends keyof HomeRoutesParamList> = {
 export type PlacesRoutesParamList = {
   Places: undefined;
   DownloadPlace: undefined;
+  UserPlaces: undefined;
 };
 
 export type PlacesStackRouteNavProps<T extends keyof PlacesRoutesParamList> = {

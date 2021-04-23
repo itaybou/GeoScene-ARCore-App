@@ -151,6 +151,12 @@ public class OverpassFilterQuery extends AbstractOverpassSubQuery {
         return this;
     }
 
+    public OverpassFilterQuery user(String userName) {
+        builder.append(String.format("(user: \"%s\")", userName));
+
+        return this;
+    }
+
     /**
      * Adds a <i>["name"~{value1}|{value2}|{value3}|...|{valueN}]</i> filter tag to the current query
      * to add a filter matching for any of the given values.

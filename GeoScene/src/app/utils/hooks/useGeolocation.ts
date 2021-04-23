@@ -47,7 +47,7 @@ const initialState = {
   timestamp: Date.now(),
 };
 
-const useGeolocation = (options?: PositionOptions): GeoLocationSensorState => {
+const useGeolocation = (): GeoLocationSensorState => {
   const [state, setState] = useState<GeoLocationSensorState>(initialState);
   let mounted = true;
   let watchId: any;
@@ -72,8 +72,8 @@ const useGeolocation = (options?: PositionOptions): GeoLocationSensorState => {
     mounted && setState((oldState) => ({ ...oldState, loading: false, error }));
 
   useEffect(() => {
-    Geolocation.getCurrentPosition(onEvent, onEventError, options);
-    watchId = Geolocation.watchPosition(onEvent, onEventError, options);
+    Geolocation.getCurrentPosition(onEvent, onEventError, accurateOptions);
+    watchId = Geolocation.watchPosition(onEvent, onEventError, accurateOptions);
 
     return () => {
       mounted = false;

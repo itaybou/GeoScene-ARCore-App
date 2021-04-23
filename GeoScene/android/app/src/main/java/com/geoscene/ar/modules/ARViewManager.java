@@ -18,19 +18,19 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
-import com.geoscene.ar.GeoARSceneFragment;
+import com.geoscene.ar.ARView;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class RNGeoARSceneViewManager extends ViewGroupManager<FrameLayout> {
+public class ARViewManager extends ViewGroupManager<FrameLayout> {
 
     public static final String REACT_TAG = "ARView";
     private final ReactApplicationContext reactContext;
 
     public final int COMMAND_CREATE = 1;
 
-    public RNGeoARSceneViewManager(ReactApplicationContext reactContext) {
+    public ARViewManager(ReactApplicationContext reactContext) {
         super();
         this.reactContext = reactContext;
     }
@@ -66,29 +66,19 @@ public class RNGeoARSceneViewManager extends ViewGroupManager<FrameLayout> {
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
             case COMMAND_CREATE:
-                createARFragment(root, reactNativeARViewId);
+                createARFragment(root, reactNativeARViewId, args.getBoolean(1), args.getInt(2));
                 break;
             default:
                 Log.w(REACT_TAG, "Invalid command recieved from ReactNative");
         }
     }
 
-    private Bundle getLaunchOptions(String message) {
-        Bundle initialProperties = new Bundle();
-        initialProperties.putString("message", message);
-        return initialProperties;
-    }
-
-    private void initializeARScene() {
-        
-    }
-
-    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId) {
+    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM) {
         Log.d(REACT_TAG, Integer.toString(reactNativeARViewId));
         //ViewGroup parentView = (ViewGroup) parentLayout.findViewById(reactNativeARViewId).getParent();
         //organizeLayout(parentView);
 //
-        final GeoARSceneFragment ARfragment = new GeoARSceneFragment(reactContext);
+        final ARView ARfragment = new ARView(reactContext, determineViewshed, visibleRadiusKM);
         //final MapsFragment mapsFragment = new MapsFragment();
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
@@ -96,8 +86,6 @@ public class RNGeoARSceneViewManager extends ViewGroupManager<FrameLayout> {
 //                .replace(reactNativeMapsViewId, mapsFragment, String.valueOf(reactNativeMapsViewId))
                 .commit();
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager().executePendingTransactions();
-
-        addView(parentLayout, ARfragment.getView(), ViewGroup.LayoutParams.MATCH_PARENT);
     }
 
     @Nullable
@@ -115,7 +103,9 @@ public class RNGeoARSceneViewManager extends ViewGroupManager<FrameLayout> {
                 "ready",
                 MapBuilder.of("registrationName", "onReady"),
                 "loadingProgress",
-                MapBuilder.of("registrationName", "onLoadingProgress")
+                MapBuilder.of("registrationName", "onLoadingProgress"),
+                "cacheUse",
+                MapBuilder.of("registrationName", "onUseCache")
         );
     }
 

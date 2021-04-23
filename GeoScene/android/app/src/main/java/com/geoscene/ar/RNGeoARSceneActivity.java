@@ -11,8 +11,6 @@ import android.widget.Toast;
 import com.facebook.react.ReactActivity;
 import com.geoscene.DemoUtils;
 import com.geoscene.R;
-import com.geoscene.elevation.open_topography.OpenTopographyService;
-import com.geoscene.elevation.open_topography.OpenTopographyClient;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.Frame;
@@ -50,7 +48,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
         setContentView(R.layout.ar_scene_layout);
         arSceneView = findViewById(R.id.ar_scene_view);
         //OpenTopoClient.getTopoData();
-        sensors = DeviceSensorsManager.initialize(this);
+        sensors = DeviceSensorsManager.getSensors(this);
 
 //        ViewShed viewshed = new ViewShed(20, getApplicationContext(), this);
 //        viewshed.calculateViewshed(34.666223f, 31.780799f);

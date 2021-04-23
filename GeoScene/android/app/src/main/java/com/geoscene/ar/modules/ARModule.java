@@ -13,12 +13,12 @@ import com.facebook.react.bridge.ReactMethod;
 import com.geoscene.ar.RNGeoARSceneActivity;
 import com.google.ar.core.ArCoreApk;
 
-public class RNGeoARSceneModule extends ReactContextBaseJavaModule {
+public class ARModule extends ReactContextBaseJavaModule {
 
     private static final String TAG = "ARGeoScene";
     private final ReactApplicationContext reactContext;
 
-    public RNGeoARSceneModule(ReactApplicationContext reactContext) {
+    public ARModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
     }

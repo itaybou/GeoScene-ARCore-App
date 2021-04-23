@@ -1,4 +1,4 @@
-package com.geoscene.places;
+package com.geoscene.places.overpass.modules;
 
 import android.util.Log;
 
@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
+import com.geoscene.places.Places;
 import com.github.underscore.lodash.Json;
 import com.github.underscore.lodash.U;
 

@@ -2,6 +2,8 @@ package com.geoscene.elevation;
 
 import com.geoscene.elevation.open_topography.CellType;
 import com.geoscene.utils.Coordinate;
+import com.geoscene.utils.mercator.BoundingBoxCenter;
+
 import org.javatuples.Pair;
 
 public class Raster {
@@ -11,6 +13,7 @@ public class Raster {
     private double xLowerLeftCorner;
     private double yLowerLeftCorner;
     private double cellSize;
+    BoundingBoxCenter bbox;
 
     private int[][] elevations;
     private CellType[][] viewshed;
@@ -66,7 +69,14 @@ public class Raster {
         return viewshed;
     }
 
+    public BoundingBoxCenter getBbox() {
+        return bbox;
+    }
+
     public void setViewshed(CellType[][] viewshed) {
         this.viewshed = viewshed;
+    }
+    public void setBoundingBox(BoundingBoxCenter bbox) {
+        this.bbox = bbox;
     }
 }

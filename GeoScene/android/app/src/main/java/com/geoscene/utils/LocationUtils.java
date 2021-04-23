@@ -1,5 +1,9 @@
 package com.geoscene.utils;
 
+import net.sf.geographiclib.Geodesic;
+import net.sf.geographiclib.GeodesicData;
+import net.sf.geographiclib.GeodesicMask;
+
 /**
  * Created by John on 02/03/2018.
  */
@@ -57,6 +61,11 @@ public class LocationUtils {
         distance = Math.pow(distance, 2) + Math.pow(height, 2);
 
         return Math.sqrt(distance);
+    }
+
+    public static double aerialDistance(double lat1, double lat2, double lon1,
+                                        double lon2) {
+        return Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2, GeodesicMask.DISTANCE).s12;
     }
 
 }

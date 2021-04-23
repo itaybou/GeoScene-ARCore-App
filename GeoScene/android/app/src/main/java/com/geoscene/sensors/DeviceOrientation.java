@@ -14,10 +14,6 @@ import org.javatuples.Pair;
 
 import java.util.List;
 
-/**
- * Created by John on 02/03/2018.
- */
-
 public class DeviceOrientation implements SensorEventListener {
 
     public float pitch;

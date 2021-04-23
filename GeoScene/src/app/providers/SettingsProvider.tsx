@@ -12,10 +12,14 @@ interface SettingsProvider {}
 
 export interface SettingsType {
   theme: ThemesType;
+  determineViewshed: boolean;
+  visibleRadius: number;
 }
 
 const initialSettings: SettingsType = {
   theme: 'light' as ThemesType,
+  determineViewshed: true,
+  visibleRadius: 30,
 };
 
 export const SettingsContext = createContext<{

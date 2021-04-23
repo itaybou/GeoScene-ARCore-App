@@ -13,6 +13,7 @@ import {
   MapsRoutesParamList,
   MapsStackRouteNavProps,
 } from '../params/RoutesParamList';
+import React, { useState } from 'react';
 import {
   auth,
   authorizationDetails,
@@ -21,8 +22,10 @@ import {
 } from '../../auth/Authentication';
 
 import { Center } from '../../components/layout/Center';
+import { Checkbox } from 'react-native-paper';
 import Header from '../../containers/Header';
-import React from 'react';
+import { NativeMapView } from '../../../native/NativeViewsBridge';
+import { TabScreen } from '../../components/layout/TabScreen';
 import { ThemeText } from '../../components/text/ThemeText';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '../../utils/hooks/Hooks';
@@ -53,6 +56,63 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
   );
 }
 
+function MapsTest({ route }: MapsStackRouteNavProps<'Maps'>) {
+  const theme = useTheme();
+  const { state, dispatch } = useUser();
+  const [azimuth, setAzimuth] = useState<number | null>(null);
+  const [
+    animateToIncludeTriangulationPoints,
+    setAnimateToIncludeTriangulationPoints,
+  ] = useState<boolean>(false);
+
+  const dummyData = [
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 45 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 35 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 330 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 275 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 120 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 180 },
+    // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 90 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 0 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 355 },
+    // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 270 },
+    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 80 },
+  ];
+
+  return (
+    <TabScreen>
+      <NativeMapView
+        enableLocationTap={false}
+        useObserverLocation={true}
+        showBoundingCircle={false}
+        useTriangulation={true}
+        enableZoom={false}
+        useCompassOrientation={true}
+        animateToIncludeTriangulationPoints={
+          animateToIncludeTriangulationPoints
+        }
+        onOrientationChanged={(event) => setAzimuth(event.nativeEvent.azimuth)}
+        triangulationData={dummyData}
+        style={{ width: '100%', height: '100%', flex: 1 }}
+      />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <ThemeText style={{ fontSize: 25 }}>{azimuth}</ThemeText>
+        <Checkbox
+          color={theme.colors.accent_secondary}
+          uncheckedColor={theme.colors.inactiveTint}
+          status={animateToIncludeTriangulationPoints ? 'checked' : 'unchecked'}
+          onPress={() => {
+            setAnimateToIncludeTriangulationPoints(
+              !animateToIncludeTriangulationPoints,
+            );
+            console.log(animateToIncludeTriangulationPoints);
+          }}
+        />
+      </View>
+    </TabScreen>
+  );
+}
+
 export const MapsStackRoutes: React.FC<StackProps> = ({}) => {
   return (
     <Stack.Navigator
@@ -61,7 +121,7 @@ export const MapsStackRoutes: React.FC<StackProps> = ({}) => {
         header: Header,
         animationEnabled: false,
       }}>
-      <Stack.Screen name="Maps" component={Maps} />
+      <Stack.Screen name="Maps" component={MapsTest} />
     </Stack.Navigator>
   );
 };

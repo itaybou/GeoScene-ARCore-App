@@ -40,6 +40,14 @@
             <version>1.2</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/net.sf.geographiclib/GeographicLib-Java -->
+        <dependency>
+            <groupId>net.sf.geographiclib</groupId>
+            <artifactId>GeographicLib-Java</artifactId>
+            <version>1.51</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>

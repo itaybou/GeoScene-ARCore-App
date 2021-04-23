@@ -1,13 +1,11 @@
-package com.geoscene.oauth;
+package com.geoscene.places.overpass.modules;
 
 import android.content.Context;
 
 import com.facebook.react.ReactPackage;
-import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import com.geoscene.places.OverpassModule;
 
 import java.util.List;
 import java.util.ArrayList;

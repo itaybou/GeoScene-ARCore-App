@@ -1,7 +1,7 @@
 import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
 import { SettingsType } from '../SettingsProvider';
-import { ThemeType } from '../../themes/Themes';
+import { ThemesType } from '../../themes/Themes';
 import { name as appName } from '../../../../app.json';
 import { useAsyncStorage } from '../../utils/hooks/useAsyncStorage';
 
@@ -10,18 +10,22 @@ export const SETTINGS_KEY = `${appName}::settings`;
 export enum SettingsActionTypes {
   SET_SETTINGS,
   CHANGE_THEME,
+  CHANGE_VIEWSHED,
+  CHANGE_VISIBLE_RADIUS,
 }
-
-export type SettingsStateType = {
-  theme: ThemeType;
-};
 
 type SettingsPayload = {
   [SettingsActionTypes.SET_SETTINGS]: {
-    settings: SettingsStateType;
+    settings: SettingsType;
   };
   [SettingsActionTypes.CHANGE_THEME]: {
-    theme: ThemeType;
+    theme: ThemesType;
+  };
+  [SettingsActionTypes.CHANGE_VIEWSHED]: {
+    determineViewshed: boolean;
+  };
+  [SettingsActionTypes.CHANGE_VISIBLE_RADIUS]: {
+    visibleRadius: number;
   };
 };
 
@@ -29,14 +33,31 @@ export type SettingsActions = ActionMap<SettingsPayload>[keyof ActionMap<
   SettingsPayload
 >];
 
-const SettingsReducer = (state: SettingsStateType, action: SettingsActions) => {
+const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
   switch (action.type) {
     case SettingsActionTypes.SET_SETTINGS:
       return action.payload.settings;
-    case SettingsActionTypes.CHANGE_THEME:
+    case SettingsActionTypes.CHANGE_THEME: {
       const newState = { ...state, theme: action.payload.theme };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;
+    }
+    case SettingsActionTypes.CHANGE_VIEWSHED: {
+      const newState = {
+        ...state,
+        determineViewshed: action.payload.determineViewshed,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_VISIBLE_RADIUS: {
+      const newState = {
+        ...state,
+        visibleRadius: action.payload.visibleRadius,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
     default:
       throw new Error();
   }

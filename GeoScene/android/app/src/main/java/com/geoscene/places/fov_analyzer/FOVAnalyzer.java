@@ -1,21 +1,44 @@
 package com.geoscene.places.fov_analyzer;
 
+import android.util.Log;
+
+import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.utils.Coordinate;
 import com.geoscene.elevation.open_topography.CellType;
 import com.geoscene.elevation.Raster;
+
 import org.javatuples.Pair;
-import com.geoscene.places.PointsOfInterest;
+
+import com.geoscene.places.overpass.poi.PointsOfInterest;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FOVAnalyzer {
 
-    public static List<Pair<PointsOfInterest.Element, Coordinate>> intersectVisiblePlaces(Raster raster, CellType[][] viewshed, PointsOfInterest placesResult) {
-        List<Pair<PointsOfInterest.Element, Coordinate>> visibleLocations = new ArrayList<>();
-        for (PointsOfInterest.Element element : placesResult.elements) {
+    private static final String TAG = "FOVAnalyzer";
+
+    public static List<Pair<Element, Coordinate>> intersectVisiblePlaces(Raster raster, PointsOfInterest placesResult) {
+        CellType[][] viewshed = raster.getViewshed();
+        if (viewshed == null) {
+            Log.d(TAG, "here");
+            return placesResult.elements.stream().map(element -> {
+                if (element.type.equals("node"))
+                    return new Pair<>(element, new Coordinate(element.lat, element.lon));
+
+                Coordinate minCoordinate = new Coordinate(element.bounds.minlat, element.bounds.minlon);
+                Coordinate maxCoordinate = new Coordinate(element.bounds.maxlat, element.bounds.maxlon);
+                return new Pair<>(element, new Coordinate(
+                        (minCoordinate.getLat() + maxCoordinate.getLat()) / 2,
+                        (minCoordinate.getLon() + maxCoordinate.getLon()) / 2));
+            }).collect(Collectors.toList());
+        }
+
+        List<Pair<Element, Coordinate>> visibleLocations = new ArrayList<>();
+        for (Element element : placesResult.elements) {
             if (element.type.equals("node")) {
                 Coordinate nodeCoordinates = new Coordinate(element.lat, element.lon);
                 Pair<Integer, Integer> node = raster.getRowColByCoordinates(nodeCoordinates);
@@ -38,7 +61,7 @@ public class FOVAnalyzer {
                 for (int y = minY; y < minY + dy && !intersection; ++y) {
                     for (int x = minX; x < minX + dx && !intersection; ++x) {
                         if (viewshed[y][x] == CellType.VIEWSHED) {
-                            Pair<PointsOfInterest.Element, Coordinate> location = new Pair<>(element, new Coordinate(
+                            Pair<Element, Coordinate> location = new Pair<>(element, new Coordinate(
                                     (minCoordinate.getLat() + maxCoordinate.getLat()) / 2,
                                     (minCoordinate.getLon() + maxCoordinate.getLon()) / 2));
                             visibleLocations.add(location);

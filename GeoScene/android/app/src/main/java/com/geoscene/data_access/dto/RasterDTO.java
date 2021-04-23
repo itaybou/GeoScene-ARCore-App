@@ -20,13 +20,13 @@ public class RasterDTO extends RealmObject {
 
     public RasterDTO() {}
 
-    public RasterDTO(Raster raster) {
+    public RasterDTO(Raster raster, String id) {
         this.cols = raster.getCols();
         this.rows = raster.getRows();
         this.xLowerLeftCorner = raster.getxLowerLeftCorner();
         this.yLowerLeftCorner = raster.getyLowerLeftCorner();
         this.cellSize = raster.getCellSize();
-        this.elevationsFileName = UUID.randomUUID().toString();
+        this.elevationsFileName = id;
     }
 
     public int getCols() {

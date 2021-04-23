@@ -43,6 +43,19 @@ public class OverpassInterpreter {
         interpret(query.build(), raster, viewshed);
     }
 
+    //filter pois by username
+    public void searchUserPOIs(String userName) {
+        OverpassQuery query = new OverpassQuery()
+                .format(JSON)
+                .timeout(30)
+                .filterQuery()
+                .node()
+                .user(userName)
+                .end()
+                .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
+        System.out.println(query.build());
+    }
+
     private void interpret(String query, Raster raster, CellType[][] viewshed) {
         long time = System.currentTimeMillis();
         try {

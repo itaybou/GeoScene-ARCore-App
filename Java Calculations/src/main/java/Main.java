@@ -25,43 +25,44 @@ public class Main {
     final static int PADDING_KM = 10;
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        int size = 100;
-        long time = System.currentTimeMillis();
-        BoundingBox bbox = new BoundingBox(new Coordinate(31.78086875795883, 34.691286898459865), 5); //PADDING_KM);
-        OpenTopographyClient.getTopolographyData(bbox, latch);
-        latch.await();
-
-        Raster raster = OpenTopographyClient.getRaster();
-        System.out.println((System.currentTimeMillis() - time)  / 1000 + "sec");
-
-        String path = "raster.asc";
-//        loadGrid(path);
-        int[][] elevations = raster.getElevations();
-        PrintWriter out = new PrintWriter("dummy.txt");
-
-        for(int i = 0; i<elevations.length; i++) {
-            out.println();
-            for (int j = 0; j<elevations[0].length; j++)
-            {
-                out.print(elevations[i][j]);
-            }
-        }
-
-        out.close();
-
-        Pair<Integer, Integer> observer = raster.getRowColByCoordinates(new Coordinate(31.78086875795883, 34.691286898459865));
-        System.out.println(raster.getElevation(observer.getValue0(),  observer.getValue1()));
-        System.out.println(observer.getValue0() + "," + observer.getValue1());
-        System.out.println(raster.getCols() + "," + raster.getRows());
-        Cell observerCell = new Cell(observer.getValue0(), observer.getValue1(), raster.getElevation(observer.getValue0(),  observer.getValue1()));
-        CellType[][] viewshed = viewshed(observerCell, raster, (int) (Math.min(raster.getCols(), raster.getRows()) / 2) - 1);
-        long after = System.currentTimeMillis() - time;
-        drawViewshed(viewshed);
-        printViewshedToFile(String.format("viewshed_%s", path.replace(".asc", ".txt")), viewshed);
-
-        System.out.println("grid load + calculation time: " + ((double)after / 1000) + "sec");
-
-        new OverpassInterpreter().search(raster, viewshed);
+        new OverpassInterpreter().searchUserPOIs("Lior Hassan");
+//        int size = 100;
+//        long time = System.currentTimeMillis();
+//        BoundingBox bbox = new BoundingBox(new Coordinate(31.78086875795883, 34.691286898459865), 5); //PADDING_KM);
+//        OpenTopographyClient.getTopolographyData(bbox, latch);
+//        latch.await();
+//
+//        Raster raster = OpenTopographyClient.getRaster();
+//        System.out.println((System.currentTimeMillis() - time)  / 1000 + "sec");
+//
+//        String path = "raster.asc";
+////        loadGrid(path);
+//        int[][] elevations = raster.getElevations();
+//        PrintWriter out = new PrintWriter("dummy.txt");
+//
+//        for(int i = 0; i<elevations.length; i++) {
+//            out.println();
+//            for (int j = 0; j<elevations[0].length; j++)
+//            {
+//                out.print(elevations[i][j]);
+//            }
+//        }
+//
+//        out.close();
+//
+//        Pair<Integer, Integer> observer = raster.getRowColByCoordinates(new Coordinate(31.78086875795883, 34.691286898459865));
+//        System.out.println(raster.getElevation(observer.getValue0(),  observer.getValue1()));
+//        System.out.println(observer.getValue0() + "," + observer.getValue1());
+//        System.out.println(raster.getCols() + "," + raster.getRows());
+//        Cell observerCell = new Cell(observer.getValue0(), observer.getValue1(), raster.getElevation(observer.getValue0(),  observer.getValue1()));
+//        CellType[][] viewshed = viewshed(observerCell, raster, (int) (Math.min(raster.getCols(), raster.getRows()) / 2) - 1);
+//        long after = System.currentTimeMillis() - time;
+//        drawViewshed(viewshed);
+//        printViewshedToFile(String.format("viewshed_%s", path.replace(".asc", ".txt")), viewshed);
+//
+//        System.out.println("grid load + calculation time: " + ((double)after / 1000) + "sec");
+//
+//        new OverpassInterpreter().search(raster, viewshed);
 
 
 

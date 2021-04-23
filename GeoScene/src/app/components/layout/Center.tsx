@@ -1,6 +1,7 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import React from 'react';
+import { TabScreen } from './TabScreen';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface CenterProps {
@@ -10,14 +11,14 @@ interface CenterProps {
 export const Center: React.FC<CenterProps> = ({ children, style }) => {
   const theme = useTheme();
   return (
-    <View
+    <TabScreen
       style={[
         styles.center,
         style,
         { backgroundColor: theme.colors.background },
       ]}>
       {children}
-    </View>
+    </TabScreen>
   );
 };
 

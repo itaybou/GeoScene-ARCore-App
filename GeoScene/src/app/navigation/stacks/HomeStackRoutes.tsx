@@ -22,7 +22,7 @@ const Stack = createStackNavigator<HomeRoutesParamList>();
 const appLogo = require('../../assets/img/logo.png');
 
 function Register({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
-  const location = useGeolocation(accurateOptions);
+  const location = useGeolocation();
   const { state, dispatch } = useSettings();
 
   return (

@@ -1,7 +1,6 @@
 package com.geoscene.ar;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,53 +11,45 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.facebook.react.ReactFragment;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.geoscene.DemoUtils;
 import com.geoscene.R;
-import com.geoscene.constants.LocationConstants;
 import com.geoscene.permissions.ARLocationPermissionHelper;
-import com.geoscene.places.PointsOfInterest;
+import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 
-import org.osmdroid.api.IMapController;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.compass.CompassOverlay;
-import org.osmdroid.views.overlay.compass.IOrientationConsumer;
-import org.osmdroid.views.overlay.compass.IOrientationProvider;
-import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
+import java.util.Objects;
 
-public class GeoARSceneFragment extends Fragment {
+public class ARView extends Fragment {
     private boolean installRequested;
 
     private ArSceneView arSceneView;
     private DeviceSensors sensors;
 
     private ReactContext reactContext;
+    private boolean determineViewshed;
+    private int visibleRadiusKM;
 
 
-    public GeoARSceneFragment(ReactContext reactContext) {
+    public ARView(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM) {
+        super();
         this.reactContext = reactContext;
+        this.determineViewshed = determineViewshed;
+        this.visibleRadiusKM = visibleRadiusKM;
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.ar_scene_layout, container, false);
         arSceneView = view.findViewById(R.id.ar_scene_view);
 
@@ -66,10 +57,10 @@ public class GeoARSceneFragment extends Fragment {
         Log.d("FRAGMENT", context.getPackageName());
 
 
-        sensors = DeviceSensorsManager.initialize(context);
+        sensors = DeviceSensorsManager.getSensors(context);
 
         dispatchLoadingProgress("Starting AR");
-        new AsyncARLocationsInitializer(context, sensors, arSceneView, this).initializeLocationMarkers(getActivity());
+        new ARNodesInitializer(context, sensors, arSceneView, determineViewshed, visibleRadiusKM, this).initializeLocationMarkers(getActivity());
 
 //        map = (MapView) view.findViewById(R.id.map);
 //        //map.setTileSource(TileSourceFactory.WIKIMEDIA);
@@ -147,6 +138,7 @@ public class GeoARSceneFragment extends Fragment {
                     return;
                 } else {
                     arSceneView.setupSession(session);
+//                    arSceneView.getPlaneRenderer().setEnabled(false);
 //                    session.setDisplayGeometry(, , );
                 }
             } catch (UnavailableException e) {
@@ -159,10 +151,12 @@ public class GeoARSceneFragment extends Fragment {
         } catch (CameraNotAvailableException ex) {
             DemoUtils.displayError(getActivity(), "Unable to get camera", ex);
         }
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
-    public void dispatchLocation(PointsOfInterest.Element location) {
+
+
+    public void dispatchLocation(Element location) {
         WritableMap event = Arguments.createMap();
         event.putString("en_name", location.tags.nameEng);
         event.putString("heb_name", location.tags.nameHeb);
@@ -190,6 +184,15 @@ public class GeoARSceneFragment extends Fragment {
                 event);
     }
 
+    public void dispatchUseCache() {
+        WritableMap event = Arguments.createMap();
+        event.putBoolean("message", true);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "cacheUse",
+                event);
+    }
+
 
     /**
      * Make sure we call locationScene.pause();
@@ -199,12 +202,16 @@ public class GeoARSceneFragment extends Fragment {
         super.onPause();
         arSceneView.pause();
         sensors.pause();
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(arSceneView.getSession() != null) {
+            arSceneView.getSession().close();
+        }
         arSceneView.destroy();
+        arSceneView.getSession().close();
     }
 }

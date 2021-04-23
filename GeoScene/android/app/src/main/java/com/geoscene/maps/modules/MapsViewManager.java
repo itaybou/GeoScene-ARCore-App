@@ -11,22 +11,33 @@ import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.common.ArrayUtils;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.geoscene.R;
 import com.geoscene.maps.OSMMapView;
+import com.geoscene.triangulation.TriangulationData;
+import com.geoscene.utils.ArrayUtil;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-public class RNMapsViewManager extends SimpleViewManager<OSMMapView> {
+public class MapsViewManager extends SimpleViewManager<OSMMapView> {
 
     public static final String REACT_TAG = "MapView";
     private OSMMapView mapView;
 
-    public final int COMMAND_SET_BBOX = 1;
+    public final int COMMAND_ZOOM_BBOX = 1;
+    public final int COMMAND_ZOOM_SET_BBOX = 2;
 
-    public RNMapsViewManager(ReactApplicationContext reactContext) {
+    public MapsViewManager(ReactApplicationContext reactContext) {
         super();
     }
 
@@ -49,7 +60,8 @@ public class RNMapsViewManager extends SimpleViewManager<OSMMapView> {
     @Override
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
-                "SET_BBOX", COMMAND_SET_BBOX
+                "ZOOM_BBOX", COMMAND_ZOOM_BBOX,
+                "ZOOM_SET_BBOX", COMMAND_ZOOM_SET_BBOX
         );
     }
 
@@ -61,7 +73,10 @@ public class RNMapsViewManager extends SimpleViewManager<OSMMapView> {
         Log.d("MAPS", args.toString());
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
-            case COMMAND_SET_BBOX:
+            case COMMAND_ZOOM_BBOX:
+                mapView.zoomToBoundingBox();
+                break;
+            case COMMAND_ZOOM_SET_BBOX:
                 setMapBoundingBox(root, args.getDouble(0), args.getDouble(1), args.getInt(2), args.getBoolean(3));
                 break;
             default:
@@ -92,6 +107,33 @@ public class RNMapsViewManager extends SimpleViewManager<OSMMapView> {
     @ReactProp(name = "useCompassOrientation",  defaultBoolean = false)
     public void setUseCompassOrientation(OSMMapView view, boolean useCompassOrientation) {
         view.setUseCompassOrientation(useCompassOrientation);
+    }
+
+    @ReactProp(name = "showBoundingCircle",  defaultBoolean = true)
+    public void setShowBoundingCircle(OSMMapView view, boolean showBoundingCircle) {
+        view.setShowBoundingCircle(showBoundingCircle);
+    }
+
+    @ReactProp(name = "useTriangulation",  defaultBoolean = false)
+    public void setUseTriangulation(OSMMapView view, boolean useTriangulation) {
+        view.setUseTriangulation(useTriangulation);
+    }
+
+    @ReactProp(name = "animateToIncludeTriangulationPoints",  defaultBoolean = false)
+    public void setAnimateToIncludeTriangulationPoints(OSMMapView view, boolean animateToIncludeTriangulationPoints) {
+        view.setAnimateToIncludeTriangulationPoints(animateToIncludeTriangulationPoints);
+    }
+
+    @ReactProp(name = "triangulationData")
+    public void setTriangulationData(OSMMapView view, ReadableArray triangulationData) throws JSONException {
+        List<TriangulationData> data = new ArrayList<>();
+        JSONArray j = ArrayUtil.toJSONArray(triangulationData);
+        for (int i = 0; i < j.length(); i++) {
+            JSONObject o = j.getJSONObject(i);
+            data.add(new TriangulationData(o.getDouble("lat"), o.getDouble("lon"), o.getDouble("azimuth")));
+        }
+        Log.d("MapView", data.toString());
+        view.setTriangulationData(data);
     }
 
 
@@ -135,12 +177,15 @@ public class RNMapsViewManager extends SimpleViewManager<OSMMapView> {
 //        );
 //    }
 
+
     @Nullable
     @Override
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
         return MapBuilder.of(
                 "mapSingleTap",
-                MapBuilder.of("registrationName", "onMapSingleTap")
+                MapBuilder.of("registrationName", "onMapSingleTap"),
+                "azimuth",
+                MapBuilder.of("registrationName", "onOrientationChanged")
         );
     }
 }

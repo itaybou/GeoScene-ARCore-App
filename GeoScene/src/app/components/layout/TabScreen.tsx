@@ -1,8 +1,9 @@
-import { Keyboard, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { Keyboard, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import React from 'react';
 
 import useKeyboardPadding from '../../utils/hooks/useKeyboardPadding';
 import useTheme from '../../utils/hooks/useTheme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface TabScreenProps {
   style?: StyleProp<ViewStyle>;
@@ -13,14 +14,14 @@ export const TabScreen: React.FC<TabScreenProps> = ({ children, style }) => {
   const { paddingBottom } = useKeyboardPadding(50);
 
   return (
-    <View
+    <SafeAreaView
       style={[
         style,
         styles.container,
         { backgroundColor: theme.colors.background, paddingBottom },
       ]}>
       {children}
-    </View>
+    </SafeAreaView>
   );
 };
 

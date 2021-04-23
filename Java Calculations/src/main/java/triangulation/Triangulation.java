@@ -1,2 +1,6 @@
-package triangulation;public class Triangulation {
+package triangulation;
+
+import GeographicLib.*
+
+public class Triangulation {
 }

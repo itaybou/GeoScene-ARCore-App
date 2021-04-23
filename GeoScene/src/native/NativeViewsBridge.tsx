@@ -1,4 +1,4 @@
 import { requireNativeComponent } from 'react-native';
 
-export const ARViewFragment = requireNativeComponent('ARView');
-export const MapsViewFragment = requireNativeComponent('MapView');
+export const NativeARView = requireNativeComponent('ARView');
+export const NativeMapView = requireNativeComponent('MapView');

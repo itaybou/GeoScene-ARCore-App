@@ -229,6 +229,9 @@ dependencies {
     //
     implementation 'com.github.javadev:underscore:1.64'
 
+    // GeographicLib
+    implementation group: 'net.sf.geographiclib', name: 'GeographicLib-Java', version: '1.51'
+
 //    implementation 'com.facebook.stetho:stetho:1.5.1'
 //    implementation 'com.uphyca:stetho_realm:2.1.0'
 //    implementation 'com.uphyca:stetho_realm:2.3.0'

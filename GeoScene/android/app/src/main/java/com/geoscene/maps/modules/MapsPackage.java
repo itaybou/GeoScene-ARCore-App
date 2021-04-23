@@ -6,17 +6,15 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import com.geoscene.ar.modules.RNGeoARSceneModule;
-import com.geoscene.ar.modules.RNGeoARSceneViewManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Exposes {@link RNMapsPackage} to ReactNative TypeScript.
+ * Exposes {@link MapsPackage} to ReactNative TypeScript.
  */
-public class RNMapsPackage implements ReactPackage {
+public class MapsPackage implements ReactPackage {
 
 //    @NonNull
 //    @Override
@@ -35,7 +33,7 @@ public class RNMapsPackage implements ReactPackage {
     @NonNull
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        return Collections.singletonList(new RNMapsViewManager(reactContext));
+        return Collections.singletonList(new MapsViewManager(reactContext));
 
     }
 }
