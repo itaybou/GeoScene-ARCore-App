@@ -15,6 +15,7 @@ import com.google.ar.core.ArCoreApk;
 
 public class RNGeoARSceneModule extends ReactContextBaseJavaModule {
 
+    private static final String TAG = "ARGeoScene";
     private final ReactApplicationContext reactContext;
 
     public RNGeoARSceneModule(ReactApplicationContext reactContext) {
@@ -25,7 +26,7 @@ public class RNGeoARSceneModule extends ReactContextBaseJavaModule {
     @Override
     @NonNull
     public String getName() {
-        return "ARGeoScene";
+        return TAG;
     }
 
     @ReactMethod

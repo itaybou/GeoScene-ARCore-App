@@ -65,6 +65,7 @@ public class GeoARSceneFragment extends Fragment {
         Context context = getContext();
         Log.d("FRAGMENT", context.getPackageName());
 
+
         sensors = DeviceSensorsManager.initialize(context);
 
         dispatchLoadingProgress("Starting AR");

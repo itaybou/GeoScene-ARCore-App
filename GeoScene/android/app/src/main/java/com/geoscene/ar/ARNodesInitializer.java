@@ -3,28 +3,23 @@ package com.geoscene.ar;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.geoscene.DemoUtils;
 import com.geoscene.R;
+import com.geoscene.data_access.StorageAccess;
 import com.geoscene.elevation.Elevation;
 import com.geoscene.elevation.Raster;
 import com.geoscene.location_markers.LocationMarker;
 import com.geoscene.location_markers.LocationScene;
 import com.geoscene.places.Places;
 import com.geoscene.places.fov_analyzer.FOVAnalyzer;
-import com.geoscene.places.PointsOfInterest;
+import com.geoscene.places.overpass.poi.Element;
+import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.utils.Coordinate;
 import com.google.ar.core.Frame;
@@ -35,7 +30,7 @@ import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import org.javatuples.Pair;
 
-import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -56,9 +51,9 @@ public class AsyncARLocationsInitializer {
     private DeviceSensors sensors;
     private Context context;
 
-    private GeoARSceneFragment ARFragment;
+    private ARView ARFragment;
 
-    public AsyncARLocationsInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, GeoARSceneFragment ARFragment) {
+    public AsyncARLocationsInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, ARView ARFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
@@ -127,13 +122,17 @@ public class AsyncARLocationsInitializer {
                                 .subscribeWith(new DisposableSingleObserver<ElevationLocationData>() {
                                     @Override
                                     public void onSuccess(@NonNull ElevationLocationData data) {
-                                        Log.d("SUCCESS", "just a message");
+
+
+                                        StorageAccess.storeCacheLocationInfo(context,data.raster.getBbox(), data.raster, data.getPlaces());
+
+
                                         ARFragment.dispatchLoadingProgress("Determining your field of view.");
-                                        List<Pair<PointsOfInterest.Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
+                                        List<Pair<Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(data.getRaster(), data.getRaster().getViewshed(), data.getPlaces());
 
                                         Log.d("LOCATIONS", visibleLocations.toString());
                                         ARFragment.dispatchLoadingProgress("Field of view determined successfully.");
-                                        for (Pair<PointsOfInterest.Element, Coordinate> visibleLocation : visibleLocations) {
+                                        for (Pair<Element, Coordinate> visibleLocation : visibleLocations) {
                                             ViewRenderable.builder()
                                                     .setView(context, R.layout.location_marker_card)
                                                     .build().thenAccept(renderable -> {
@@ -183,7 +182,7 @@ public class AsyncARLocationsInitializer {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private Node getLocationMarkerNode(ViewRenderable renderable, PointsOfInterest.Element location) {
+    private Node getLocationMarkerNode(ViewRenderable renderable, Element location) {
         Node base = new Node();
         base.setRenderable(renderable);
         // Add  listeners etc here
