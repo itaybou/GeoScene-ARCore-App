@@ -17,7 +17,7 @@ import {
 } from '../../api/nomination/OSMNominationAPI';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { TabBarIcon } from '../tabs/TabBarIcon';
+import { ThemeIcon } from '../assets/ThemeIcon';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface LocationSearchBarProps {
@@ -102,7 +102,7 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
           {loading ? (
             <ActivityIndicator size="small" color={theme.colors.text} />
           ) : (
-            <TabBarIcon name="magnifier" color={theme.colors.text} />
+            <ThemeIcon name="magnifier" color={theme.colors.text} />
           )}
         </TouchableOpacity>
       </View>

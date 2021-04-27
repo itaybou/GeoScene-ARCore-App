@@ -2,18 +2,18 @@
 import * as React from 'react';
 
 import {
-  StyleSheet,
-  View,
   Alert,
+  StyleSheet,
   Switch,
   TouchableOpacity,
+  View,
 } from 'react-native';
 
 import { MenuItem } from '../../containers/screens/settings/SettingsScreen';
+import { ThemeIcon } from '../assets/ThemeIcon';
+import { ThemeSwitch } from '../input/ThemeSwitch';
 import { ThemeText } from '../text/ThemeText';
 import useTheme from '../../utils/hooks/useTheme';
-import { TabBarIcon } from '../tabs/TabBarIcon';
-import { ThemeSwitch } from '../input/ThemeSwitch';
 
 interface Props {
   item: MenuItem;
@@ -66,7 +66,7 @@ export const SettingsListItem = ({
                   {item.additionalText}
                 </ThemeText>
               )}
-              <TabBarIcon
+              <ThemeIcon
                 name="arrow-right"
                 color={theme.colors.inactiveTint}
                 size={15}

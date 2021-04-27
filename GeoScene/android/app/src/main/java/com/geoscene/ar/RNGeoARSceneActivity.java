@@ -96,7 +96,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
                         if (locationScene == null) {
                             // If our locationScene object hasn't been setup yet, this is a good time to do it
                             // We know that here, the AR components have been initiated.
-                            locationScene = new LocationScene(this, arSceneView, sensors);
+                            locationScene = new LocationScene(this, arSceneView, sensors, false);
 
                             // Now lets create our location markers.
                             // First, a layout
@@ -148,21 +148,6 @@ public class RNGeoARSceneActivity extends ReactActivity {
         super.onResume();
         sensors.resume();
 
-        if (arSceneView.getSession() == null) {
-            // If the session wasn't created yet, don't resume rendering.
-            // This can happen if ARCore needs to be updated or permissions are not granted yet.
-            try {
-                Session session = DemoUtils.createArSession(this, installRequested);
-                if (session == null) {
-                    installRequested = ARLocationPermissionHelper.hasPermission(this);
-                    return;
-                } else {
-                    arSceneView.setupSession(session);
-                }
-            } catch (UnavailableException e) {
-                DemoUtils.handleSessionException(this, e);
-            }
-        }
 
         try {
             arSceneView.resume();

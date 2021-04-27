@@ -1,22 +1,16 @@
 package com.geoscene.location_markers;
 
 import android.location.Location;
-import android.location.LocationListener;
-import android.util.Log;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
-import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 
-import java.util.ArrayList;
-
-import com.geoscene.utils.LocationUtils;
+import com.geoscene.location.LocationUtils;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.Light;
 

@@ -31,6 +31,7 @@ export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
         label={label}
         theme={{
           colors: {
+            placeholder: theme.colors.inactiveTint,
             text: theme.colors.text,
             primary: theme.colors.accent_secondary_dark,
             error: theme.colors.error,

@@ -18,7 +18,6 @@ import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
 import { LocationSearchBar } from '../../components/input/LocationSearchBar';
 import { NativeMapView } from '../../../native/NativeViewsBridge';
-import { TabBarIcon } from '../../components/tabs/TabBarIcon';
 import { TabScreen } from '../../components/layout/TabScreen';
 import { TextInput } from 'react-native-paper';
 import { ThemeButton } from '../../components/input/ThemeButton';

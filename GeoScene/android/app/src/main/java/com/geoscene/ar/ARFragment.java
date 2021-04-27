@@ -1,9 +1,11 @@
 package com.geoscene.ar;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,100 +23,84 @@ import com.geoscene.permissions.ARLocationPermissionHelper;
 import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
+import com.geoscene.triangulation.TriangulationIntersection;
+import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.Config;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class ARView extends Fragment {
+public class ARFragment extends Fragment {
     private boolean installRequested;
 
     private ArSceneView arSceneView;
+    private ARNodesInitializer initializer;
     private DeviceSensors sensors;
 
     private ReactContext reactContext;
     private boolean determineViewshed;
+    private boolean triangulation;
     private int visibleRadiusKM;
 
+    private List<TriangulationIntersection> triangulationIntersections;
 
-    public ARView(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM) {
+
+    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM) {
         super();
         this.reactContext = reactContext;
         this.determineViewshed = determineViewshed;
         this.visibleRadiusKM = visibleRadiusKM;
     }
 
+    public ARFragment(ReactContext reactContext, boolean triangulation) {
+        super();
+        this.reactContext = reactContext;
+        this.triangulation = triangulation;
+        this.triangulationIntersections = new ArrayList<>();
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+        super.onCreate(savedInstanceState);
         View view = inflater.inflate(R.layout.ar_scene_layout, container, false);
         arSceneView = view.findViewById(R.id.ar_scene_view);
 
         Context context = getContext();
-        Log.d("FRAGMENT", context.getPackageName());
-
-
         sensors = DeviceSensorsManager.getSensors(context);
 
-        dispatchLoadingProgress("Starting AR");
-        new ARNodesInitializer(context, sensors, arSceneView, determineViewshed, visibleRadiusKM, this).initializeLocationMarkers(getActivity());
-
-//        map = (MapView) view.findViewById(R.id.map);
-//        //map.setTileSource(TileSourceFactory.WIKIMEDIA);
-//        map.setTileSource(TileSourceFactory.MAPNIK);
-//
-//        sensors = DeviceSensorsManager.initialize(context);
-//        map.setMultiTouchControls(true);
-//        mapController = map.getController();
-//        observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
-//        mapController.setCenter(observer);
-//
-//
-//
-//
-//        Log.d("TEST", String.valueOf(sensors.getGeomagneticField()));
-//
-//        MyLocationNewOverlay mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(context), map);
-//        mLocationOverlay.setEnableAutoStop(false);
-//        mLocationOverlay.enableMyLocation();
-//        mLocationOverlay.enableFollowLocation();
-//        map.getOverlays().add(mLocationOverlay);
-//
-//        compass = new InternalCompassOrientationProvider(context);
-//        CompassOverlay compassOverlay = new CompassOverlay(context, compass, map);
-//        compassOverlay.enableCompass();
-//        map.getOverlays().add(compassOverlay);
-//
-//        map.addOnFirstLayoutListener((v, left, top, right, bottom) -> {
-//            Coordinate observer = new Coordinate(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
-//            BoundingBoxCenter bbox = new BoundingBoxCenter(observer, LocationConstants.OBSERVER_BBOX);
-//            Log.d("BBOX", bbox.toString());
-//            map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), false, 5);
-//            map.invalidate();
-//        });
-
-
-        // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
+        // Request CAMERA & fine location permission which is required by ARCore-Location.
         ARLocationPermissionHelper.requestPermission(getActivity());
+
+        dispatchLoadingProgress("Starting AR");
+        initializer= new ARNodesInitializer(getContext(), sensors, arSceneView, determineViewshed, visibleRadiusKM, this);
+
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        startArSession();
+    }
+
+    public void startArSession() {
         if (arSceneView.getSession() == null) {
             // If the session wasn't created yet, don't resume rendering.
             // This can happen if ARCore needs to be updated or permissions are not granted yet.
             try {
-                Session session = DemoUtils.createArSession(getActivity(), installRequested);
+                Session session = createArSession(getActivity(), installRequested);
                 if (session == null) {
                     installRequested = ARLocationPermissionHelper.hasPermission(getActivity());
                     return;
                 } else {
                     arSceneView.setupSession(session);
+//                    session.setDisplayGeometry(Surface.ROTATION_180, 500, 500);
 //                    session.setDisplayGeometry(, , );
                 }
             } catch (UnavailableException e) {
@@ -123,31 +109,44 @@ public class ARView extends Fragment {
         }
     }
 
+    public static Session createArSession(Activity activity, boolean installRequested)
+            throws UnavailableException {
+        Session session = null;
+        // if we have the camera permission, create the session
+        if (ARLocationPermissionHelper.hasPermission(activity)) {
+            switch (ArCoreApk.getInstance().requestInstall(activity, !installRequested)) {
+                case INSTALL_REQUESTED:
+                    return null;
+                case INSTALLED:
+                    break;
+            }
+            session = new Session(activity);
+            // IMPORTANT!!!  ArSceneView needs to use the non-blocking update mode.
+            Config config = new Config(session);
+            config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
+//            config.setPlaneFindingMode(Config.PlaneFindingMode.DISABLED);
+            config.setLightEstimationMode(Config.LightEstimationMode.AMBIENT_INTENSITY);
+            config.setPlaneFindingMode(Config.PlaneFindingMode.VERTICAL);
+            config.setCloudAnchorMode(Config.CloudAnchorMode.DISABLED);
+            config.setFocusMode(Config.FocusMode.AUTO);
+            session.configure(config);
+//            session.setDisplayGeometry(activity.);
+        }
+        return session;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         sensors.resume();
-
-        if (arSceneView.getSession() == null) {
-            // If the session wasn't created yet, don't resume rendering.
-            // This can happen if ARCore needs to be updated or permissions are not granted yet.
-            try {
-                Session session = DemoUtils.createArSession(getActivity(), installRequested);
-                if (session == null) {
-                    installRequested = ARLocationPermissionHelper.hasPermission(getActivity());
-                    return;
-                } else {
-                    arSceneView.setupSession(session);
-//                    arSceneView.getPlaneRenderer().setEnabled(false);
-//                    session.setDisplayGeometry(, , );
-                }
-            } catch (UnavailableException e) {
-                DemoUtils.handleSessionException(getActivity(), e);
-            }
-        }
-
+        startArSession();
         try {
             arSceneView.resume();
+            if(!triangulation) {
+                initializer.initializeLocationMarkers(getActivity());
+            } else {
+                initializer.displayTriangulationNodes(getActivity());
+            }
         } catch (CameraNotAvailableException ex) {
             DemoUtils.displayError(getActivity(), "Unable to get camera", ex);
         }
@@ -201,17 +200,35 @@ public class ARView extends Fragment {
     public void onPause() {
         super.onPause();
         arSceneView.pause();
+        Log.d("ARview", "paused");
         sensors.pause();
-//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        close();
+        arSceneView.destroy();
+    }
+
+    public void close() {
         if(arSceneView.getSession() != null) {
             arSceneView.getSession().close();
         }
-        arSceneView.destroy();
-        arSceneView.getSession().close();
+    }
+
+    public void setUseTriangulation(boolean useTriangulation) {
+        if(useTriangulation) {
+
+        } else {
+            Log.d("here", "here");
+
+        }
+    }
+
+    public void setTriangulationIntersections(List<TriangulationIntersection> data) {
+        triangulationIntersections = data;
+        Log.d("Intersections", data.toString());
+        initializer.addTriangulationIntersectionNodes(triangulationIntersections);
     }
 }

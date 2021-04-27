@@ -1,9 +1,9 @@
-import { Button, Dimensions, StyleSheet, View } from 'react-native';
-import React, { useMemo } from 'react';
+import { Button, Dimensions, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
 
 import Modal from 'react-native-modal';
-import { TabBarIcon } from '../tabs/TabBarIcon';
 import { ThemeButton } from '../input/ThemeButton';
+import { ThemeIcon } from '../assets/ThemeIcon';
 import { ThemeText } from '../text/ThemeText';
 import useTheme from '../../utils/hooks/useTheme';
 
@@ -15,7 +15,11 @@ interface BottomModalProps {
   buttonText?: string;
   onButtonPress: () => void;
   screenPercent?: number;
+  backdropOpacity?: number;
+  buttonIcon?: string;
   showButtonIcon: boolean;
+  hideStatusBar?: boolean;
+  enableSwipeDown?: boolean;
 }
 
 export const BottomModal: React.FC<BottomModalProps> = ({
@@ -28,6 +32,9 @@ export const BottomModal: React.FC<BottomModalProps> = ({
   title,
   onButtonPress,
   screenPercent = 0.55,
+  backdropOpacity = 0.5,
+  enableSwipeDown = true,
+  buttonIcon = 'like',
 }) => {
   const theme = useTheme();
 
@@ -35,11 +42,11 @@ export const BottomModal: React.FC<BottomModalProps> = ({
     <View>
       <Modal
         isVisible={isVisible}
-        backdropOpacity={0.5}
+        backdropOpacity={backdropOpacity}
         onModalHide={onModalHide}
         onBackdropPress={hide}
         onSwipeComplete={hide}
-        swipeDirection={['down']}
+        swipeDirection={enableSwipeDown ? ['down'] : []}
         style={styles.container}>
         <View
           style={[
@@ -49,22 +56,28 @@ export const BottomModal: React.FC<BottomModalProps> = ({
               flex: screenPercent,
             },
           ]}>
-          <View
-            style={[
-              styles.arrowIndicatorContainer,
-              {
-                backgroundColor: theme.colors.tabs_secondary,
-                left: Dimensions.get('window').width / 2 - 20,
-              },
-            ]}>
-            <TabBarIcon name="arrow-down" color={theme.colors.text} size={12} />
-          </View>
+          {enableSwipeDown && (
+            <View
+              style={[
+                styles.arrowIndicatorContainer,
+                {
+                  backgroundColor: theme.colors.tabs_secondary,
+                  left: Dimensions.get('window').width / 2 - 20,
+                },
+              ]}>
+              <ThemeIcon
+                name="arrow-down"
+                color={theme.colors.text}
+                size={12}
+              />
+            </View>
+          )}
           <View style={styles.innerPaddingContainer}>
             <View style={styles.titleContainer}>
               <ThemeText style={styles.title}>{title}</ThemeText>
               <ThemeButton
                 onPress={onButtonPress}
-                icon={showButtonIcon && 'like'}
+                icon={showButtonIcon && buttonIcon}
                 text={buttonText}
               />
             </View>

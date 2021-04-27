@@ -21,6 +21,7 @@ public class DeviceOrientation implements SensorEventListener {
     private WindowManager windowManager;
     private SensorManager mSensorManager;
     private float orientation = 0f;
+    private float[] orientationMatrix;
 
     private static final float LOW_PASS_ALPHA = 0.25f;
 
@@ -89,6 +90,7 @@ public class DeviceOrientation implements SensorEventListener {
         float[] adjustedRotationMatrix = new float[9];
         SensorManager.remapCoordinateSystem(rotationMatrix, worldAxisX,
                 worldAxisY, adjustedRotationMatrix);
+        orientationMatrix = adjustedRotationMatrix;
 
         // azimuth/pitch/roll
         float[] orientation = new float[3];
@@ -101,16 +103,12 @@ public class DeviceOrientation implements SensorEventListener {
         switch (windowManager.getDefaultDisplay().getRotation()) {
             case Surface.ROTATION_0:
                 return new Pair<>(0, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-//                screen_orientation = "ROTATION_0 SCREEN_ORIENTATION_PORTRAIT";
             case Surface.ROTATION_90:
                 return new Pair<>(90, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-//                screen_orientation = "ROTATION_90 SCREEN_ORIENTATION_LANDSCAPE";
             case Surface.ROTATION_180:
                 return new Pair<>(180, ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-//                screen_orientation = "ROTATION_180 SCREEN_ORIENTATION_REVERSE_PORTRAIT";
             default:
                 return new Pair<>(270, ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-//                screen_orientation = "ROTATION_270 SCREEN_ORIENTATION_REVERSE_LANDSCAPE";
         }
     }
 
@@ -130,5 +128,9 @@ public class DeviceOrientation implements SensorEventListener {
 
     public void pause() {
         mSensorManager.unregisterListener(this);
+    }
+
+    public float[] getOrientationMatrix() {
+        return orientationMatrix;
     }
 }

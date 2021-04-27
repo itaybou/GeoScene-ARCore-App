@@ -24,8 +24,9 @@ import com.geoscene.places.fov_analyzer.FOVAnalyzer;
 import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.geoscene.sensors.DeviceSensors;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.Coordinate;
+import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.triangulation.TriangulationIntersection;
 import com.geoscene.viewshed.ViewShed;
 import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
@@ -53,11 +54,11 @@ public class ARNodesInitializer {
     private static DeviceSensors sensors;
     private static Context context;
 
-    private static ARView ARFragment;
+    private static ARFragment ARFragment;
     private static boolean determineViewshed;
     private static int radiusKM;
 
-    public ARNodesInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, ARView ARFragment) {
+    public ARNodesInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, ARFragment ARFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
@@ -147,8 +148,9 @@ public class ARNodesInitializer {
                 if (locationScene == null) {
                     // If our locationScene object hasn't been setup yet, this is a good time to do it
                     // We know that here, the AR components have been initiated.
-                    locationScene = new LocationScene(activity, arSceneView, sensors);
+                    locationScene = new LocationScene(activity, arSceneView, sensors, false);
                     locationScene.setOffsetOverlapping(false);
+                    locationScene.setMinimalRefreshing(false);
                     getAndRenderMarkerInformation();
                 }
 
@@ -158,6 +160,7 @@ public class ARNodesInitializer {
 
     private void handleARFrame() {
         Frame frame = arSceneView.getArFrame();
+        Log.d("HandleARFrame", "handle");
         if (frame == null || frame.getCamera().getTrackingState() != TrackingState.TRACKING) {
             return;
         }
@@ -210,15 +213,69 @@ public class ARNodesInitializer {
         base.setRenderable(renderable);
         // Add  listeners etc here
         View eView = renderable.getView();
-        eView.setOnTouchListener((v, event) -> {
-            ARFragment.dispatchLocation(location);
-            return false;
+        if(location != null) {
+            eView.setOnTouchListener((v, event) -> {
+                ARFragment.dispatchLocation(location);
+                return false;
 //            Toast.makeText(context, "Location marker touched.", Toast.LENGTH_LONG)
 //                    .show();
 //            return false;
-        });
+            });
+        }
 
         return base;
+    }
+
+    public void displayTriangulationNodes(Activity activity) {
+        arSceneView.getScene().addOnUpdateListener(
+                frameTime -> {
+                    if (!hasFinishedLoading) {
+                        return;
+                    }
+                    if (locationScene == null) {
+                        // If our locationScene object hasn't been setup yet, this is a good time to do it
+                        // We know that here, the AR components have been initiated.
+                        locationScene = new LocationScene(activity, arSceneView, sensors, true);
+                        locationScene.setOffsetOverlapping(false);
+                        locationScene.setMinimalRefreshing(false);
+                    }
+
+                    handleARFrame();
+                });
+
+        ARFragment.dispatchReady();
+    }
+
+    public void addTriangulationIntersectionNodes(List<TriangulationIntersection> triangulationIntersections) {
+        if(locationScene != null && locationScene.mLocationMarkers.isEmpty()) {
+            for(TriangulationIntersection intersection : triangulationIntersections) {
+                ViewRenderable.builder()
+                        .setView(context, R.layout.location_marker_card)
+                        .build()
+                        .thenAccept(renderable -> {
+                            double locationLat = intersection.intersection.getLat();
+                            double locationLon = intersection.intersection.getLon();
+                            LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, getLocationMarkerNode(renderable, null));
+//                                                layoutLocationMarker.setHeight(2);
+//                                                layoutLocationMarker.setScaleModifier(0.2f);
+                            layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
+
+                            // An example "onRender" event, called every frame
+                            // Updates the layout with the markers distance
+                            layoutLocationMarker.setRenderEvent(node -> {
+                                View eView = renderable.getView();
+                                TextView nameTextView = eView.findViewById(R.id.name);
+                                TextView distanceTextView = eView.findViewById(R.id.distance);
+                                distanceTextView.setText(intersection.distance + "M");
+                                nameTextView.setText(intersection.name);
+                            });
+                            Log.d("INTERSECTION", intersection.name);
+                            // Adding the marker
+                            locationScene.mLocationMarkers.add(layoutLocationMarker);
+                        });
+            }
+            hasFinishedLoading = true;
+        }
     }
 
 

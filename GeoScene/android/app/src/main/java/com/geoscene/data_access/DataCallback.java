@@ -1,4 +1,4 @@
-package com.geoscene.utils;
+package com.geoscene.data_access;
 
 public interface DataCallback<T> {
     void onDataFetched(T data);

@@ -1,7 +1,6 @@
-package com.geoscene.utils;
+package com.geoscene.location;
 
 import net.sf.geographiclib.Geodesic;
-import net.sf.geographiclib.GeodesicData;
 import net.sf.geographiclib.GeodesicMask;
 
 /**

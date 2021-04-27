@@ -1,3 +1,4 @@
+import React, { useCallback, useRef } from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -8,8 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import React from 'react';
-import { TabBarIcon } from '../tabs/TabBarIcon';
+import { ThemeIcon } from '../assets/ThemeIcon';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface ThemeButtonProps {
@@ -46,7 +46,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
             backgroundColor: theme.colors.accent_secondary_bright,
           },
         ]}>
-        {icon && <TabBarIcon name={icon} size={18} color={'black'} />}
+        {icon && <ThemeIcon name={icon} size={18} color={'black'} />}
         {text && <Text style={icon && styles.textMargin}>{text}</Text>}
       </View>
     </TouchableHighlight>

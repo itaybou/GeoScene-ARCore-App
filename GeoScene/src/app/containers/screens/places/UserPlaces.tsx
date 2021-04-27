@@ -1,5 +1,6 @@
 import { ActivityIndicator, Button, FlatList, View } from 'react-native';
 import React, { useEffect } from 'react';
+import { deleteLocation, updateLocation } from '../../../api/osm/OSMApi';
 
 import { Center } from '../../../components/layout/Center';
 import { MapModal } from '../../../components/modals/MapModal';
@@ -31,7 +32,7 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
     await promisify(
       'getUserPOIs',
       Overpass,
-    )(state.user?.name)
+    )('Lior Hassan')
       .then((response) => {
         setPlaces(JSON.parse(response?.data));
         setLoading(false);
@@ -73,16 +74,30 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
             {item.lat}, {item.lon}
           </ThemeText>
         </View>
-        <ThemeButton
-          icon="map"
-          onPress={() =>
-            setPlaceMap({
-              name: item.tags.name,
-              latitude: item.lat,
-              longitude: item.lon,
-            })
-          }
-        />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+          <ThemeButton
+            icon="map"
+            onPress={() =>
+              setPlaceMap({
+                name: item.tags.name,
+                latitude: item.lat,
+                longitude: item.lon,
+              })
+            }
+          />
+          <ThemeButton icon="UPDATE" onPress={() => {}} />
+          <ThemeButton
+            icon="DELETE"
+            onPress={() => {
+              deleteLocation(item.id, item.version, item.lat, item.lon);
+            }}
+          />
+        </View>
       </View>
     );
   };

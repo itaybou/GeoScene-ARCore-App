@@ -6,6 +6,7 @@ import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.geoscene.data_access.CacheManager;
+import com.geoscene.location.modules.LocationPackage;
 import com.geoscene.oauth.OAuthManagerPackage;
 import com.geoscene.places.overpass.modules.OverpassPackage;
 import com.facebook.react.ReactInstanceManager;
@@ -14,6 +15,7 @@ import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.geoscene.ar.modules.ARPackage;
 import com.geoscene.maps.modules.MapsPackage;
+import com.geoscene.triangulation.modules.ARCameraPackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -37,8 +39,10 @@ public class MainApplication extends Application implements ReactApplication {
                     List<ReactPackage> packages = new PackageList(this).getPackages();
                     packages.add(new MapsPackage());
                     packages.add(new ARPackage());
+                    packages.add(new ARCameraPackage());
                     packages.add(new OAuthManagerPackage());
                     packages.add(new OverpassPackage());
+//                    packages.add(new LocationPackage());
 
                     return packages;
                 }

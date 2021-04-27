@@ -9,7 +9,7 @@ import com.geoscene.places.overpass.queries.output.OutputOrder;
 import com.geoscene.places.overpass.queries.output.OutputVerbosity;
 import com.geoscene.places.overpass.queries.query.OverpassQuery;
 import com.geoscene.sensors.DeviceSensors;
-import com.geoscene.utils.Coordinate;
+import com.geoscene.location.Coordinate;
 
 import java.util.Arrays;
 import java.util.HashSet;

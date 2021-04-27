@@ -1,4 +1,5 @@
 import { AddPlaceProps } from '../../containers/screens/places/AddPlace';
+import { AddTriangulationProps } from '../../containers/screens/triangulation/AddTriangulation';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -62,7 +63,7 @@ export type HomeStackRouteNavProps<T extends keyof HomeRoutesParamList> = {
 
 export type PlacesRoutesParamList = {
   Places: undefined;
-  AddPlace: AddPlaceProps;
+  AddPlace?: AddPlaceProps;
   DownloadPlace: undefined;
   UserPlaces: undefined;
 };
@@ -75,11 +76,24 @@ export type PlacesStackRouteNavProps<T extends keyof PlacesRoutesParamList> = {
 export type SceneRoutesParamList = {
   Scene: undefined;
   AR: undefined;
+  TriangulateStack: undefined;
 };
 
 export type SceneStackRouteNavProps<T extends keyof SceneRoutesParamList> = {
   navigation: StackNavigationProp<SceneRoutesParamList, T>;
   route: RouteProp<SceneRoutesParamList, T>;
+};
+
+export type TriangulateRoutesParamList = {
+  Triangulate: undefined;
+  AddTriangulate: AddTriangulationProps;
+};
+
+export type TriangulateStackRouteNavProps<
+  T extends keyof TriangulateRoutesParamList
+> = {
+  navigation: StackNavigationProp<TriangulateRoutesParamList, T>;
+  route: RouteProp<TriangulateRoutesParamList, T>;
 };
 
 export type MapsRoutesParamList = {

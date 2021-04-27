@@ -6,13 +6,9 @@ import android.app.job.JobScheduler;
 import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
-import android.location.Location;
 import android.util.Log;
 
-import com.geoscene.constants.LocationConstants;
-import com.geoscene.sensors.DeviceSensors;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 
 import java.util.concurrent.TimeUnit;
 

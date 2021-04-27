@@ -10,6 +10,7 @@ public interface DeviceSensors {
     double getDeviceAltitude();
     Pair<Integer, Integer> getDeviceOrientation();
     float getOrientation();
+    float[] getOrientationMatrix();
     GeomagneticField getGeomagneticField();
     void setLocationEvent(Runnable event);
     void resume();

@@ -5,7 +5,7 @@ import android.util.Log;
 import java.util.concurrent.TimeUnit;
 
 import com.geoscene.elevation.Raster;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.ViewShed;
 
 import io.reactivex.rxjava3.core.Single;

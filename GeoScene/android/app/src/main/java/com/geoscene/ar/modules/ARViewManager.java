@@ -2,11 +2,7 @@ package com.geoscene.ar.modules;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.Choreographer;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -18,17 +14,31 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
-import com.geoscene.ar.ARView;
+import com.facebook.react.uimanager.annotations.ReactProp;
+import com.geoscene.ar.ARFragment;
+import com.geoscene.location.ArrayUtil;
+import com.geoscene.maps.OSMMapView;
+import com.geoscene.triangulation.TriangulationData;
+import com.geoscene.triangulation.TriangulationIntersection;
+import com.google.ar.sceneform.ux.ArFragment;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class ARViewManager extends ViewGroupManager<FrameLayout> {
 
-    public static final String REACT_TAG = "ARView";
+    public static final String REACT_TAG = "ARFragment";
     private final ReactApplicationContext reactContext;
+    private ARFragment arFragment;
 
     public final int COMMAND_CREATE = 1;
+    public final int COMMAND_CLOSE = 2;
 
     public ARViewManager(ReactApplicationContext reactContext) {
         super();
@@ -54,7 +64,8 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
     @Override
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
-                "CREATE", COMMAND_CREATE
+                "CREATE", COMMAND_CREATE,
+                "CLOSE", COMMAND_CLOSE
         );
     }
 
@@ -62,28 +73,32 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
     public void receiveCommand(@NonNull FrameLayout root, String commandId, @Nullable ReadableArray args) {
         Log.d(REACT_TAG,"command received: " + commandId + " view id: " + args);
         super.receiveCommand(root, commandId, args);
-        int reactNativeARViewId = args.getInt(0);
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
             case COMMAND_CREATE:
-                createARFragment(root, reactNativeARViewId, args.getBoolean(1), args.getInt(2));
+                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2));
+                break;
+            case COMMAND_CLOSE:
+                closeARFragment(root);
                 break;
             default:
                 Log.w(REACT_TAG, "Invalid command recieved from ReactNative");
         }
     }
 
+    private void closeARFragment(FrameLayout root) {
+        if(arFragment != null) {
+            Log.d("AR", "close");
+            arFragment.close();
+        }
+    }
+
     private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM) {
-        Log.d(REACT_TAG, Integer.toString(reactNativeARViewId));
-        //ViewGroup parentView = (ViewGroup) parentLayout.findViewById(reactNativeARViewId).getParent();
-        //organizeLayout(parentView);
-//
-        final ARView ARfragment = new ARView(reactContext, determineViewshed, visibleRadiusKM);
-        //final MapsFragment mapsFragment = new MapsFragment();
+        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM);
+
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
-                .replace(reactNativeARViewId, ARfragment, String.valueOf(reactNativeARViewId))
-//                .replace(reactNativeMapsViewId, mapsFragment, String.valueOf(reactNativeMapsViewId))
+                .replace(reactNativeARViewId, arFragment, String.valueOf(reactNativeARViewId))
                 .commit();
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager().executePendingTransactions();
     }
@@ -107,26 +122,5 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
                 "cacheUse",
                 MapBuilder.of("registrationName", "onUseCache")
         );
-    }
-
-    private void organizeLayout(ViewGroup parentView) {
-        Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                manuallyLayoutChildren(parentView);
-                parentView.getViewTreeObserver().dispatchOnGlobalLayout();
-                Choreographer.getInstance().postFrameCallback(this);
-            }
-        });
-    }
-
-    private void manuallyLayoutChildren(ViewGroup view) {
-        for(int i = 0; i < view.getChildCount(); i++) {
-            View child = view.getChildAt(i);
-            //Log.d("MEASURE_AR", String.valueOf(view.getMeasuredWidth()));
-            child.measure(View.MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), View.MeasureSpec.EXACTLY),
-                        View.MeasureSpec.makeMeasureSpec(view.getMeasuredHeight(), View.MeasureSpec.EXACTLY));
-            child.layout(0, 0, child.getMeasuredWidth(), child.getMeasuredHeight());
-        }
     }
 }

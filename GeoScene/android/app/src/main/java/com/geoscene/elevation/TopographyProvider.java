@@ -1,6 +1,6 @@
 package com.geoscene.elevation;
 
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 
 import java.util.concurrent.CountDownLatch;
 

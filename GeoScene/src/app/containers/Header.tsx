@@ -17,7 +17,7 @@ import { useTheme, useUser } from '../utils/hooks/Hooks';
 import { Badge } from 'react-native-elements/dist/badge/Badge';
 import RNBounceable from '@freakycoder/react-native-bounceable';
 import { StackHeaderProps } from '@react-navigation/stack';
-import { TabBarIcon } from '../components/tabs/TabBarIcon';
+import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
 
 // const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
@@ -32,7 +32,6 @@ import { ThemeText } from '../components/text/ThemeText';
 //   );
 // };
 
-const appLogo = require('../assets/img/logo.png');
 const defaultProfilePicture = require('../assets/img/profile.png');
 // const searchIcon = require("./local-assets/search.png");
 // const bagIcon = require("./local-assets/shopping-bag.png");
@@ -88,7 +87,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
             bounceEffect={0.8}
             bounceFriction={2}
             onPress={() => navigation.goBack()}>
-            <TabBarIcon name="arrow-left" color={theme.colors.text} size={18} />
+            <ThemeIcon name="arrow-left" color={theme.colors.text} size={18} />
           </RNBounceable>
         )}
         <View style={styles.titleContainer}>
@@ -108,13 +107,13 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
           {state.user &&
           icon === 'envelope' &&
           state.user?.unreadMessages > 0 ? (
-            <TabBarIcon
+            <ThemeIcon
               name="envelope-letter"
               size={20}
               color={theme.colors.text}
             />
           ) : (
-            <TabBarIcon
+            <ThemeIcon
               name={icon}
               size={size ?? 20}
               color={theme.colors.text}

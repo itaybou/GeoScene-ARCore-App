@@ -2,14 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, UIManager, View, findNodeHandle } from 'react-native';
 
 import { BottomModal } from './BottomModal';
-import { Button } from 'react-native';
-import Modal from 'react-native-modal';
 import { NativeMapView } from '../../../native/NativeViewsBridge';
-import { SettingsActionTypes } from '../../providers/reducers/SettingsReducer';
-import Slider from 'react-native-slider';
+import { ThemeSlider } from '../../components/input/ThemeSlider';
 import { ThemeText } from '../text/ThemeText';
 import { VISIBLE_RADIUS } from '../../constants/Constants';
-import useGeolocation from '../../utils/hooks/useGeolocation';
 import useSettings from '../../utils/hooks/useSettings';
 import useTheme from '../../utils/hooks/useTheme';
 
@@ -17,9 +13,10 @@ interface MapModalProps {
   showSlider: boolean;
   title?: string;
   buttonText?: string;
+  screenPercent?: number;
   isVisible: boolean;
   showButtonIcon: boolean;
-  shownPlace: {
+  shownPlace?: {
     latitude: number | null | undefined;
     longitude: number | null | undefined;
   } | null;
@@ -30,12 +27,16 @@ interface MapModalProps {
   onMapSingleTap?: (event: any) => void;
   hide: () => void;
   onButtonPress?: (value: any) => void;
+  showTriangulationData?: any[];
+  useObserverLocation?: boolean;
+  useTriangulation?: boolean;
 }
 
 const DEFAULT_BBOX_RADIUS = 5;
 
 export const MapModal: React.FC<MapModalProps> = ({
   isVisible,
+  screenPercent,
   hide,
   showSlider,
   showBoundingCircle,
@@ -46,6 +47,9 @@ export const MapModal: React.FC<MapModalProps> = ({
   onButtonPress,
   title,
   onMapSingleTap,
+  showTriangulationData,
+  useTriangulation = false,
+  useObserverLocation = false,
   enableZoom = false,
   enableLocationTap = false,
 }) => {
@@ -60,7 +64,12 @@ export const MapModal: React.FC<MapModalProps> = ({
   );
 
   useEffect(() => {
-    if (mapRef.current && shownPlace?.latitude && shownPlace?.longitude) {
+    if (
+      mapRef.current &&
+      shownPlace?.latitude &&
+      shownPlace?.longitude &&
+      !showTriangulationData
+    ) {
       UIManager.dispatchViewManagerCommand(
         mapRef.current,
         MapsManager.Commands.ZOOM_SET_BBOX.toString(),
@@ -77,6 +86,7 @@ export const MapModal: React.FC<MapModalProps> = ({
   return (
     <BottomModal
       isVisible={isVisible}
+      screenPercent={screenPercent}
       hide={hide}
       showButtonIcon={showButtonIcon}
       onModalHide={() => showSlider && setRadius(state.visibleRadius)}
@@ -89,13 +99,10 @@ export const MapModal: React.FC<MapModalProps> = ({
       {showSlider && (
         <View style={styles.sliderContainer}>
           <View style={styles.sliderComponentContainer}>
-            <Slider
+            <ThemeSlider
               value={radius}
               step={1}
-              minimumValue={VISIBLE_RADIUS.min}
-              maximumValue={VISIBLE_RADIUS.max}
-              thumbTintColor={theme.colors.accent_secondary}
-              minimumTrackTintColor={theme.colors.accent_secondary_dark}
+              range={VISIBLE_RADIUS}
               onValueChange={(value: number) => {
                 setRadius(value);
                 UIManager.dispatchViewManagerCommand(
@@ -122,8 +129,10 @@ export const MapModal: React.FC<MapModalProps> = ({
         <NativeMapView
           enableZoom={enableZoom}
           showBoundingCircle={showBoundingCircle}
-          useObserverLocation={false}
+          useTriangulation={useTriangulation}
+          useObserverLocation={useObserverLocation}
           onMapSingleTap={onMapSingleTap}
+          showTriangulationData={showTriangulationData}
           enableLocationTap={enableLocationTap}
           style={styles.map}
           ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
