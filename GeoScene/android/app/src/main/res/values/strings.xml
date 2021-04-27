@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">GeoScene</string>
-    <string name="ar_geoscene_name">AR GeoScene</string>
-    <string name="go_back_btn">Go Back</string>
-    <string name="splash_screen_image">Splash Screen image</string>
-    <string name="location_marker">Location Marker</string>
-</resources>
