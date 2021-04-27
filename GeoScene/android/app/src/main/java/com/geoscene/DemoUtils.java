@@ -63,29 +63,6 @@ public class DemoUtils {
      *     an installation was already requested. This is true if this method previously returned
      *     null. and the camera permission has been granted.
      */
-    public static Session createArSession(Activity activity, boolean installRequested)
-            throws UnavailableException {
-        Session session = null;
-        // if we have the camera permission, create the session
-        if (ARLocationPermissionHelper.hasPermission(activity)) {
-            switch (ArCoreApk.getInstance().requestInstall(activity, !installRequested)) {
-                case INSTALL_REQUESTED:
-                    return null;
-                case INSTALLED:
-                    break;
-            }
-            session = new Session(activity);
-            // IMPORTANT!!!  ArSceneView needs to use the non-blocking update mode.
-            Config config = new Config(session);
-            config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
-            config.setLightEstimationMode(Config.LightEstimationMode.AMBIENT_INTENSITY);
-            config.setPlaneFindingMode(Config.PlaneFindingMode.VERTICAL);
-            config.setFocusMode(Config.FocusMode.AUTO);
-            session.configure(config);
-//            session.setDisplayGeometry(activity.);
-        }
-        return session;
-    }
 
     /** Check to see we have the necessary permissions for this app, and ask for them if we don't. */
   /*public static void requestPermission(Activity activity, int requestCode) {

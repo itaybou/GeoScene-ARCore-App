@@ -11,7 +11,6 @@ import { PageCard } from '../../components/layout/PageCard';
 import React from 'react';
 import { SettingsActionTypes } from '../../providers/reducers/SettingsReducer';
 import { ThemeText } from '../../components/text/ThemeText';
-import { accurateOptions } from '../../utils/hooks/useGeolocation';
 import { color } from 'react-native-reanimated';
 import { createStackNavigator } from '@react-navigation/stack';
 

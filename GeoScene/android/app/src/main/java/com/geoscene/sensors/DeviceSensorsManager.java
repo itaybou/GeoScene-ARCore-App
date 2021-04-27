@@ -49,6 +49,11 @@ public class DeviceSensorsManager implements DeviceSensors {
         return orientation.getOrientation();
     }
 
+    @Override
+    public float[] getOrientationMatrix() {
+        return orientation.getOrientationMatrix();
+    }
+
     public GeomagneticField getGeomagneticField() {
         return new GeomagneticField((float)location.getDeviceLocation().getLatitude(), (float)location.getDeviceLocation().getLongitude(), (float)location.getDeviceLocation().getAltitude(), location.getDeviceLocation().getTime());
     }

@@ -1,5 +1,6 @@
 import { ActivityIndicator, Button, FlatList, View } from 'react-native';
 import React, { useEffect } from 'react';
+import { deleteLocation, updateLocation } from '../../../api/osm/OSMApi';
 
 import { Center } from '../../../components/layout/Center';
 import { MapModal } from '../../../components/modals/MapModal';
@@ -8,7 +9,6 @@ import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
 import promisify from '../../../api/promisify';
-import {updateLocation, deleteLocation} from '../../../api/osm/OSMApi';
 import { useState } from 'react';
 import useTheme from '../../../utils/hooks/useTheme';
 import useUser from '../../../utils/hooks/useUser';
@@ -32,7 +32,7 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
     await promisify(
       'getUserPOIs',
       Overpass,
-    )("Lior Hassan")
+    )('Lior Hassan')
       .then((response) => {
         setPlaces(JSON.parse(response?.data));
         setLoading(false);
@@ -75,11 +75,11 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
           </ThemeText>
         </View>
         <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
           <ThemeButton
             icon="map"
             onPress={() =>
@@ -90,17 +90,12 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
               })
             }
           />
-          <ThemeButton
-            icon="UPDATE"
-            onPress={() =>{}
-            }
-          />
+          <ThemeButton icon="UPDATE" onPress={() => {}} />
           <ThemeButton
             icon="DELETE"
-            onPress={() =>{
-              deleteLocation(item.id, item.version, item.lat, item.lon)
-            }
-            }
+            onPress={() => {
+              deleteLocation(item.id, item.version, item.lat, item.lon);
+            }}
           />
         </View>
       </View>

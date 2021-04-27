@@ -1,8 +1,8 @@
 package com.geoscene.elevation;
 
 import com.geoscene.elevation.open_topography.CellType;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.Coordinate;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 
 import org.javatuples.Pair;
 

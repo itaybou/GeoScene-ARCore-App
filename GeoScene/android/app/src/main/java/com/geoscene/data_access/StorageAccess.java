@@ -5,33 +5,27 @@ import android.util.Log;
 
 import com.geoscene.elevation.Raster;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 
-import org.bson.types.ObjectId;
-
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.UUID;
 
-import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
+import io.realm.RealmAsyncTask;
 import io.realm.RealmResults;
 import io.realm.exceptions.RealmException;
 
 public class StorageAccess {
 
     private static final String TAG = "StorageAccess";
-    private static final double BBOX_TOLERENCE = Math.pow(1, -5);
+    private static final double BBOX_TOLERENCE = 1e-5;
 
     public static PersistLocationObject fetchLocationInfo(BoundingBoxCenter bbox) {
         try (Realm realm = Realm.getDefaultInstance()) {
-            Log.d("DB TEST", bbox.toString());
             PersistLocationObject locationData = realm.where(PersistLocationObject.class)
-                    .greaterThanOrEqualTo("bbox.south", bbox.getSouth() - BBOX_TOLERENCE)
-                    .greaterThanOrEqualTo("bbox.west", bbox.getWest() - BBOX_TOLERENCE)
-                    .lessThanOrEqualTo("bbox.north", bbox.getNorth() + BBOX_TOLERENCE)
-                    .lessThanOrEqualTo("bbox.east", bbox.getEast() + BBOX_TOLERENCE)
+                    .lessThanOrEqualTo("bbox.south", bbox.getSouth() + BBOX_TOLERENCE)
+                    .lessThanOrEqualTo("bbox.west", bbox.getWest() + BBOX_TOLERENCE)
+                    .greaterThanOrEqualTo("bbox.north", bbox.getNorth() - BBOX_TOLERENCE)
+                    .greaterThanOrEqualTo("bbox.east", bbox.getEast() - BBOX_TOLERENCE)
                     .findFirst();
             if (locationData != null) {
                 PersistLocationObject locationDataCopy = realm.copyFromRealm(locationData);
@@ -78,13 +72,9 @@ public class StorageAccess {
                         .lessThanOrEqualTo("lastAccessTimestamp", deleteTimestamp)
                         .findAll();
 
-//                    OrderedRealmCollection<PersistLocationObject> orderedLocationData = changedLocationData.createSnapshot();
-                Log.d(TAG, String.format("Fetched %d persisted items from realm.", locationData.size()));
                 for (PersistLocationObject locationInfo : locationData) {
                     InternalStorage.delete(context, locationInfo.getRasterElevationFilename());
-                    Log.d(TAG, locationInfo.getRasterElevationFilename());
                     locationInfo.cascadeDelete();
-                    Log.d(TAG, "here");
                 }
             });
         } catch (Exception e) {

@@ -6,6 +6,7 @@ import {
 import {
   SceneRoutesParamList,
   TabRoutesParamList,
+  TriangulateRoutesParamList,
 } from './params/RoutesParamList';
 
 import { HomeStackRoutes } from './stacks/HomeStackRoutes';
@@ -17,58 +18,22 @@ import { SettingsStackRoutes } from './stacks/SettingsStackRoutes';
 import { StyleSheet } from 'react-native';
 import { TabBarButton } from '../components/tabs/TabBarButton';
 import { TabBarCenterButton } from '../components/tabs/TabBarCenterButton';
-import { TabBarIcon } from '../components/tabs/TabBarIcon';
+import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import useTheme from '../utils/hooks/useTheme';
 
 interface TabRoutesProps {}
 
-const NoNavigationBarScreens = ['AR'];
+const NoNavigationBarScreens = ['AR', 'TriangulateStack'];
 
 const Tabs = createBottomTabNavigator<TabRoutesParamList>();
 
-// function HomeScreen({ route }: TabRoutesNavProps<'Home'>) {
-//   const { state, dispatch } = useContext(SettingsContext);
-//   const theme = useTheme();
-//   console.log(state);
-//   return (
-//     <Center>
-//       <Text>Route name: {route.name}</Text>
-//       <Button
-//         title="Go to login screen"
-//         buttonStyle={{ backgroundColor: theme.colors.notification }}
-//         onPress={() =>
-//           dispatch({
-//             type: SettingsActionTypes.CHANGE_THEME,
-//             payload: {
-//               theme:
-//                 state.theme === ThemeType.LIGHT
-//                   ? ThemeType.DARK
-//                   : ThemeType.LIGHT,
-//             },
-//           })
-//         }
-//       />
-//     </Center>
-//   );
-// }
-
-// function ScenesScreen({ navigation }: TabRoutesNavProps<'Scene'>) {
-//   const theme = useTheme();
-
-//   return (
-//     <Center>
-//       <Text>Scenes</Text>
-//       <Button
-//         title="Go to register screen"
-//         buttonStyle={{ backgroundColor: theme.colors.notification }}
-//         onPress={() => navigation.navigate('Home')}
-//       />
-//     </Center>
-//   );
-// }
-
-const containsNavigationTab = (route: Route<'Scene', SceneRoutesParamList>) => {
+const containsNavigationTab = (
+  route: Route<
+    'Scene' | 'Triangulate',
+    SceneRoutesParamList | TriangulateRoutesParamList
+  >,
+) => {
   return !NoNavigationBarScreens.includes(
     getFocusedRouteNameFromRoute(route) ?? '',
   );
@@ -104,8 +69,9 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
         name="Home"
         component={HomeStackRoutes}
         options={{
+          unmountOnBlur: true,
           tabBarButton: TabBarButton,
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          tabBarIcon: ({ color }) => <ThemeIcon name="home" color={color} />,
           title: 'Home',
         }}
       />
@@ -113,9 +79,10 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
         name="Places"
         component={PlacesStackRoutes}
         options={{
+          unmountOnBlur: true,
           tabBarButton: TabBarButton,
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="location-pin" color={color} />
+            <ThemeIcon name="location-pin" color={color} />
           ),
         }}
       />
@@ -128,6 +95,7 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
             : () => null,
           tabBarLabel: () => null,
           tabBarVisible: containsNavigationTab(route),
+          unmountOnBlur: true,
         })}
       />
       <Tabs.Screen
@@ -135,16 +103,18 @@ export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
         component={MapsStackRoutes}
         options={{
           tabBarButton: TabBarButton,
-          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
+          tabBarIcon: ({ color }) => <ThemeIcon name="map" color={color} />,
+          unmountOnBlur: true,
         }}
       />
       <Tabs.Screen
         name="Settings"
         component={SettingsStackRoutes}
         options={{
+          unmountOnBlur: true,
           tabBarButton: TabBarButton,
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="settings" color={color} />
+            <ThemeIcon name="settings" color={color} />
           ),
         }}
       />

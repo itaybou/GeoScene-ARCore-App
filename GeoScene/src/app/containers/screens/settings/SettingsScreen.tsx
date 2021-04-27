@@ -11,8 +11,8 @@ import { MapModal } from '../../../components/modals/MapModal';
 import { SettingsActionTypes } from '../../../providers/reducers/SettingsReducer';
 import { SettingsList } from '../../../components/settings/SettingsList';
 import { SettingsStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
-import { TabBarIcon } from '../../../components/tabs/TabBarIcon';
 import { TabScreen } from '../../../components/layout/TabScreen';
+import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 
 export type SectionData = {
   index: number;
@@ -107,7 +107,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       index: 0,
       showHeader: true,
       icon: (color: string) => (
-        <TabBarIcon name="drop" size={18} color={color} />
+        <ThemeIcon name="drop" size={18} color={color} />
       ),
       data: [menuItems.theme.darkMode],
     },
@@ -116,7 +116,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       index: 1,
       showHeader: true,
       icon: (color: string) => (
-        <TabBarIcon name="compass" size={18} color={color} />
+        <ThemeIcon name="compass" size={18} color={color} />
       ),
       data: [
         menuItems.scene.viewshed,
@@ -175,7 +175,5 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    // backgroundColor: theme.colors.background,
   },
 });

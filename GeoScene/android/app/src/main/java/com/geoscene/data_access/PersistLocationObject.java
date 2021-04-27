@@ -2,22 +2,18 @@ package com.geoscene.data_access;
 
 
 import android.content.Context;
-import android.util.Log;
 
 import com.geoscene.data_access.dto.BoundingBoxDTO;
 import com.geoscene.data_access.dto.RasterDTO;
 import com.geoscene.data_access.dto.IRealmCascadeObject;
 import com.geoscene.elevation.Raster;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 
 import java.util.UUID;
 
-import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.Required;
 
 public class PersistLocationObject extends RealmObject implements IRealmCascadeObject {
     @PrimaryKey

@@ -1,31 +1,48 @@
 package com.geoscene.maps;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.geoscene.BuildConfig;
 import com.geoscene.R;
 import com.geoscene.constants.LocationConstants;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.geoscene.triangulation.Triangulation;
 import com.geoscene.triangulation.TriangulationData;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.LocationUtils;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.Coordinate;
+import com.geoscene.location.LocationUtils;
+import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.triangulation.TriangulationIntersection;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
+import org.osmdroid.config.IConfigurationProvider;
+import org.osmdroid.tileprovider.MapTileProviderBasic;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.util.SimpleInvalidationHandler;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
@@ -45,12 +62,14 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class OSMMapView extends LinearLayout implements IOrientationConsumer {
+public class OSMMapView extends LinearLayout implements IOrientationConsumer, LifecycleEventListener {
 
     private ReactContext reactContext;
+    private boolean created;
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
 
     public MapView map = null;
@@ -73,29 +92,29 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
     private Polyline lineOfSight;
     private FolderOverlay triangulationLines;
     private ItemizedIconOverlay<OverlayItem> triangulationPoints;
+    private ItemizedIconOverlay<OverlayItem> triangulationViewers;
 
     private ItemizedIconOverlay<OverlayItem> locationMarkers = null;
     private double previousAzimuth;
-//    private OrientationProvider orientationProvider;
 
     private static final long ORIENTATION_CHANGE_ANIMATION_SPEED = 200L;
     private boolean animateToIncludeTriangulationPoints;
 
-
-    public OSMMapView(ThemedReactContext reactContext) {
+    public OSMMapView(ReactContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
 
         Configuration.getInstance().load(reactContext, PreferenceManager.getDefaultSharedPreferences(reactContext));
         inflate(reactContext, R.layout.map_layout, this);
-        map = (MapView) findViewById(R.id.map);
+        map = findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.getOverlays().clear();
 
         sensors = DeviceSensorsManager.getSensors(reactContext);
         mapController = map.getController();
-
+        zoomToBoundingBox();
         map.invalidate();
+
     }
 
     public void setUseCompassOrientation(boolean useCompassOrientation) {
@@ -142,6 +161,85 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
         if(!animateToIncludeTriangulationPoints) {
             zoomToBoundingBox();
             //mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, 0f);
+        }
+    }
+
+    public void setShowTriangulationData(TriangulationIntersection intersection, TriangulationData data, double azimuth) {
+        if (mLocationOverlay != null) {
+            mLocationOverlay.disableFollowLocation();
+        }
+        if(intersection != null) {
+            map.post(() -> {
+                if (map.getMeasuredHeight() > 0 && map.getMeasuredWidth() > 0) {
+                    Location location = sensors.getDeviceLocation();
+                    double lat = location.getLatitude(), lon = location.getLongitude();
+                    observer = new GeoPoint(lat, lon);
+                    List<Coordinate> myArc = Triangulation.getGeodesicArc(200, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, lat, lon, azimuth);
+                    List<Coordinate> arc = Triangulation.getGeodesicArc(200, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, data.getLat(), data.getLon(), data.getAzimuth());
+
+                    if (lineOfSight != null) {
+                        map.getOverlays().remove(lineOfSight);
+                    }
+
+                    if (triangulationLines != null) {
+                        map.getOverlays().remove(triangulationLines);
+                    }
+
+                    if (triangulationPoints != null) {
+                        map.getOverlays().remove(triangulationPoints);
+                    }
+
+                    if (triangulationViewers != null) {
+                        map.getOverlays().remove(triangulationViewers);
+                    }
+                    triangulationLines = new FolderOverlay();
+                    OverlayItem marker = new OverlayItem("", "", new GeoPoint(intersection.intersection.getLat(), intersection.intersection.getLon()));
+                    OverlayItem viewer = new OverlayItem("", "", new GeoPoint(arc.get(0).getLat(), arc.get(0).getLon()));
+                    lineOfSight = new Polyline(map);
+                    lineOfSight.setPoints(myArc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
+                    lineOfSight.getOutlinePaint().setColor(Color.RED);
+                    lineOfSight.getOutlinePaint().setStrokeWidth(4f);
+                    map.getOverlays().add(lineOfSight);
+
+                    Polyline polyline = new Polyline(map);
+                    polyline.setPoints(arc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
+                    polyline.getOutlinePaint().setColor(Color.BLACK);
+                    polyline.getOutlinePaint().setStrokeWidth(4f);
+                    triangulationLines.add(polyline);
+
+                    triangulationPoints = new ItemizedIconOverlay<>(reactContext, new ArrayList<>(Collections.singletonList(marker)), null);
+                    triangulationViewers = new ItemizedIconOverlay<>(reactContext, new ArrayList<>(Collections.singletonList(viewer)), null);
+                    map.getOverlays().add(triangulationLines);
+                    map.getOverlays().add(triangulationPoints);
+                    map.getOverlays().add(triangulationViewers);
+
+                    List<IGeoPoint> bboxPoints = new ArrayList<IGeoPoint>() {{
+                        add(marker.getPoint());
+                        add(observer);
+                        add(viewer.getPoint());
+                    }};
+                    map.zoomToBoundingBox(getPointsBbox(bboxPoints), false, 50);
+                    map.invalidate();
+                }
+            });
+        } else {
+            List<Coordinate> myArc = Triangulation.getGeodesicArc(200, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, data.getLat(), data.getLon(), azimuth);
+            if (lineOfSight != null)
+                map.getOverlays().remove(lineOfSight);
+            lineOfSight = new Polyline(map);
+            lineOfSight.setPoints(myArc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
+            lineOfSight.getOutlinePaint().setColor(Color.RED);
+            lineOfSight.getOutlinePaint().setStrokeWidth(4f);
+            map.getOverlays().add(lineOfSight);
+            map.invalidate();
+        }
+    }
+
+    public void setTriangulationData(List<TriangulationData> data) {
+        triangulationData = data;
+        triangulationData.forEach(t -> t.setTriangulationArc(Triangulation.getGeodesicArc(1000, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, t.getLat(), t.getLon(), t.getAzimuth())));
+        if(mLocationOverlay != null) {
+            mLocationOverlay.disableFollowLocation();
         }
     }
 
@@ -196,61 +294,10 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
         t = (int) t;
         t = t * 2;
 
-        if(useTriangulation && Math.abs(previousAzimuth - azimuth) >= 1e-2) { // Reduce azimuth to include only 2 digits (EPSILON DIFF)
+        //
+        if(useTriangulation && map.getRepository() != null && Math.abs(previousAzimuth - azimuth) >= 1e-2) { // Reduce azimuth to include only 2 digits (EPSILON DIFF)
             dispatchAzimuth(azimuth);
-            Location location = sensors.getDeviceLocation();
-            double lat = location.getLatitude(), lon = location.getLongitude();
-            List<Coordinate> myArc = Triangulation.getGeodesicArc(200, 1e5, lat, lon, azimuth);
-
-            if(lineOfSight != null)
-                map.getOverlays().remove(lineOfSight);
-            lineOfSight = new Polyline(map);
-            lineOfSight.setPoints(myArc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
-            lineOfSight.getOutlinePaint().setColor(Color.RED);
-            lineOfSight.getOutlinePaint().setStrokeWidth(4f);
-            map.getOverlays().add(lineOfSight);
-
-            if(triangulationLines != null) {
-                map.getOverlays().remove(triangulationLines);
-            }
-
-            if(triangulationPoints != null) {
-                map.getOverlays().remove(triangulationPoints);
-            }
-
-            triangulationLines = new FolderOverlay();
-            ArrayList<OverlayItem> markers = new ArrayList<>();
-            for(TriangulationData triangulation : triangulationData) {
-                Coordinate intersection = Triangulation.triangulate(lat, lon, azimuth, triangulation.getLat(), triangulation.getLon(), triangulation.getAzimuth());
-                if(intersection != null && LocationUtils.aerialDistance(lat, intersection.getLat(), lon, intersection.getLon()) <= (1e5 - 5e4)) {
-                    markers.add(new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon())));
-                    List<Coordinate> arc = triangulation.getTriangulationArc();
-                    Log.d("MapView", String.valueOf(arc.size()));
-
-                    Polyline polyline = new Polyline(map);
-                    polyline.setPoints(arc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
-                    polyline.getOutlinePaint().setColor(Color.BLACK);
-                    polyline.getOutlinePaint().setStrokeWidth(4f);
-                    triangulationLines.add(polyline);
-                }
-            }
-
-                if (!markers.isEmpty()) {
-                    triangulationPoints = new ItemizedIconOverlay<>(reactContext, markers, null);
-                    map.getOverlays().add(triangulationPoints);
-                }
-                List<IGeoPoint> bboxPoints = markers.stream().map(OverlayItem::getPoint).collect(Collectors.toList());
-                if (bboxPoints.isEmpty() && animateToIncludeTriangulationPoints) {
-                    BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(location.getLatitude(), location.getLongitude()), LocationConstants.OBSERVER_BBOX * 2);
-                    map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
-                    map.zoomToBoundingBox(getPointsBbox(bboxPoints), true, 100, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
-                } else if(animateToIncludeTriangulationPoints) {
-                    bboxPoints.add(observer);
-                    mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, t);
-                    map.zoomToBoundingBox(getPointsBbox(bboxPoints), true, 100, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
-                }
-                map.getOverlays().add(triangulationLines);
-            map.invalidate();
+            calculateAndDrawTriangulations(azimuth, t);
         }
         if(!animateToIncludeTriangulationPoints) {
             mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, t);
@@ -258,16 +305,92 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
         previousAzimuth = azimuth;
     }
 
+    private void calculateAndDrawTriangulations(double azimuth, float bearing) {
+        try {
+            Location location = sensors.getDeviceLocation();
+            double lat = location.getLatitude(), lon = location.getLongitude();
+            List<Coordinate> myArc = Triangulation.getGeodesicArc(200, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, lat, lon, azimuth);
+
+            if (lineOfSight != null)
+                map.getOverlays().remove(lineOfSight);
+            lineOfSight = new Polyline(map);
+            lineOfSight.setPoints(myArc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
+            lineOfSight.getOutlinePaint().setColor(Color.RED);
+            lineOfSight.getOutlinePaint().setStrokeWidth(4f);
+            map.getOverlays().add(lineOfSight);
+
+            if (triangulationLines != null) {
+                map.getOverlays().remove(triangulationLines);
+            }
+
+            if (triangulationPoints != null) {
+                map.getOverlays().remove(triangulationPoints);
+            }
+
+            if (triangulationViewers != null) {
+                map.getOverlays().remove(triangulationViewers);
+            }
+
+            triangulationLines = new FolderOverlay();
+            List<OverlayItem> markers = new ArrayList<>();
+            List<OverlayItem> viewers = new ArrayList<>();
+            List<TriangulationIntersection> intersections = new ArrayList<>();
+            for (TriangulationData triangulation : triangulationData) {
+                Coordinate intersection = Triangulation.triangulate(lat, lon, azimuth, triangulation.getLat(), triangulation.getLon(), triangulation.getAzimuth());
+                if(intersection != null) {
+                    double aerialDistance = LocationUtils.aerialDistance(lat, intersection.getLat(), lon, intersection.getLon());
+                    if (aerialDistance < Triangulation.MAX_TRIANGULATION_DISTANCE) { // Smaller than triangulation arc
+                        intersections.add(new TriangulationIntersection(triangulation.id, triangulation.name, intersection.getLat(), intersection.getLon(), aerialDistance));
+                        markers.add(new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon())));
+                        List<Coordinate> arc = triangulation.getTriangulationArc();
+                        Log.d("MapView", String.valueOf(arc.size()));
+
+                        Coordinate viewerCoordinate = arc.get(0);
+                        viewers.add(new OverlayItem("", "", new GeoPoint(viewerCoordinate.getLat(), viewerCoordinate.getLon())));
+
+                        Polyline polyline = new Polyline(map);
+                        polyline.setPoints(arc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
+                        polyline.getOutlinePaint().setColor(Color.BLACK);
+                        polyline.getOutlinePaint().setStrokeWidth(4f);
+                        triangulationLines.add(polyline);
+                    }
+                }
+            }
+            dispatchTriangulationIntersection(intersections);
+
+            if (!markers.isEmpty()) {
+                triangulationPoints = new ItemizedIconOverlay<>(reactContext, markers, null);
+                triangulationViewers = new ItemizedIconOverlay<>(reactContext, viewers, null);
+                //triangulationPoints = new ItemizedIconOverlay<>(markers, ResourcesCompat.getDrawable(getResources(), R.drawable.marker, null), null, null);
+                map.getOverlays().add(triangulationLines);
+                map.getOverlays().add(triangulationPoints);
+                map.getOverlays().add(triangulationViewers);
+            }
+            List<IGeoPoint> bboxPoints = markers.stream().map(OverlayItem::getPoint).collect(Collectors.toList());
+            if (bboxPoints.isEmpty() && animateToIncludeTriangulationPoints) {
+                BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(location.getLatitude(), location.getLongitude()), LocationConstants.OBSERVER_BBOX * 2);
+//                    map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
+                mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, bearing);
+            } else if (animateToIncludeTriangulationPoints) {
+                bboxPoints.add(observer);
+                mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, bearing);
+                map.zoomToBoundingBox(getPointsBbox(bboxPoints), true, 200, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
+            }
+            map.invalidate();
+            if (!markers.isEmpty()) {
+                markers.clear();
+                viewers.clear();
+            }
+        } catch (Exception ignored) {}
+    }
 
     public void zoomToBoundingBox() {
         map.post(() -> {
             if (map.getMeasuredHeight() > 0 && map.getMeasuredWidth() > 0) {
                 observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
                 mapController.setCenter(observer);
-                Log.d("MEASURE1111", map.getMeasuredHeight() + "," + map.getMeasuredWidth());
                 Coordinate observer = new Coordinate(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
                 BoundingBoxCenter bbox = new BoundingBoxCenter(observer, LocationConstants.OBSERVER_BBOX); // CHANGE TP GLOBAL SETTINGS
-                Log.d("BBOX1111", bbox.toString());
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), false, 5);
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5);
                 map.invalidate();
@@ -344,8 +467,8 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
 
 
     private <T extends IGeoPoint> BoundingBox getPointsBbox(List<T> points) {
-        double north = -90;
-        double south = 90;
+        double north = -85.05112877980658;
+        double south = 85.05112877980658;
         double west = 180;
         double east = -180;
         for (T position : points) {
@@ -369,20 +492,26 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
                 event);
     }
 
-    @Override
-    public void onVisibilityAggregated(boolean isVisible) {
-        super.onVisibilityAggregated(isVisible);
-        Log.d("VISIBLE", String.valueOf(isVisible));
-        if (isVisible) resume();
-        else pause();
-    }
+//    @Override
+//    protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+//        super.onVisibilityChanged(changedView, visibility);
+//        if (visibility == View.VISIBLE) resume();//onResume called
+//        else pause();
+//    }
+//
+//    @Override
+//    public void onWindowFocusChanged(boolean hasWindowFocus) {
+//        super.onWindowFocusChanged(hasWindowFocus);
+//        if (hasWindowFocus) resume();
+//        else pause();
+//    }
 
     private void resume() {
+        sensors.resume();
+        map.onResume();
         if (useCompassOrientation) {
             compass.startOrientationProvider(this);
         }
-        sensors.resume();
-        map.onResume();
     }
 
     private void pause() {
@@ -393,14 +522,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
         sensors.pause();
     }
 
-    public void setTriangulationData(List<TriangulationData> data) {
-        triangulationData = data;
-        triangulationData.forEach(t -> t.setTriangulationArc(Triangulation.getGeodesicArc(1000, 1e5, t.getLat(), t.getLon(), t.getAzimuth())));
-        if(mLocationOverlay != null) {
-            mLocationOverlay.disableFollowLocation();
-        }
-    }
-
     public void dispatchAzimuth(float azimuth) {
         WritableMap event = Arguments.createMap();
         event.putDouble("azimuth", azimuth);
@@ -409,4 +530,40 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer {
                 "azimuth",
                 event);
     }
+
+    private void dispatchTriangulationIntersection(List<TriangulationIntersection> intersections) {
+        WritableMap event = Arguments.createMap();
+        WritableArray data = Arguments.createArray();
+        for(TriangulationIntersection intersection : intersections) {
+            WritableMap intersectionMap = Arguments.createMap();
+            intersectionMap.putString("id", intersection.id);
+            intersectionMap.putString("name", intersection.name);
+            intersectionMap.putDouble("latitude", intersection.intersection.getLat());
+            intersectionMap.putDouble("longitude", intersection.intersection.getLon());
+            intersectionMap.putDouble("distance", intersection.distance);
+            data.pushMap(intersectionMap);
+        }
+        event.putArray("data", data);
+
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "triangulationIntersections",
+                event);
+    }
+
+    @Override
+    public void onHostResume() {
+        resume();
+    }
+
+    @Override
+    public void onHostPause() {
+        pause();
+    }
+
+    @Override
+    public void onHostDestroy() {
+    }
+
+
 }

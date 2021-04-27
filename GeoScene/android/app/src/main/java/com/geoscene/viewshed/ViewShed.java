@@ -2,11 +2,10 @@ package com.geoscene.viewshed;
 
 import android.util.Log;
 
-import com.geoscene.elevation.Elevation;
 import com.geoscene.elevation.Raster;
 import com.geoscene.elevation.open_topography.CellType;
-import com.geoscene.utils.Coordinate;
-import com.geoscene.utils.mercator.BoundingBoxCenter;
+import com.geoscene.location.Coordinate;
+import com.geoscene.location.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.algorithms.BresenhamCircle;
 import com.geoscene.viewshed.algorithms.BresenhamLine;
 

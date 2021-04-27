@@ -1,4 +1,4 @@
-import { Keyboard, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { Keyboard, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,15 +16,15 @@ export const TabScreen: React.FC<TabScreenProps> = ({ children, style }) => {
   return (
     <SafeAreaView
       style={[
-        style,
         styles.container,
         { backgroundColor: theme.colors.background, paddingBottom },
       ]}>
-      {children}
+      <View style={[style, styles.marginContainer]}>{children}</View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 8, marginBottom: 24, flex: 1 },
+  container: { padding: 8, flex: 1 },
+  marginContainer: { flex: 1, marginBottom: 24 },
 });

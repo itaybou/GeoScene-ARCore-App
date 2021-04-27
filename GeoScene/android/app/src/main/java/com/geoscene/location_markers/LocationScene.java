@@ -15,11 +15,8 @@ import com.google.ar.sceneform.math.Vector3;
 
 import java.util.ArrayList;
 
-import com.geoscene.location_markers.LocationMarker;
-import com.geoscene.sensors.DeviceLocation;
 import com.geoscene.sensors.DeviceLocationChanged;
-import com.geoscene.sensors.DeviceOrientation;
-import com.geoscene.utils.LocationUtils;
+import com.geoscene.location.LocationUtils;
 
 public class LocationScene {
 
@@ -30,7 +27,7 @@ public class LocationScene {
     public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
     // Anchors are currently re-drawn on an interval. There are likely better
     // ways of doing this, however it's sufficient for now.
-    private int anchorRefreshInterval = 1000 * 5; // 5 seconds
+    private int anchorRefreshInterval = 1000 * 30; // 5 seconds
     // Limit of where to draw markers within AR scene.
     // They will auto scale, but this helps prevents rendering issues
     private int distanceLimit = 5000;
@@ -54,19 +51,22 @@ public class LocationScene {
     private Session mSession;
     private DeviceLocationChanged locationChangedEvent;
 
-    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors) {
+    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors, boolean triangulation) {
         this.context = context;
         this.mSession = mArSceneView.getSession();
         this.mArSceneView = mArSceneView;
+        if(triangulation) {
+            anchorRefreshInterval = 2 * 1000;
+        }
 
         startCalculationTask();
         this.sensors = sensors;
         this.sensors.setLocationEvent(() -> {
-            if (getLocationChangedEvent() != null) {
-                getLocationChangedEvent().onChange(sensors.getDeviceLocation());
+            if (locationChangedEvent != null) {
+                locationChangedEvent.onChange(sensors.getDeviceLocation());
             }
 
-            if (refreshAnchorsAsLocationChanges()) {
+            if (refreshAnchorsAsLocationChanges) {
                 refreshAnchors();
             }
         });
@@ -88,10 +88,6 @@ public class LocationScene {
         this.minimalRefreshing = minimalRefreshing;
     }
 
-    public boolean refreshAnchorsAsLocationChanges() {
-        return refreshAnchorsAsLocationChanges;
-    }
-
     public void setRefreshAnchorsAsLocationChanges(boolean refreshAnchorsAsLocationChanges) {
         if (refreshAnchorsAsLocationChanges) {
             stopCalculationTask();
@@ -108,9 +104,6 @@ public class LocationScene {
      *
      * @return
      */
-    public DeviceLocationChanged getLocationChangedEvent() {
-        return locationChangedEvent;
-    }
 
     /**
      * Set additional event to run as device location changes.
@@ -242,6 +235,7 @@ public class LocationScene {
                                 0,
                                 0)
                 );
+//                int markerDistance = 1000;
 
                 if (markerDistance > marker.getOnlyRenderWhenWithin()) {
                     // Don't render if this has been set and we are too far away.
@@ -318,7 +312,7 @@ public class LocationScene {
                 );
 
                 marker.anchorNode = new LocationNode(newAnchor, marker, this);
-                marker.anchorNode.setScalingMode(LocationMarker.ScalingMode.NO_SCALING);
+                marker.anchorNode.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
 
                 marker.anchorNode.setParent(mArSceneView.getScene());
                 marker.anchorNode.addChild(mLocationMarkers.get(i).node);

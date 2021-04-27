@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "963500133052",
+    "project_id": "geoscene-25dfc",
+    "storage_bucket": "geoscene-25dfc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963500133052:android:9c9dca0a4d1ea13532deb9",
+        "android_client_info": {
+          "package_name": "com.geoscene"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "963500133052-umvfqjmtqfim2joqmgrpvoctga38p5iu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUVriuxZkPBxMWfRQnSks2RKxfO9mJw3s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "963500133052-umvfqjmtqfim2joqmgrpvoctga38p5iu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

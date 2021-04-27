@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { addNewLocation, updateLocation } from '../../../api/osm/OSMApi';
 
 import { MapModal } from '../../../components/modals/MapModal';
 import { TabScreen } from '../../../components/layout/TabScreen';
@@ -8,9 +9,6 @@ import { ThemeText } from '../../../components/text/ThemeText';
 import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
 import useTheme from '../../../utils/hooks/useTheme';
-import {addNewLocation, updateLocation} from '../../../api/osm/OSMApi';
-
-
 
 type Coordinate = {
   latitude?: number | null;
@@ -21,9 +19,9 @@ export interface AddPlaceProps {
   initialName?: string;
   initialDescription?: string;
   initialCoordinate?: Coordinate;
-  update?:boolean;
-  nodeID?:string;
-  csID?:string;
+  update?: boolean;
+  nodeID?: string;
+  csID?: string;
 }
 
 export const AddPlace: React.FC<AddPlaceProps> = ({
@@ -33,9 +31,8 @@ export const AddPlace: React.FC<AddPlaceProps> = ({
   nodeID,
   csID,
   update = false,
-  
 }) => {
-  const MAX_DESCRIPTION_LENGTH = 5;
+  const MAX_DESCRIPTION_LENGTH = 10;
   const [name, setName] = useState<string>(initialName ?? '');
   const [description, setDescription] = useState<string>(
     initialDescription ?? '',
@@ -114,15 +111,32 @@ export const AddPlace: React.FC<AddPlaceProps> = ({
           </View>
         </View>
         <ThemeButton
-          disabled={description.length === MAX_DESCRIPTION_LENGTH + 1 || coordinate === null}
+          disabled={
+            description.length === MAX_DESCRIPTION_LENGTH + 1 ||
+            coordinate === null
+          }
           onPress={() => {
-            update? updateLocation(nodeID, csID, coordinate.latitude, coordinate.longitude, name, description) : 
-                    addNewLocation(coordinate.latitude, coordinate.longitude, name, description )
+            update
+              ? updateLocation(
+                  nodeID,
+                  csID,
+                  coordinate.latitude,
+                  coordinate.longitude,
+                  name,
+                  description,
+                )
+              : addNewLocation(
+                  coordinate.latitude,
+                  coordinate.longitude,
+                  name,
+                  description,
+                );
           }}
           icon="like"
         />
       </View>
       <MapModal
+        screenPercent={0.8}
         showSlider={false}
         enableLocationTap={true}
         enableZoom={true}

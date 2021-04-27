@@ -1,32 +1,19 @@
 package com.geoscene.sensors;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Criteria;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
-import android.location.OnNmeaMessageListener;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.core.app.ActivityCompat;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import com.geoscene.location_markers.LocationScene;
-import com.geoscene.utils.KalmanLatLong;
-
-/**
- * Created by John on 02/03/2018.
- */
+import com.geoscene.location.KalmanLatLong;
 
 public class DeviceLocation implements LocationListener {
 
@@ -142,26 +129,6 @@ public class DeviceLocation implements LocationListener {
 
                 locationManager.requestLocationUpdates(gpsFreqInMillis, gpsFreqInDistance, criteria, this, null);
                 currentBestLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-
-                // Parse altitude above sea level, Detailed description of NMEA string here http://aprs.gids.nl/nmea/#gga
-//                OnNmeaMessageListener onNmeaMessageListener = (nmea, timestamp) -> {
-//                    if (nmea.startsWith("$")) {
-//                        String[] tokens = nmea.split(",");
-//                        String type = tokens[0];
-//                        if (type.startsWith("$GPGGA")) {
-//                            if (!tokens[9].isEmpty()) {
-//                                currentBestAltitude = Double.parseDouble(tokens[9]);
-//                            }
-//                        }
-//                    }
-//                    Log.d("NMEA", nmea);
-//                };
-//                if(gpsLocationProvider != null && gpsLocationProvider.supportsAltitude()) {
-//                    Location altitudeLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//                    if(altitudeLocation != null && altitudeLocation.hasAltitude()) {
-//                        currentBestAltitude = altitudeLocation.getAltitude();
-//                    } else currentBestAltitude = null;
-//                }
 
                 /* Battery Consumption Measurement */
                 gpsCount = 0;

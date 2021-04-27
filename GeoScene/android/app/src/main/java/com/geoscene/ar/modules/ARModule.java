@@ -15,7 +15,7 @@ import com.google.ar.core.ArCoreApk;
 
 public class ARModule extends ReactContextBaseJavaModule {
 
-    private static final String TAG = "ARGeoScene";
+    private static final String TAG = "ARModule";
     private final ReactApplicationContext reactContext;
 
     public ARModule(ReactApplicationContext reactContext) {

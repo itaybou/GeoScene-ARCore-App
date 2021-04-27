@@ -9,7 +9,7 @@ import { View, ViewStyle } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
 import { Center } from '../../components/layout/Center';
-import { TabBarIcon } from '../../components/tabs/TabBarIcon';
+import { ThemeIcon } from '../../components/assets/ThemeIcon';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface WebViewButtonProps {
@@ -30,7 +30,7 @@ const WebViewButton: React.FC<WebViewButtonProps> = ({
   return (
     <TouchableOpacity disabled={disabled} onPress={handler}>
       <View style={styles.button}>
-        <TabBarIcon
+        <ThemeIcon
           name={iconName}
           color={disabled ? theme.colors.inactiveTint : theme.colors.text}
         />

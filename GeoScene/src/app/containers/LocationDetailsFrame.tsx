@@ -17,7 +17,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Center } from '../components/layout/Center';
 import RNBounceable from '@freakycoder/react-native-bounceable';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TabBarIcon } from '../components/tabs/TabBarIcon';
+import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
 import { WebViewScreen } from './screens/WebViewScreen';
 import useTheme from '../utils/hooks/useTheme';
@@ -64,7 +64,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
   const closeButton = useMemo(
     () => (
       <RNBounceable onPress={closeLocationDetails}>
-        <TabBarIcon name="close" color={theme.colors.text} size={25} />
+        <ThemeIcon name="close" color={theme.colors.text} size={25} />
       </RNBounceable>
     ),
     [closeLocationDetails, theme.colors.text],
@@ -105,7 +105,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
             }}>
             <View style={{ marginEnd: 16 }}>
               <RNBounceable onPress={expandDetails}>
-                <TabBarIcon
+                <ThemeIcon
                   name="arrow-down"
                   color={theme.colors.text}
                   size={22}
@@ -155,7 +155,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                       justifyContent: 'center',
                       marginEnd: 10,
                     }}>
-                    <TabBarIcon
+                    <ThemeIcon
                       name="book-open"
                       color={theme.colors.text}
                       size={18}

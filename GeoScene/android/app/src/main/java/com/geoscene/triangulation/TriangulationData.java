@@ -1,15 +1,19 @@
 package com.geoscene.triangulation;
 
-import com.geoscene.utils.Coordinate;
+import com.geoscene.location.Coordinate;
 
 import java.util.List;
 
 public class TriangulationData {
+    public String id;
+    public String name;
     public Coordinate coordinate;
     public List<Coordinate> triangulationArc;
     public double azimuth;
 
-    public TriangulationData(double lat, double lon, double azimuth) {
+    public TriangulationData(String id, String name, double lat, double lon, double azimuth) {
+        this.id = id;
+        this.name = name;
         coordinate = new Coordinate(lat, lon);
         this.azimuth = azimuth;
     }

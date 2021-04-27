@@ -6,21 +6,28 @@ import {
   Image,
   StyleSheet,
   Text,
+  UIManager,
   View,
-  useRef,
+  findNodeHandle,
 } from 'react-native';
 import {
   MapsRoutesParamList,
   MapsStackRouteNavProps,
 } from '../params/RoutesParamList';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  addTriangulationPoint,
+  getTriangulationData,
+} from '../../api/firestore/Firestore';
 import {
   auth,
   authorizationDetails,
   deauth,
   isAuthorized,
 } from '../../auth/Authentication';
+import { useGeolocation, useTheme } from '../../utils/hooks/Hooks';
 
+import { ARSceneViewTest } from '../../containers/screens/ar/TriangulationView';
 import { Center } from '../../components/layout/Center';
 import { Checkbox } from 'react-native-paper';
 import Header from '../../containers/Header';
@@ -28,7 +35,6 @@ import { NativeMapView } from '../../../native/NativeViewsBridge';
 import { TabScreen } from '../../components/layout/TabScreen';
 import { ThemeText } from '../../components/text/ThemeText';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useTheme } from '../../utils/hooks/Hooks';
 import useUser from '../../utils/hooks/useUser';
 
 interface StackProps {}
@@ -60,24 +66,98 @@ function MapsTest({ route }: MapsStackRouteNavProps<'Maps'>) {
   const theme = useTheme();
   const { state, dispatch } = useUser();
   const [azimuth, setAzimuth] = useState<number | null>(null);
+  const [triangulationData, setTriangulationData] = useState<any[] | null>(
+    null,
+  );
+  const [triangulationIntersections, setTriangulationIntersections] = useState<
+    any[] | null
+  >(null);
   const [
     animateToIncludeTriangulationPoints,
     setAnimateToIncludeTriangulationPoints,
   ] = useState<boolean>(false);
 
-  const dummyData = [
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 45 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 35 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 330 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 275 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 120 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 180 },
-    // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 90 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 0 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 355 },
-    // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 270 },
-    { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 80 },
-  ];
+  const location = useGeolocation();
+
+  const mapRef = useRef<number | null>(null);
+  const MapsManager = UIManager.getViewManagerConfig('MapsFragment');
+
+  useEffect(() => {
+    if (mapRef.current) {
+      UIManager.dispatchViewManagerCommand(
+        mapRef.current,
+        MapsManager.Commands.CREATE.toString(),
+        [mapRef.current],
+      );
+    }
+  }, [MapsManager.Commands.CREATE, mapRef.current]);
+
+  const fetchTriangulationData = useCallback(async () => {
+    if (location.latitude && location.longitude && !triangulationData) {
+      await getTriangulationData({
+        latitude: location.latitude,
+        longitude: location.longitude,
+      }).then((data) => {
+        console.log(data);
+        setTriangulationData(
+          data &&
+            data.map((t) =>
+              Object({
+                id: t.id,
+                name: t.name,
+                azimuth: t.azimuth,
+                latitude: t.coordinate.latitude,
+                longitude: t.coordinate.longitude,
+              }),
+            ),
+        );
+      });
+    }
+  }, [location.latitude, location.longitude]);
+
+  useEffect(() => {
+    fetchTriangulationData();
+  }, [fetchTriangulationData]);
+
+  useEffect(() => {
+    if (state.user) {
+      addTriangulationPoint(
+        state.user?.name,
+        'Test1',
+        'blaaa blaaa',
+        { latitude: 32.50364093947293, longitude: 35.33079193395417 },
+        330,
+      );
+      addTriangulationPoint(
+        state.user?.name,
+        'Test2',
+        'blaaa blaaa',
+        { latitude: 31.82735784224346, longitude: 34.96515319344209 },
+        330,
+      );
+      addTriangulationPoint(
+        state.user?.name,
+        'Test3',
+        'blaaa blaaa',
+        { latitude: 31.880140634602405, longitude: 34.86524627016083 },
+        330,
+      );
+    }
+  }, []);
+
+  // const dummyData = [
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 45 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 35 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 330 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 275 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 120 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 180 },
+  //   // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 90 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 0 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 355 },
+  //   // { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 270 },
+  //   { lat: 31.77508424396634, lon: 34.8175625128214, azimuth: 80 },
+  // ];
 
   return (
     <TabScreen>
@@ -91,8 +171,13 @@ function MapsTest({ route }: MapsStackRouteNavProps<'Maps'>) {
         animateToIncludeTriangulationPoints={
           animateToIncludeTriangulationPoints
         }
+        onTriangulationIntersection={(event) => {
+          console.log(event.nativeEvent.data);
+          setTriangulationIntersections(event.nativeEvent.data);
+        }}
         onOrientationChanged={(event) => setAzimuth(event.nativeEvent.azimuth)}
-        triangulationData={dummyData}
+        triangulationData={triangulationData}
+        ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
         style={{ width: '100%', height: '100%', flex: 1 }}
       />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

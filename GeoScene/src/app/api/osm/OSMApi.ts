@@ -17,23 +17,48 @@ export const getPermissions = async () => {
 //    return details;
 //  };
 
-export const addNewLocation = async (lat:string, lon:string, name:string, description:string) => {
+export const addNewLocation = async (
+  lat: string,
+  lon: string,
+  name: string,
+  description: string,
+) => {
   const csID = await createChangeset();
   const nodeID = await createNode(csID, lat, lon, name, description);
   //console.log(nodeID);
 };
 
-export const deleteLocation = async (nodeID:string, version:string, lat:string, lon:string) => {
+export const deleteLocation = async (
+  nodeID: string,
+  version: string,
+  lat: string,
+  lon: string,
+) => {
   const csID = await createChangeset();
   const newVersion = await deleteNode(csID, nodeID, version, lat, lon);
   //console.log(nodeID);
 };
 
-export const updateLocation = async (nodeID:string, version:string, lat:string, lon:string, name:string, description:string) => {
-    const csID = await createChangeset();
-    const newVersion = await updateNode(csID, nodeID, version, lat, lon, name, description);
-    //console.log(nodeID);
-  };
+export const updateLocation = async (
+  nodeID: string,
+  version: string,
+  lat: string,
+  lon: string,
+  name: string,
+  description: string,
+) => {
+  const csID = await createChangeset();
+  const newVersion = await updateNode(
+    csID,
+    nodeID,
+    version,
+    lat,
+    lon,
+    name,
+    description,
+  );
+  //console.log(nodeID);
+};
 
 export const createChangeset = async () => {
   //   const perm = await getPermissions();
@@ -73,7 +98,7 @@ export const createNode = async (
     .up()
     .ele('tag', { k: 'description', v: description })
     .up()
-    .ele('tag', { k: 'timestamp', v: Date.now() / 1000 })
+    .ele('tag', { k: 'timestamp', v: Math.floor(Date.now() / 1000) })
     .up()
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: true, allowEmpty: false });
@@ -88,9 +113,21 @@ export const createNode = async (
   return id;
 };
 
-export const deleteNode = async (csID:string, nodeID:string, version:string, lat:string, lon:string) => {
+export const deleteNode = async (
+  csID: string,
+  nodeID: string,
+  version: string,
+  lat: string,
+  lon: string,
+) => {
   const xml = xmlBuilder
-    .ele('node', { 'changeset': csID, 'id': nodeID, 'lat': lat, 'lon': lon, 'version':version})
+    .ele('node', {
+      changeset: csID,
+      id: nodeID,
+      lat: lat,
+      lon: lon,
+      version: version,
+    })
     .end({ pretty: true, allowEmpty: false });
   const id = await authManager.makeRequest(
     'osm',
@@ -107,15 +144,31 @@ export const deleteNode = async (csID:string, nodeID:string, version:string, lat
   return version;
 };
 
-export const updateNode = async (csID:string, nodeID:string,version:string, lat:string, lon:string, name:string, description:string) => {
+export const updateNode = async (
+  csID: string,
+  nodeID: string,
+  version: string,
+  lat: string,
+  lon: string,
+  name: string,
+  description: string,
+) => {
   const xml = xmlBuilder
-    .ele('node', { 'changeset': csID, 'id': nodeID, 'lat': lat, 'lon': lon, 'version:':version, 'visible': true })
+    .ele('node', {
+      changeset: csID,
+      id: nodeID,
+      lat: lat,
+      lon: lon,
+      'version:': version,
+      visible: true,
+    })
     .ele('tag', { k: 'name', v: name })
     .up()
     .ele('tag', { k: 'description', v: description })
     .up()
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: true, allowEmpty: false });
+
   const id = await authManager.makeRequest(
     'osm',
     `api/0.6/node/${nodeID}`,
@@ -130,5 +183,3 @@ export const updateNode = async (csID:string, nodeID:string,version:string, lat:
   );
   return id;
 };
-
-
