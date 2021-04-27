@@ -8,6 +8,9 @@ import { ThemeText } from '../../../components/text/ThemeText';
 import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
 import useTheme from '../../../utils/hooks/useTheme';
+import {addNewLocation, updateLocation} from '../../../api/osm/OSMApi';
+
+
 
 type Coordinate = {
   latitude?: number | null;
@@ -18,12 +21,19 @@ export interface AddPlaceProps {
   initialName?: string;
   initialDescription?: string;
   initialCoordinate?: Coordinate;
+  update?:boolean;
+  nodeID?:string;
+  csID?:string;
 }
 
 export const AddPlace: React.FC<AddPlaceProps> = ({
   initialName,
   initialDescription,
   initialCoordinate,
+  nodeID,
+  csID,
+  update = false,
+  
 }) => {
   const MAX_DESCRIPTION_LENGTH = 5;
   const [name, setName] = useState<string>(initialName ?? '');
@@ -104,8 +114,11 @@ export const AddPlace: React.FC<AddPlaceProps> = ({
           </View>
         </View>
         <ThemeButton
-          disabled={description.length === MAX_DESCRIPTION_LENGTH + 1}
-          onPress={() => {}}
+          disabled={description.length === MAX_DESCRIPTION_LENGTH + 1 || coordinate === null}
+          onPress={() => {
+            update? updateLocation(nodeID, csID, coordinate.latitude, coordinate.longitude, name, description) : 
+                    addNewLocation(coordinate.latitude, coordinate.longitude, name, description )
+          }}
           icon="like"
         />
       </View>

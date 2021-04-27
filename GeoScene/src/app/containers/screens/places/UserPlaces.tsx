@@ -8,6 +8,7 @@ import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
 import promisify from '../../../api/promisify';
+import {updateLocation, deleteLocation} from '../../../api/osm/OSMApi';
 import { useState } from 'react';
 import useTheme from '../../../utils/hooks/useTheme';
 import useUser from '../../../utils/hooks/useUser';
@@ -31,7 +32,7 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
     await promisify(
       'getUserPOIs',
       Overpass,
-    )(state.user?.name)
+    )("Lior Hassan")
       .then((response) => {
         setPlaces(JSON.parse(response?.data));
         setLoading(false);
@@ -73,16 +74,35 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
             {item.lat}, {item.lon}
           </ThemeText>
         </View>
-        <ThemeButton
-          icon="map"
-          onPress={() =>
-            setPlaceMap({
-              name: item.tags.name,
-              latitude: item.lat,
-              longitude: item.lon,
-            })
-          }
-        />
+        <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <ThemeButton
+            icon="map"
+            onPress={() =>
+              setPlaceMap({
+                name: item.tags.name,
+                latitude: item.lat,
+                longitude: item.lon,
+              })
+            }
+          />
+          <ThemeButton
+            icon="UPDATE"
+            onPress={() =>{}
+            }
+          />
+          <ThemeButton
+            icon="DELETE"
+            onPress={() =>{
+              deleteLocation(item.id, item.version, item.lat, item.lon)
+            }
+            }
+          />
+        </View>
       </View>
     );
   };
