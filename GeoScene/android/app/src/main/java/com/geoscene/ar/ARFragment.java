@@ -216,19 +216,4 @@ public class ARFragment extends Fragment {
             arSceneView.getSession().close();
         }
     }
-
-    public void setUseTriangulation(boolean useTriangulation) {
-        if(useTriangulation) {
-
-        } else {
-            Log.d("here", "here");
-
-        }
-    }
-
-    public void setTriangulationIntersections(List<TriangulationIntersection> data) {
-        triangulationIntersections = data;
-        Log.d("Intersections", data.toString());
-        initializer.addTriangulationIntersectionNodes(triangulationIntersections);
-    }
 }
