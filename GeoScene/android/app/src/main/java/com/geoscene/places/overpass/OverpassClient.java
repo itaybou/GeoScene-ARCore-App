@@ -36,32 +36,6 @@ public class OverpassClient implements POIClient {
             Log.d("RESPONSE", x.elements.toString());
             return x;
         }).doOnError(e -> Log.d("ERROR", "overpass error " + e.getMessage()));
-//        try {
-//            OverpassServiceProvider.get().interpreter(query).enqueue(new Callback<OverpassQueryResult>() {
-//                @Override
-//                public void onResponse(@NonNull Call<OverpassQueryResult> call, Response<OverpassQueryResult> response) {
-//                    if (response.isSuccessful()) {
-//                        System.out.println("Query time 50km: " + ((double) (System.currentTimeMillis() - time) / 1000) + "sec");
-//                        assert response.body() != null;
-//                        overpassPlacesDataCallback.onDataFetched(response.body());
-//                        response.body().elements.forEach(e -> {
-//                                    System.out.println(e.type);
-//                                    System.out.println("Name: " + e.tags.name +
-//                                            " | lon, lat: (" + e.lon + ", " + e.lat + "), " +
-//                                            "XY: (" + SphericalMercator.lon2x(e.lon) + ", " + SphericalMercator.lat2y(e.lat) + ")");
-//                        });
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(@NonNull Call<OverpassQueryResult> call, Throwable throwable) {
-//                    System.err.println("Error");
-//                }
-//            });
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     public Single<JsonObject> executeJSONQuery(String query) {

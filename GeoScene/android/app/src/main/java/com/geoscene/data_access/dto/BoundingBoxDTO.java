@@ -1,6 +1,6 @@
 package com.geoscene.data_access.dto;
 
-import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.geography.mercator.BoundingBoxCenter;
 
 import io.realm.RealmObject;
 

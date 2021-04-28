@@ -20,7 +20,7 @@
   SOFTWARE.
  */
 
-package com.geoscene.utils;
+package com.geoscene.react;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;

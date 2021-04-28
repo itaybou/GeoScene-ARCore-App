@@ -1,6 +1,6 @@
 package com.geoscene.triangulation;
 
-import com.geoscene.location.Coordinate;
+import com.geoscene.geography.Coordinate;
 
 import net.sf.geographiclib.Geodesic;
 import net.sf.geographiclib.GeodesicData;

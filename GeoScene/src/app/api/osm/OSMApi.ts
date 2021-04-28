@@ -1,7 +1,6 @@
 import { authManager } from '../../auth/Authentication';
 
 const builder = require('xmlbuilder');
-const xmlBuilder = builder.create('osm', { encoding: 'utf-8' });
 
 export const getPermissions = async () => {
   const details = await authManager.makeRequest('osm', 'api/0.6/permissions', {
@@ -10,12 +9,9 @@ export const getPermissions = async () => {
   return details;
 };
 
-// export const user = async () => {
-//    const details = await authManager.makeRequest('osm', 'api/0.6/permissions', {
-//      method: 'GET',
-//    });
-//    return details;
-//  };
+const osmXMLRoot = () => {
+  return builder.create('osm', { encoding: 'utf-8' });
+};
 
 export const addNewLocation = async (
   lat: string,
@@ -25,7 +21,6 @@ export const addNewLocation = async (
 ) => {
   const csID = await createChangeset();
   const nodeID = await createNode(csID, lat, lon, name, description);
-  //console.log(nodeID);
 };
 
 export const deleteLocation = async (
@@ -36,7 +31,6 @@ export const deleteLocation = async (
 ) => {
   const csID = await createChangeset();
   const newVersion = await deleteNode(csID, nodeID, version, lat, lon);
-  //console.log(nodeID);
 };
 
 export const updateLocation = async (
@@ -57,32 +51,43 @@ export const updateLocation = async (
     name,
     description,
   );
-  //console.log(nodeID);
+};
+
+const parseServerResponse = (response) => {
+  console.log(response);
+  return response.status === 400 || response.status === 500
+    ? null
+    : response.data;
 };
 
 export const createChangeset = async () => {
   //   const perm = await getPermissions();
-  const xml = xmlBuilder
+  const xml = osmXMLRoot()
     .ele('changeset')
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .up()
     .ele('tag', { k: 'comment', v: 'adding new node' })
     .end({ pretty: true, allowEmpty: false });
   //console.log(xml);
-  const id = await authManager.makeRequest(
-    'osm',
-    'api/0.6/changeset/create',
-    true,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'text/xml' },
-      params: {
-        body: xml,
+  try {
+    const response = await authManager.makeRequest(
+      'osm',
+      'api/0.6/changeset/create',
+      true,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/xml' },
+        params: {
+          body: xml,
+        },
       },
-    },
-  );
-
-  return id;
+    );
+    console.log(response);
+    return parseServerResponse(response);
+  } catch (ex) {
+    console.log(ex);
+    return null;
+  }
 };
 
 export const createNode = async (
@@ -92,7 +97,7 @@ export const createNode = async (
   name: string,
   description: string,
 ) => {
-  const xml = xmlBuilder
+  const xml = osmXMLRoot()
     .ele('node', { changeset: csID, lat: lat, lon: lon })
     .ele('tag', { k: 'name', v: name })
     .up()
@@ -102,15 +107,26 @@ export const createNode = async (
     .up()
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: true, allowEmpty: false });
-  //console.log(xml);
-  const id = await authManager.makeRequest('osm', 'api/0.6/node/create', true, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'text/xml' },
-    params: {
-      body: xml,
-    },
-  });
-  return id;
+
+  console.log(xml);
+  try {
+    const response = await authManager.makeRequest(
+      'osm',
+      'api/0.6/node/create',
+      true,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/xml' },
+        params: {
+          body: xml,
+        },
+      },
+    );
+    return parseServerResponse(response);
+  } catch (ex) {
+    console.log(ex);
+    return null;
+  }
 };
 
 export const deleteNode = async (
@@ -120,7 +136,7 @@ export const deleteNode = async (
   lat: string,
   lon: string,
 ) => {
-  const xml = xmlBuilder
+  const xml = osmXMLRoot()
     .ele('node', {
       changeset: csID,
       id: nodeID,
@@ -129,19 +145,25 @@ export const deleteNode = async (
       version: version,
     })
     .end({ pretty: true, allowEmpty: false });
-  const id = await authManager.makeRequest(
-    'osm',
-    `api/0.6/node/${nodeID}`,
-    true,
-    {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'text/xml' },
-      params: {
-        body: xml,
+  try {
+    const response = await authManager.makeRequest(
+      'osm',
+      `api/0.6/node/#${nodeID}`,
+      true,
+      {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'text/xml' },
+        params: {
+          body: xml,
+        },
       },
-    },
-  );
-  return version;
+    );
+    console.log(response);
+    return parseServerResponse(response);
+  } catch (ex) {
+    console.log(ex);
+    return null;
+  }
 };
 
 export const updateNode = async (
@@ -153,7 +175,7 @@ export const updateNode = async (
   name: string,
   description: string,
 ) => {
-  const xml = xmlBuilder
+  const xml = osmXMLRoot()
     .ele('node', {
       changeset: csID,
       id: nodeID,
@@ -169,17 +191,21 @@ export const updateNode = async (
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: true, allowEmpty: false });
 
-  const id = await authManager.makeRequest(
-    'osm',
-    `api/0.6/node/${nodeID}`,
-    true,
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'text/xml' },
-      params: {
-        body: xml,
+  try {
+    const response = await authManager.makeRequest(
+      'osm',
+      `api/0.6/node/#${nodeID}`,
+      true,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/xml' },
+        params: {
+          body: xml,
+        },
       },
-    },
-  );
-  return id;
+    );
+    return parseServerResponse(response);
+  } catch (ex) {
+    return null;
+  }
 };

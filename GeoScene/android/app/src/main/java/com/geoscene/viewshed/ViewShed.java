@@ -4,8 +4,8 @@ import android.util.Log;
 
 import com.geoscene.elevation.Raster;
 import com.geoscene.elevation.open_topography.CellType;
-import com.geoscene.location.Coordinate;
-import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.geography.Coordinate;
+import com.geoscene.geography.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.algorithms.BresenhamCircle;
 import com.geoscene.viewshed.algorithms.BresenhamLine;
 

@@ -267,7 +267,12 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
           resp.putString("data", U.xmlToJson(rawBody, Json.JsonStringBuilder.Step.COMPACT, U.Mode.REPLACE_EMPTY_VALUE_WITH_NULL));
           onComplete.invoke(null, resp);
         } else {
-          onComplete.invoke(null, rawBody);
+          WritableMap resp = Arguments.createMap();
+          resp.putInt("status", response.getCode());
+          resp.putString("data", rawBody);
+
+          Log.d("TAGGG", resp.toString());
+          onComplete.invoke(null, resp);
         }
  
       } catch (IOException ex) {

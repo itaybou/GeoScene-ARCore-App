@@ -14,20 +14,8 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
-import com.facebook.react.uimanager.annotations.ReactProp;
 import com.geoscene.ar.ARFragment;
-import com.geoscene.location.ArrayUtil;
-import com.geoscene.maps.OSMMapView;
-import com.geoscene.triangulation.TriangulationData;
-import com.geoscene.triangulation.TriangulationIntersection;
-import com.google.ar.sceneform.ux.ArFragment;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 

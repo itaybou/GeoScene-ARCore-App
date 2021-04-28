@@ -1,5 +1,5 @@
 import { ActivityIndicator, Button, FlatList, View } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { deleteLocation, updateLocation } from '../../../api/osm/OSMApi';
 
 import { Center } from '../../../components/layout/Center';
@@ -8,6 +8,7 @@ import { Overpass } from '../../../../native/NativeModulesBridge';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
+import Toast from 'react-native-toast-message';
 import promisify from '../../../api/promisify';
 import { useState } from 'react';
 import useTheme from '../../../utils/hooks/useTheme';
@@ -44,61 +45,86 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
     fetchUserPlaces();
   }, []);
 
+  const showErrorToast = useCallback(
+    () =>
+      Toast.show({
+        type: 'error',
+        text1: 'Unable to fetch data',
+        text2: 'Please try again later',
+        topOffset: 10,
+      }),
+    [],
+  );
+
   const renderPlace = ({ item }) => {
+    console.log(item);
     return (
-      <View
-        style={{
-          paddingHorizontal: 12,
-          paddingVertical: 16,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          backgroundColor: theme.colors.tabs,
-          borderBottomColor: theme.colors.border,
-          borderBottomWidth: 2,
-        }}>
+      <>
         <View
           style={{
-            flexDirection: 'column',
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            backgroundColor: theme.colors.tabs,
+            borderBottomColor: theme.colors.border,
+            borderBottomWidth: 2,
           }}>
+          <View
+            style={{
+              flexDirection: 'column',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <ThemeText style={{ fontSize: 10 }}>{item.id} </ThemeText>
+              <ThemeText style={{ fontSize: 20, fontWeight: 'bold' }}>
+                {item.tags.name}
+              </ThemeText>
+            </View>
+            <ThemeText style={{ fontSize: 12 }}>
+              {item.lat}, {item.lon}
+            </ThemeText>
+          </View>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
+              justifyContent: 'space-between',
             }}>
-            <ThemeText style={{ fontSize: 10 }}>{item.id} </ThemeText>
-            <ThemeText style={{ fontSize: 20, fontWeight: 'bold' }}>
-              {item.tags.name}
-            </ThemeText>
+            <ThemeButton
+              icon="map"
+              onPress={() =>
+                setPlaceMap({
+                  name: item.tags.name,
+                  latitude: item.lat,
+                  longitude: item.lon,
+                })
+              }
+            />
+            <ThemeButton icon="pencil" onPress={() => f()} />
+            <ThemeButton
+              icon="trash"
+              onPress={() => {
+                setLoading(true);
+                const res = deleteLocation(
+                  item.id,
+                  item.version,
+                  item.lat,
+                  item.lon,
+                );
+                if (!res) {
+                  showErrorToast();
+                  setLoading(false);
+                } else fetchUserPlaces();
+              }}
+            />
           </View>
-          <ThemeText style={{ fontSize: 12 }}>
-            {item.lat}, {item.lon}
-          </ThemeText>
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <ThemeButton
-            icon="map"
-            onPress={() =>
-              setPlaceMap({
-                name: item.tags.name,
-                latitude: item.lat,
-                longitude: item.lon,
-              })
-            }
-          />
-          <ThemeButton icon="UPDATE" onPress={() => {}} />
-          <ThemeButton
-            icon="DELETE"
-            onPress={() => {
-              deleteLocation(item.id, item.version, item.lat, item.lon);
-            }}
-          />
-        </View>
-      </View>
+        <Toast ref={(ref) => Toast.setRef(ref)} />
+      </>
     );
   };
 

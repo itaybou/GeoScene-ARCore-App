@@ -5,12 +5,11 @@ import android.util.Log;
 
 import com.geoscene.elevation.Raster;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
-import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.geography.mercator.BoundingBoxCenter;
 
 import java.util.Objects;
 
 import io.realm.Realm;
-import io.realm.RealmAsyncTask;
 import io.realm.RealmResults;
 import io.realm.exceptions.RealmException;
 

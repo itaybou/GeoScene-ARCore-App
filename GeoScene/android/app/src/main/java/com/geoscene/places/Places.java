@@ -1,6 +1,7 @@
 package com.geoscene.places;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.geoscene.places.overpass.OverpassClient;
@@ -9,7 +10,7 @@ import com.geoscene.places.overpass.queries.output.OutputOrder;
 import com.geoscene.places.overpass.queries.output.OutputVerbosity;
 import com.geoscene.places.overpass.queries.query.OverpassQuery;
 import com.geoscene.sensors.DeviceSensors;
-import com.geoscene.location.Coordinate;
+import com.geoscene.geography.Coordinate;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -67,7 +68,7 @@ public class Places {
                 .user(userName)
                 .tag("created_by", "GeoScene")
                 .end()
-                .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
+                .output(OutputVerbosity.META, OutputModificator.BB, OutputOrder.QT);
         return overpassClient.executeJSONQuery(query.build());
     }
 }

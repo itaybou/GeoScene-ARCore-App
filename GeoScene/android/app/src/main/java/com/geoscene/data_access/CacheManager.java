@@ -8,7 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.util.Log;
 
-import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.geography.mercator.BoundingBoxCenter;
 
 import java.util.concurrent.TimeUnit;
 

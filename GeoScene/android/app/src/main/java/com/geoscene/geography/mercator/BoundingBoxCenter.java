@@ -1,14 +1,8 @@
-package com.geoscene.utils.mercator;
+package com.geoscene.geography.mercator;
 
-import com.geoscene.utils.Coordinate;
+import com.geoscene.geography.Coordinate;
 
 import org.javatuples.Pair;
-
-import java.util.stream.Stream;
-
-import io.realm.RealmModel;
-import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
 
 public class BoundingBoxCenter {
     // Semi-axes of WGS-84 geoidal reference

@@ -6,7 +6,7 @@ import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.geoscene.data_access.CacheManager;
-import com.geoscene.location.modules.LocationPackage;
+import com.geoscene.geography.modules.GeographyPackage;
 import com.geoscene.oauth.OAuthManagerPackage;
 import com.geoscene.places.overpass.modules.OverpassPackage;
 import com.facebook.react.ReactInstanceManager;
@@ -42,7 +42,7 @@ public class MainApplication extends Application implements ReactApplication {
                     packages.add(new ARCameraPackage());
                     packages.add(new OAuthManagerPackage());
                     packages.add(new OverpassPackage());
-//                    packages.add(new LocationPackage());
+                    packages.add(new GeographyPackage());
 
                     return packages;
                 }

@@ -13,7 +13,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import com.geoscene.location.KalmanLatLong;
+import com.geoscene.geography.KalmanLatLong;
 
 public class DeviceLocation implements LocationListener {
 

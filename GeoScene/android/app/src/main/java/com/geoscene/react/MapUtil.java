@@ -20,14 +20,13 @@
   SOFTWARE.
  */
 
-package com.geoscene.utils;
+package com.geoscene.react;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
-import com.geoscene.utils.ArrayUtil;
 
 import java.util.Map;
 import java.util.HashMap;

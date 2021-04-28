@@ -1,6 +1,6 @@
 package com.geoscene.triangulation;
 
-import com.geoscene.location.Coordinate;
+import com.geoscene.geography.Coordinate;
 
 import java.util.List;
 

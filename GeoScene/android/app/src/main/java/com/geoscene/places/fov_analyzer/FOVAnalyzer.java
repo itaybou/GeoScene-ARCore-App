@@ -3,7 +3,7 @@ package com.geoscene.places.fov_analyzer;
 import android.util.Log;
 
 import com.geoscene.places.overpass.poi.Element;
-import com.geoscene.location.Coordinate;
+import com.geoscene.geography.Coordinate;
 import com.geoscene.elevation.open_topography.CellType;
 import com.geoscene.elevation.Raster;
 

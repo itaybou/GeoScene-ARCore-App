@@ -1,4 +1,4 @@
-package com.geoscene.utils.mercator;
+package com.geoscene.geography.mercator;
 
 import java.lang.Math;
 public class SphericalMercator {

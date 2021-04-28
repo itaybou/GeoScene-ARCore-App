@@ -2,26 +2,20 @@ package com.geoscene.maps.modules;
 
 import android.graphics.Color;
 import android.util.Log;
-import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
-import com.facebook.react.uimanager.ReactStylesDiffMap;
 import com.facebook.react.uimanager.SimpleViewManager;
-import com.facebook.react.uimanager.StateWrapper;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.annotations.ReactProp;
-import com.geoscene.ar.ARFragment;
 import com.geoscene.maps.OSMMapView;
 import com.geoscene.triangulation.TriangulationData;
-import com.geoscene.location.ArrayUtil;
+import com.geoscene.react.ArrayUtil;
 import com.geoscene.triangulation.TriangulationIntersection;
 
 import org.json.JSONArray;
@@ -31,7 +25,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class MapsViewManager extends SimpleViewManager<OSMMapView> {
 

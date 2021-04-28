@@ -45,16 +45,14 @@ public class OverpassModule extends ReactContextBaseJavaModule {
             @Nullable final Callback onComplete
     ) {
         Places places = new Places();
-        Log.d("HELLO WORLD", "here");
         places.searchUserPOIs(userName)
             .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 json -> {
-                    Log.d(TAG, json.toString());
                     WritableMap resp = Arguments.createMap();
                     resp.putString("data", json.get("elements").toString());
                     onComplete.invoke(null, resp);
                 },
-                throwable -> Log.e(TAG, throwable.getMessage()));
+                throwable -> {throw throwable;});
     }
 }

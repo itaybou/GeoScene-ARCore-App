@@ -1,4 +1,4 @@
-package com.geoscene.location;
+package com.geoscene.geography;
 
 import net.sf.geographiclib.Geodesic;
 import net.sf.geographiclib.GeodesicMask;

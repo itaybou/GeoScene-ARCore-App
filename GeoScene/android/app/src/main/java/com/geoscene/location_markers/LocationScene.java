@@ -16,7 +16,7 @@ import com.google.ar.sceneform.math.Vector3;
 import java.util.ArrayList;
 
 import com.geoscene.sensors.DeviceLocationChanged;
-import com.geoscene.location.LocationUtils;
+import com.geoscene.geography.LocationUtils;
 
 public class LocationScene {
 

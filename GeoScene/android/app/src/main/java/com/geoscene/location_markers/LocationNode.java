@@ -10,7 +10,7 @@ import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 
-import com.geoscene.location.LocationUtils;
+import com.geoscene.geography.LocationUtils;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.Light;
 

@@ -1,4 +1,4 @@
-package com.geoscene.utils;
+package com.geoscene.geography;
 
 public class Coordinate {
     private double lat;

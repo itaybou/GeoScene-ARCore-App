@@ -5,8 +5,8 @@ import android.util.Log;
 
 import com.geoscene.elevation.open_topography.OpenTopographyClient;
 import com.geoscene.sensors.DeviceSensors;
-import com.geoscene.location.Coordinate;
-import com.geoscene.location.mercator.BoundingBoxCenter;
+import com.geoscene.geography.Coordinate;
+import com.geoscene.geography.mercator.BoundingBoxCenter;
 
 import org.javatuples.Pair;
 

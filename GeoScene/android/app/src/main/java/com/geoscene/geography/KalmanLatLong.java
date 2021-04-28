@@ -1,8 +1,4 @@
-package com.geoscene.utils;
-
-/**
- * Created by johnwedgbury on 01/06/2018.
- */
+package com.geoscene.geography;
 
 public class KalmanLatLong {
     private final float MinAccuracy = 1;

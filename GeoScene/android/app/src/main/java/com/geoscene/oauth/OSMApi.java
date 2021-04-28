@@ -36,8 +36,4 @@ public class OSMApi extends DefaultApi10a {
         return "https://" + REQUEST_TOKEN_RESOURCE;
     }
 
-//    @Override
-//    public String getAuthorizationBaseUrl() {
-//        return AUTHORIZE_URL;
-//    }
 }
