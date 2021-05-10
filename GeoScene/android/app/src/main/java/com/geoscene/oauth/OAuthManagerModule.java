@@ -7,6 +7,7 @@ import android.content.Context;
 import android.util.Log;
 
 //import com.github.underscore.lodash.U;
+import com.geoscene.oauth.services.OSMOAuthRequest;
 import com.github.underscore.lodash.Json;
 import com.github.underscore.lodash.U;
 import com.google.gson.Gson;
@@ -224,7 +225,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
         if (params != null && params.hasKey("params")) {
           requestParams = params.getMap("params");
         }
-        OAuthRequest request = oauthRequestWithParams(providerName, cfg, authVersion, httpVerb, url, requestParams);
+        OSMOAuthRequest request = oauthRequestWithParams(providerName, cfg, authVersion, httpVerb, url, requestParams);
         if (params != null && params.hasKey("headers")) {
           ReadableMap headers = params.getMap("headers");
           ReadableMapKeySetIterator iter = headers.keySetIterator();
@@ -252,14 +253,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
         final Response response = request.send();
         String rawBody = response.getBody();
 
-        Log.d(TAG, "rawBody: " + rawBody);
-
-//        Log.d
-        // final Object response = new Gson().fromJson(rawBody, Object.class);
-//        if(rawBody.contains("<") || rawBody.contains(">"))
-//          rawBody = XML.toJSONObject(rawBody).toString();
-
-        Log.d(TAG, response.getHeaders() + ", " + response.getBody());
+        Log.d("rawBody", rawBody);
 
         if (!rawResponse) {
           WritableMap resp = Arguments.createMap();
@@ -285,7 +279,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
       }
   }
 
-  private OAuthRequest oauthRequestWithParams(
+  private OSMOAuthRequest oauthRequestWithParams(
     final String providerName,
     final HashMap<String,Object> cfg,
     final String authVersion,
@@ -293,7 +287,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
     final URL url,
     @Nullable final ReadableMap params
     ) throws Exception {
-    OAuthRequest request;
+    OSMOAuthRequest request;
     // OAuthConfig config;
 
     if (authVersion.equals("1.0")) {  

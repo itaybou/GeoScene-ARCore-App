@@ -5,6 +5,7 @@ import android.location.Location;
 import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.HitTestResult;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.collision.Ray;
 import com.google.ar.sceneform.math.Quaternion;
@@ -13,6 +14,8 @@ import com.google.ar.sceneform.math.Vector3;
 import com.geoscene.geography.LocationUtils;
 import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.Light;
+
+import java.util.ArrayList;
 
 public class LocationNode extends AnchorNode {
 
@@ -150,24 +153,24 @@ public class LocationNode extends AnchorNode {
     }
 
     private boolean isOverlapping(Node n, Ray ray, Vector3 target, Vector3 cameraPosition) {
-//        Vector3 nodeDirection = Vector3.subtract(target, cameraPosition);
-//        ray.setDirection(nodeDirection);
-//
-//        ArrayList<HitTestResult> hitTestResults = locationScene.mArSceneView.getScene().hitTestAll(ray);
-//        if (hitTestResults.size() > 0) {
-//
-//            HitTestResult closestHit = null;
-//            for (HitTestResult hit : hitTestResults) {
-//                //Get the closest hit on enabled Node
-//                if (hit.getNode() != null && hit.getNode().isEnabled()) {
-//                    closestHit = hit;
-//                    break;
-//                }
-//            }
-//
-//            // if closest hit is not the current node, it is hidden behind another node that is closer
-//            return closestHit != null && closestHit.getNode() != n;
-//        }
+        Vector3 nodeDirection = Vector3.subtract(target, cameraPosition);
+        ray.setDirection(nodeDirection);
+
+        ArrayList<HitTestResult> hitTestResults = locationScene.mArSceneView.getScene().hitTestAll(ray);
+        if (hitTestResults.size() > 0) {
+
+            HitTestResult closestHit = null;
+            for (HitTestResult hit : hitTestResults) {
+                //Get the closest hit on enabled Node
+                if (hit.getNode() != null && hit.getNode().isEnabled()) {
+                    closestHit = hit;
+                    break;
+                }
+            }
+
+            // if closest hit is not the current node, it is hidden behind another node that is closer
+            return closestHit != null && closestHit.getNode() != n;
+        }
         return false;
     }
 

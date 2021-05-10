@@ -7,6 +7,7 @@ import com.geoscene.elevation.Raster;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.geoscene.geography.mercator.BoundingBoxCenter;
 
+import java.util.List;
 import java.util.Objects;
 
 import io.realm.Realm;
@@ -39,6 +40,18 @@ public class StorageAccess {
         return null;
     }
 
+    public static List<PersistLocationObject> fetchPersistedLocationData() {
+        try (Realm realm = Realm.getDefaultInstance()) {
+            RealmResults<PersistLocationObject> locationData = realm.where(PersistLocationObject.class)
+                    .equalTo("cached", false)
+                    .findAll();
+            return realm.copyFromRealm(locationData);
+        } catch (RealmException | NullPointerException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return null;
+    }
+
     public static void storeCacheLocationInfo(Context context, BoundingBoxCenter bbox, Raster raster, PointsOfInterest pois) {
         try (Realm realm = Realm.getDefaultInstance()) {
             realm.executeTransactionAsync(transaction -> {
@@ -59,6 +72,22 @@ public class StorageAccess {
                 transaction.insert(persist);
             });
         } catch (RealmException e) {
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
+    public static void deletePersistedLocationInfoById(Context context, String id) {
+        try (Realm realm = Realm.getDefaultInstance()) {
+            realm.executeTransactionAsync(transaction -> {
+                PersistLocationObject locationData = transaction.where(PersistLocationObject.class)
+                        .equalTo("cached", false)
+                        .equalTo("id", id)
+                        .findFirst();
+
+                InternalStorage.delete(context, locationData.getRasterElevationFilename());
+                locationData.cascadeDelete();
+            });
+        } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
     }

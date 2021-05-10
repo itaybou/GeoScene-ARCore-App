@@ -21,6 +21,7 @@ import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 
 /** Static utility methods to simplify creating multiple demo activities. */
+@Deprecated
 public class DemoUtils {
     private static final String TAG = "SceneformDemoUtils";
     /**

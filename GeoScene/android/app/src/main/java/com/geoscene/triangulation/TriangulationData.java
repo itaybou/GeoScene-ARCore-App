@@ -7,13 +7,15 @@ import java.util.List;
 public class TriangulationData {
     public String id;
     public String name;
+    public String description;
     public Coordinate coordinate;
     public List<Coordinate> triangulationArc;
     public double azimuth;
 
-    public TriangulationData(String id, String name, double lat, double lon, double azimuth) {
+    public TriangulationData(String id, String name, String description, double lat, double lon, double azimuth) {
         this.id = id;
         this.name = name;
+        this.description = description;
         coordinate = new Coordinate(lat, lon);
         this.azimuth = azimuth;
     }

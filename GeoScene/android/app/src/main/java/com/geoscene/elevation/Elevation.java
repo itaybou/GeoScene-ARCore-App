@@ -23,12 +23,9 @@ public class Elevation {
         openTopographyClient = new OpenTopographyClient();
     }
 
-    public Single<Raster> fetchElevationRaster(DeviceSensors sensors, boolean determineViewshed, int radiusKM) {
-        Location deviceLocation = sensors.getDeviceLocation();
-        BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude()), radiusKM); //PADDING_KM);
-        Log.d("BBOX", bbox.getSouth() + "," + bbox.getNorth() + "," + bbox.getEast() + "," + bbox.getWest());
-        Log.d("ALTITUDE", String.valueOf(sensors.getDeviceAltitude()));
-        return openTopographyClient.fetchTopographyData(bbox, sensors.getDeviceAltitude(), determineViewshed);
+    public Single<Raster> fetchElevationRaster(Coordinate center, int radiusKM, boolean determineViewshed) {
+        BoundingBoxCenter bbox = new BoundingBoxCenter(center, radiusKM);
+        return openTopographyClient.fetchTopographyData(bbox, determineViewshed);
     }
 
     private void setObserver(Location deviceLocation) {

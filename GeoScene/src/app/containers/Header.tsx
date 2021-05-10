@@ -7,11 +7,19 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+  renderers,
+} from 'react-native-popup-menu';
 import React, { useCallback, useMemo } from 'react';
 import {
   RouteProp,
   getFocusedRouteNameFromRoute,
 } from '@react-navigation/native';
+import { auth, deauth } from '../auth/Authentication';
 import { useTheme, useUser } from '../utils/hooks/Hooks';
 
 import { Badge } from 'react-native-elements/dist/badge/Badge';
@@ -41,43 +49,16 @@ export interface ISource {
   source: string | { uri: string };
 }
 
-export interface HeaderProps {
-  // // style?: any;
-  // // titleText?: string;
-  // // ImageComponent?: any;
-  // // height?: number | string;
-  // // backgroundColor?: string;
-  // // disableFirstIcon?: boolean;
-  // // disableSecondIcon?: boolean;
-  // // disableThirdIcon?: boolean;
-  // // disableLeftAlignedButton?: boolean;
-  // leftButtonComponent?: React.ReactChild;
-  // profileImageSource?: ISource;
-  // firstIconImageSource?: ISource;
-  // secondIconImageSource?: ISource;
-  // thirdIconImageSource?: ISource;
-  // leftAlignedButtonImageSource?: ISource;
-  // onLeftButtonPress?: () => void;
-  // onProfilePicPress?: () => void;
-  // onFirstIconPress?: () => void;
-  // onSecondIconPress?: () => void;
-  // onThirdIconPress?: () => void;
-}
+export interface HeaderProps {}
 
 export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
   const theme = useTheme();
-  const { state } = useUser();
+  const { state, dispatch } = useUser();
 
   const routeTitle = useMemo(
     () => scene.descriptor.options.title ?? scene.route.name,
     [scene.descriptor.options.title, scene.route.name],
   );
-
-  // const screenName = useMemo(
-  //   () => getFocusedRouteNameFromRoute(scene.route) ?? 'Home',
-  //   [scene.route],
-  // );
-  // console.log(screenName);
 
   const renderLeftAlignedComponent = useCallback(() => {
     return (
@@ -124,92 +105,93 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
     );
   };
 
-  // const renderSecondIcon = () => {
-  //   const {
-  //     onSecondIconPress,
-  //     ImageComponent = Image,
-  //     disableSecondIcon = false,
-  //     secondIconImageSource = bagIcon,
-  //   } = this.props;
-
-  //   return (
-  //     !disableSecondIcon && (
-  //       <View style={styles.iconButtonContainer}>
-  //         <RNBounceable
-  //           bounceEffect={0.8}
-  //           bounceFriction={2}
-  //           onPress={onSecondIconPress}
-  //         >
-  //           <ImageComponent
-  //             resizeMode="contain"
-  //             source={secondIconImageSource}
-  //             style={styles.iconImageStyle}
-  //           />
-  //         </RNBounceable>
-  //       </View>
-  //     )
-  //   );
-  // };
-
-  // const renderThirdIcon = () => {
-  //   const {
-  //     onThirdIconPress,
-  //     ImageComponent = Image,
-  //     disableThirdIcon = false,
-  //     thirdIconImageSource = notificationIcon,
-  //   } = this.props;
-  //   return (
-  //     !disableThirdIcon && (
-  //       <View style={styles.iconButtonContainer}>
-  //         <RNBounceable
-  //           bounceEffect={0.8}
-  //           bounceFriction={2}
-  //           onPress={onThirdIconPress}
-  //         >
-  //           <ImageComponent
-  //             resizeMode="contain"
-  //             source={thirdIconImageSource}
-  //             style={styles.iconImageStyle}
-  //           />
-  //         </RNBounceable>
-  //       </View>
-  //     )
-  //   );
-  // };
-
   const renderProfilePicture = () => {
     const userImage = state.user?.img;
+    const { Popover } = renderers;
+
     return (
-      <View style={styles.profileImageContainer}>
-        <RNBounceable
-          onPress={() =>
-            navigation.navigate('External', { screen: 'Profile' })
-          }>
-          <Image
-            source={
-              userImage
-                ? {
-                    uri: userImage,
-                  }
-                : defaultProfilePicture
-            }
-            style={styles.profileImageStyle}
-          />
-        </RNBounceable>
-        <ThemeText style={styles.profileNameText}>{state.user?.name}</ThemeText>
-      </View>
+      <Menu
+        renderer={Popover}
+        rendererProps={{
+          placement: 'bottom',
+          preferredPlacement: 'bottom',
+          anchorStyle: { backgroundColor: theme.colors.cards },
+        }}>
+        <MenuTrigger>
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={
+                userImage
+                  ? {
+                      uri: userImage,
+                    }
+                  : defaultProfilePicture
+              }
+              style={styles.profileImageStyle}
+            />
+
+            <ThemeText style={styles.profileNameText}>
+              {state.user?.name}
+            </ThemeText>
+          </View>
+        </MenuTrigger>
+        <MenuOptions
+          customStyles={{
+            optionsWrapper: { width: 200, backgroundColor: theme.colors.cards },
+          }}>
+          <MenuOption
+            onSelect={() =>
+              navigation.navigate('External', { screen: 'Profile' })
+            }>
+            <View style={{ flexDirection: 'row', padding: 4 }}>
+              <View style={{ marginRight: 8 }}>
+                <ThemeIcon name={'user'} size={15} color={theme.colors.text} />
+              </View>
+              <ThemeText>Profile</ThemeText>
+            </View>
+          </MenuOption>
+          <MenuOption
+            onSelect={() => {
+              deauth(dispatch);
+              navigation.navigate('Internal', { screen: 'Home' });
+            }}>
+            <View style={{ flexDirection: 'row', padding: 4 }}>
+              <View style={{ marginRight: 8 }}>
+                <ThemeIcon
+                  name={'logout'}
+                  size={15}
+                  color={theme.colors.error}
+                />
+              </View>
+              <ThemeText style={{ color: theme.colors.error }}>
+                Logout
+              </ThemeText>
+            </View>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
     );
   };
 
   const renderRightAlignedComponent = () => {
-    return (
+    return state.user ? (
       <View style={styles.rightAlignedContainer}>
         {renderHeaderIcon('ProfileSettings', 'user', 18)}
         {renderHeaderIcon('Messages', 'envelope')}
-        {/* // {this.renderSecondIcon()}
-        // {this.renderThirdIcon()} */}
         {renderProfilePicture()}
       </View>
+    ) : (
+      <RNBounceable onPress={() => auth(dispatch)}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <ThemeText style={{ fontSize: 10 }}>Login</ThemeText>
+          <ThemeIcon name={'login'} size={20} color={theme.colors.text} />
+        </View>
+      </RNBounceable>
     );
   };
 

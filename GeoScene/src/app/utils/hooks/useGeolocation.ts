@@ -78,7 +78,6 @@ const useGeolocation = (): GeoLocationSensorState => {
     return () => {
       mounted = false;
       Geolocation.clearWatch(watchId);
-      Geolocation.stopObserving();
     };
   }, []);
 

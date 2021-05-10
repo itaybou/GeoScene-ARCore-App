@@ -97,6 +97,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
         sensors = DeviceSensorsManager.getSensors(reactContext);
         mapController = map.getController();
+        reactContext.addLifecycleEventListener(this);
         zoomToBoundingBox();
         map.invalidate();
 
@@ -325,7 +326,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 if(intersection != null) {
                     double aerialDistance = LocationUtils.aerialDistance(lat, intersection.getLat(), lon, intersection.getLon());
                     if (aerialDistance < Triangulation.MAX_TRIANGULATION_DISTANCE) { // Smaller than triangulation arc
-                        intersections.add(new TriangulationIntersection(triangulation.id, triangulation.name, intersection.getLat(), intersection.getLon(), aerialDistance));
+                        intersections.add(new TriangulationIntersection(triangulation.id, triangulation.name, triangulation.description, intersection.getLat(), intersection.getLon(), aerialDistance));
                         markers.add(new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon())));
                         List<Coordinate> arc = triangulation.getTriangulationArc();
                         Log.d("MapView", String.valueOf(arc.size()));
@@ -523,6 +524,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             WritableMap intersectionMap = Arguments.createMap();
             intersectionMap.putString("id", intersection.id);
             intersectionMap.putString("name", intersection.name);
+            intersectionMap.putString("description", intersection.description);
             intersectionMap.putDouble("latitude", intersection.intersection.getLat());
             intersectionMap.putDouble("longitude", intersection.intersection.getLon());
             intersectionMap.putDouble("distance", intersection.distance);

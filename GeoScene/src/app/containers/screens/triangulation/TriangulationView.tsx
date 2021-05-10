@@ -24,16 +24,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useGeolocation, useTheme, useUser } from '../../../utils/hooks/Hooks';
+import { useGeolocation, useTheme } from '../../../utils/hooks/Hooks';
 
-import { BottomModal } from '../../../components/modals/BottomModal';
 import { Center } from '../../../components/layout/Center';
-import { FlatList } from 'react-native-gesture-handler';
+import { IntersectionModal } from './IntersectionModal';
+import { IntersectionRecordModal } from './IntersectionRecordModal';
 import Orientation from 'react-native-orientation';
 import { Text } from 'react-native';
-import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
-import { ThemeSlider } from '../../../components/input/ThemeSlider';
 import { ThemeText } from '../../../components/text/ThemeText';
 import { TriangulateStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { getTriangulationRecords } from '../../../api/firestore/triangulation/TriangulationFirestore';
@@ -81,269 +79,12 @@ const SideButton: React.FC<SideButtonProps> = ({
   );
 };
 
-interface IntersectionModalProps {
-  intersectionText: string;
-  intersectionModalVisible: boolean;
-  hide: () => void;
-  triangulationData: any[] | null;
-  triangulationIntersections: any[] | null;
-  azimuth: number | null;
-}
-
-const IntersectionModal: React.FC<IntersectionModalProps> = ({
-  intersectionText,
-  intersectionModalVisible,
-  hide,
-  triangulationData,
-  triangulationIntersections,
-  azimuth,
-}) => {
-  const theme = useTheme();
-  const [viewedIntersection, setViewedIntersection] = useState<any>(null);
-
-  const renderIntersection = ({ item }) => {
-    return (
-      <View
-        style={{
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          backgroundColor: theme.colors.tabs,
-          borderBottomColor: theme.colors.border,
-          borderBottomWidth: 2,
-        }}>
-        <View
-          style={{
-            flexDirection: 'column',
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            <ThemeText style={{ fontSize: 15, fontWeight: 'bold' }}>
-              {item.name}
-            </ThemeText>
-            <ThemeText
-              style={{ fontSize: 12, fontWeight: 'bold', marginLeft: 20 }}>
-              Distance: {(item.distance / 1000).toFixed(3)} KM
-            </ThemeText>
-          </View>
-          <ThemeText style={{ fontSize: 12 }}>
-            Latitude: {item.latitude.toFixed(4)}, Longitude:{' '}
-            {item.longitude.toFixed(4)}
-          </ThemeText>
-        </View>
-        <ThemeButton icon="map" onPress={() => setViewedIntersection(item)} />
-      </View>
-    );
-  };
-
-  return (
-    <BottomModal
-      title={intersectionText}
-      enableSwipeDown={true}
-      screenPercent={0.65}
-      buttonIcon={'close'}
-      backdropOpacity={0}
-      isVisible={intersectionModalVisible}
-      hide={() => {
-        setViewedIntersection(null);
-        hide();
-      }}
-      onButtonPress={() => {
-        setViewedIntersection(null);
-        hide();
-      }}
-      showButtonIcon={true}>
-      {intersectionModalVisible && (
-        <View style={{ flex: 1, flexDirection: 'row' }}>
-          <View style={{ flex: viewedIntersection === null ? 1 : 0.3 }}>
-            {viewedIntersection === null ? (
-              <FlatList
-                data={triangulationIntersections}
-                renderItem={renderIntersection}
-                keyExtractor={(item) => item?.id}
-              />
-            ) : (
-              <View
-                style={{
-                  flexDirection: 'column',
-                  flex: 1,
-                  justifyContent: 'space-between',
-                }}>
-                <View style={{}}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}>
-                    <ThemeText style={{ fontSize: 15, fontWeight: 'bold' }}>
-                      {viewedIntersection.name}
-                    </ThemeText>
-                    <ThemeText
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                        marginLeft: 20,
-                      }}>
-                      Distance:{' '}
-                      {(viewedIntersection.distance / 1000).toFixed(3)} KM
-                    </ThemeText>
-                  </View>
-                  <ThemeText style={{ fontSize: 12 }}>
-                    Latitude: {viewedIntersection.latitude.toFixed(4)},
-                    Longitude: {viewedIntersection.longitude.toFixed(4)}
-                  </ThemeText>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginRight: 4,
-                  }}>
-                  <ThemeButton
-                    icon="arrow-left"
-                    onPress={() => setViewedIntersection(null)}
-                  />
-                  <ThemeButton icon="like" onPress={() => {}} />
-                </View>
-              </View>
-            )}
-          </View>
-          <NativeMapView
-            enableLocationTap={false}
-            useObserverLocation={true}
-            showBoundingCircle={false}
-            useTriangulation={false}
-            enableZoom={true}
-            useCompassOrientation={false}
-            showTriangulationData={
-              viewedIntersection && [
-                viewedIntersection,
-                triangulationData?.find((d) => d.id === viewedIntersection.id),
-                azimuth,
-              ]
-            }
-            style={{ flex: viewedIntersection === null ? 0 : 0.7 }}
-          />
-        </View>
-      )}
-    </BottomModal>
-  );
-};
-
-interface IntersectionRecordModalProps {
-  intersectionModalVisible: boolean;
-  onApprove: (latitude: number, longitude: number, azi: number) => void;
-  hide: () => void;
-  azimuth: number | null;
-  locationText: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-}
-
-const IntersectionRecordModal: React.FC<IntersectionRecordModalProps> = ({
-  locationText,
-  intersectionModalVisible,
-  hide,
-  location,
-  azimuth,
-  onApprove,
-}) => {
-  const [azimuthDiff, setAzimuthDiff] = useState<number>(
-    azimuth === null ? 0 : azimuth,
-  );
-
-  useEffect(() => setAzimuthDiff(azimuth === null ? 0 : azimuth), [azimuth]);
-
-  return (
-    <BottomModal
-      title={'Add Triangulation Record'}
-      enableSwipeDown={true}
-      screenPercent={0.65}
-      buttonIcon={'close'}
-      backdropOpacity={0}
-      isVisible={intersectionModalVisible}
-      hide={hide}
-      onButtonPress={hide}
-      showButtonIcon={true}>
-      {intersectionModalVisible && (
-        <View style={{ flex: 1, flexDirection: 'row' }}>
-          <View
-            style={{ flex: 1, justifyContent: 'space-between', padding: 2 }}>
-            <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                <ThemeText>{`Azimuth: ${azimuthDiff?.toFixed(3)}°`}</ThemeText>
-                <View style={{ flexDirection: 'row' }}>
-                  <ThemeButton
-                    icon="minus"
-                    onPress={() =>
-                      setAzimuthDiff(
-                        azimuthDiff > 0 ? azimuthDiff - 0.1 : azimuthDiff,
-                      )
-                    }
-                  />
-                  <ThemeButton
-                    icon="plus"
-                    onPress={() =>
-                      setAzimuthDiff(
-                        azimuthDiff < 360 ? azimuthDiff + 0.1 : azimuthDiff,
-                      )
-                    }
-                  />
-                </View>
-              </View>
-              <ThemeSlider
-                value={azimuthDiff}
-                step={0.001}
-                range={{ min: 0, max: 360 }}
-                onValueChange={(value: number) => setAzimuthDiff(value)}
-              />
-              <ThemeText>{locationText}</ThemeText>
-            </View>
-
-            <ThemeButton
-              icon="like"
-              onPress={() =>
-                onApprove(location.latitude, location.longitude, azimuthDiff)
-              }
-            />
-          </View>
-          <NativeMapView
-            enableLocationTap={false}
-            useObserverLocation={true}
-            showBoundingCircle={false}
-            useTriangulation={false}
-            enableZoom={true}
-            useCompassOrientation={false}
-            showTriangulationData={[
-              { latitude: location.latitude, longitude: location.longitude },
-              azimuthDiff,
-            ]}
-            style={{ flex: 1 }}
-          />
-        </View>
-      )}
-    </BottomModal>
-  );
-};
-
 export function TriangulationView({
   route,
   navigation,
 }: TriangulateStackRouteNavProps<'Triangulate'>) {
   const theme = useTheme();
 
-  const [ready, setReady] = useState<boolean>(true);
   const [ARDisplayed, setARDisplayed] = useState<boolean>(false);
   const [intersectionModalVisible, setIntersectionModalVisible] = useState<
     boolean
@@ -363,7 +104,6 @@ export function TriangulationView({
   const ARManager = UIManager.getViewManagerConfig('ARCameraFragment');
   const MapsManager = UIManager.getViewManagerConfig('MapView');
 
-  const { state, dispatch } = useUser();
   const [azimuth, setAzimuth] = useState<number>(0);
   const [triangulationData, setTriangulationData] = useState<any[] | null>(
     null,
@@ -371,10 +111,6 @@ export function TriangulationView({
   const [triangulationIntersections, setTriangulationIntersections] = useState<
     any[]
   >([]);
-  const [
-    animateToIncludeTriangulationPoints,
-    setAnimateToIncludeTriangulationPoints,
-  ] = useState<boolean>(true);
 
   const location = useGeolocation();
 
@@ -390,6 +126,7 @@ export function TriangulationView({
               Object({
                 id: t.id,
                 name: t.name,
+                description: t.description,
                 azimuth: t.azimuth,
                 latitude: t.coordinate.latitude,
                 longitude: t.coordinate.longitude,
@@ -449,22 +186,13 @@ export function TriangulationView({
     <SafeAreaView
       style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
       <View style={{ flex: 1, flexDirection: 'row' }}>
-        {!ready && (
-          <Center style={{ flex: 1, zIndex: 1 }}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-          </Center>
-        )}
         <Animated.View
           style={{
-            //height,
             flex: mapReverseAnimation,
-            // width: mapShown ? width * 0.6 : width,
-            // height,
-            display: ready ? 'flex' : 'none',
+            display: 'flex',
           }}>
           <NativeARCameraView
             style={{
-              //height,
               flex: 1,
             }}
             triangulationIntersections={triangulationIntersections}
@@ -581,7 +309,7 @@ export function TriangulationView({
             flex: mapAnimation,
             // width: mapShown ? width * 0.4 : 0,
             flexDirection: 'row',
-            display: ready ? 'flex' : 'none',
+            display: 'flex',
           }}>
           <SideButton
             style={styles.mapButton}
@@ -622,9 +350,7 @@ export function TriangulationView({
             useTriangulation={true}
             enableZoom={false}
             useCompassOrientation={true}
-            animateToIncludeTriangulationPoints={
-              animateToIncludeTriangulationPoints
-            }
+            animateToIncludeTriangulationPoints={true}
             onTriangulationIntersection={(event) => {
               !intersectionModalVisible &&
                 !intersectionRecordModalVisible &&

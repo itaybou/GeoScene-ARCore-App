@@ -45,7 +45,6 @@ export const getPageURL = async (
     const json = await fetchJson(
       API_ADDRESS + `&prop=info&pageids=${pageId}&inprop=url&format=json`,
     );
-    console.log(json);
     return json.query.pages[pageId].fullurl;
   } catch (ex) {
     return undefined;

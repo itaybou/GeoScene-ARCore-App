@@ -94,7 +94,7 @@ public class ARCameraViewManager extends ViewGroupManager<FrameLayout> {
             JSONArray j = ArrayUtil.toJSONArray(triangulationIntersections);
             for (int i = 0; i < j.length(); i++) {
                 JSONObject o = j.getJSONObject(i);
-                data.add(new TriangulationIntersection(o.getString("id"), o.getString("name"), o.getDouble("latitude"), o.getDouble("longitude"), o.getDouble("distance")));
+                data.add(new TriangulationIntersection(o.getString("id"), o.getString("name"), o.getString("description"), o.getDouble("latitude"), o.getDouble("longitude"), o.getDouble("distance")));
             }
             Log.d("ARTriangulations", data.toString());
             arFragment.setTriangulationIntersections(data);

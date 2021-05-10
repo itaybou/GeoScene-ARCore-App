@@ -43,7 +43,6 @@ public class MainApplication extends Application implements ReactApplication {
                     packages.add(new OAuthManagerPackage());
                     packages.add(new OverpassPackage());
                     packages.add(new GeographyPackage());
-
                     return packages;
                 }
 
@@ -70,25 +69,9 @@ public class MainApplication extends Application implements ReactApplication {
                 .build();
 
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
+        Realm.deleteRealm(realmConfiguration); // REMOVEEEE
         new Thread(() -> CacheManager.clearCache(getApplicationContext())).start();
         CacheManager.schedule(getApplicationContext());
-
-
-//    Log.d("REALM", Realm.getDefaultConfiguration().getPath());
-//
-//  Stetho.initialize(
-//          Stetho.newInitializerBuilder(this)
-//                  .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-//                  .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
-//                  .build());
-//      Stetho.initialize(
-//              Stetho.newInitializerBuilder(this)
-//                      .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-//                      .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
-//              //enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
-//                      .build());
-//      OkHttpClientProvider.setOkHttpClientFactory(
-//              new NetworkDebugModule());
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     }
 

@@ -10,7 +10,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.geoscene.R;
+import com.geoscene.ar.modules.ARModule;
 import com.geoscene.constants.LocationConstants;
 import com.geoscene.data_access.CacheManager;
 import com.geoscene.data_access.PersistLocationObject;
@@ -32,6 +37,7 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import org.javatuples.Pair;
@@ -52,13 +58,13 @@ public class ARNodesInitializer {
     private static ArSceneView arSceneView;
     private static LocationScene locationScene;
     private static DeviceSensors sensors;
-    private static Context context;
+    private static ReactContext context;
 
     private static ARFragment ARFragment;
     private static boolean determineViewshed;
     private static int radiusKM;
 
-    public ARNodesInitializer(Context context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, ARFragment ARFragment) {
+    public ARNodesInitializer(ReactContext context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, ARFragment ARFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
@@ -66,29 +72,6 @@ public class ARNodesInitializer {
         hasFinishedLoading = true;
         ARNodesInitializer.determineViewshed = determineViewshed;
         ARNodesInitializer.radiusKM = radiusKM;
-//        CompletableFuture<ViewRenderable> locationMarkerCard =
-//                ViewRenderable.builder()
-//                        .setView(context, R.layout.location_marker_card)
-//                        .build();
-//
-//        CompletableFuture.allOf(locationMarkerCard)
-//                .handle((notUsed, throwable) -> {
-//                    // When you build a Renderable, Sceneform loads its resources in the background while
-//                    // returning a CompletableFuture. Call handle(), thenAccept(), or check isDone()
-//                    // before calling get().
-//                    if (throwable != null) {
-//                        DemoUtils.displayError(context, "Unable to load renderables", throwable);
-//                        return null;
-//                    }
-//                    try {
-//                        locationMarkerRenderable = locationMarkerCard.get();
-//                        hasFinishedLoading = true;
-//
-//                    } catch (InterruptedException | ExecutionException ex) {
-//                        DemoUtils.displayError(context, "Unable to load renderables", ex);
-//                    }
-//                    return null;
-//                });
     }
 
     private void getAndRenderMarkerInformation() {
@@ -100,28 +83,33 @@ public class ARNodesInitializer {
         if(cachedLocationInfo != null) {
             ARFragment.dispatchUseCache();
             Raster raster = cachedLocationInfo.getRaster(context);
-            raster.setViewshed(determineViewshed? ViewShed.calculateViewshed(raster, deviceLocation.getLatitude(), deviceLocation.getLongitude(), deviceLocation.getAltitude()) : null);
+            raster.setViewshed(determineViewshed? ViewShed.calculateViewshed(raster, deviceLocation.getLatitude(), deviceLocation.getLongitude()) : null);
             raster.setBoundingBox(bbox);
             PointsOfInterest pois = cachedLocationInfo.getPois();
             renderFOVMarkers(raster, pois);
         } else requestLocationInformation(radiusKM);
     }
 
-    private void requestLocationInformation(int radiusKM) {
+    private Single<ElevationLocationData> subscribeAPICalls(Coordinate center, int radiusKM) {
         Elevation elevation = new Elevation();
         Places places = new Places();
-
-        Log.d("START", "started");
+        Location deviceLocation = sensors.getDeviceLocation();
         final CompositeDisposable disposable = new CompositeDisposable();
-        ARFragment.dispatchLoadingProgress("Retrieving places and elevation data around you.");
-        Single<Raster> elevationData = elevation.fetchElevationRaster(sensors, determineViewshed, radiusKM)
-                .doOnSuccess(s -> ARFragment.dispatchLoadingProgress("Elevation data retrieved and analyzed"))
+        dispatchLoadingProgress("Retrieving places and elevation data around you.");
+        Single<Raster> elevationData = elevation.fetchElevationRaster(center, radiusKM, determineViewshed)
+                .doOnSuccess(s -> dispatchLoadingProgress("Elevation data retrieved and analyzed"))
                 .subscribeOn(Schedulers.computation()); // computation
-        Single<PointsOfInterest> placesData = places.searchPlaces(sensors, radiusKM)
-                .doOnSuccess(s -> ARFragment.dispatchLoadingProgress("Places around you retrieved."))
+        Single<PointsOfInterest> placesData = places.searchPlaces(center, radiusKM)
+                .doOnSuccess(s -> dispatchLoadingProgress("Places around you retrieved."))
                 .subscribeOn(Schedulers.io());
-        Single<ElevationLocationData> chainedAPICall = elevationData.zipWith(placesData, ElevationLocationData::new)
+        return elevationData.zipWith(placesData, ElevationLocationData::new)
                 .subscribeOn(Schedulers.io());
+    }
+
+    private void requestLocationInformation(int radiusKM) {
+        Location deviceLocation = sensors.getDeviceLocation();
+        Coordinate center = new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude());
+        Single<ElevationLocationData> chainedAPICall = subscribeAPICalls(center, radiusKM);
 
         chainedAPICall
             .observeOn(AndroidSchedulers.mainThread())
@@ -139,6 +127,25 @@ public class ARNodesInitializer {
             });
     }
 
+    public void downloadAndStoreLocationInformation(String name, String description, Coordinate center, int radiusKM) {
+        Single<ElevationLocationData> chainedAPICall = subscribeAPICalls(center, radiusKM);
+
+        chainedAPICall
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableSingleObserver<ElevationLocationData>() {
+                    @Override
+                    public void onSuccess(@NonNull ElevationLocationData data) {
+                        StorageAccess.storeLocationInfo(context, name, description, data.raster.getBbox(), data.raster, data.getPlaces());
+                        dispatchDownloadEvent(true);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.v("ERROR", e.getMessage());
+                    }
+                });
+    }
+
     public void initializeLocationMarkers(Activity activity) {
         arSceneView.getScene().addOnUpdateListener(
             frameTime -> {
@@ -151,6 +158,7 @@ public class ARNodesInitializer {
                     locationScene = new LocationScene(activity, arSceneView, sensors, false);
                     locationScene.setOffsetOverlapping(false);
                     locationScene.setMinimalRefreshing(false);
+                    locationScene.setOffsetOverlapping(true);
                     getAndRenderMarkerInformation();
                 }
 
@@ -172,11 +180,11 @@ public class ARNodesInitializer {
 
 
     private void renderFOVMarkers(Raster raster, PointsOfInterest pois) {
-        ARFragment.dispatchLoadingProgress("Determining your field of view.");
+        dispatchLoadingProgress("Determining your field of view.");
         List<Pair<Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(raster, pois);
 
         Log.d("LOCATIONS", visibleLocations.toString());
-        ARFragment.dispatchLoadingProgress("Field of view determined successfully.");
+        dispatchLoadingProgress("Field of view determined successfully.");
         for (Pair<Element, Coordinate> visibleLocation : visibleLocations) {
             ViewRenderable.builder()
                 .setView(context, R.layout.location_marker_card)
@@ -202,7 +210,7 @@ public class ARNodesInitializer {
                     locationScene.mLocationMarkers.add(layoutLocationMarker);
                 });
         }
-        ARFragment.dispatchLoadingProgress("Starting Augmented reality scene.");
+        dispatchLoadingProgress("Starting Augmented reality scene.");
         ARFragment.dispatchReady();
         hasFinishedLoading = true;
     }
@@ -217,67 +225,26 @@ public class ARNodesInitializer {
             eView.setOnTouchListener((v, event) -> {
                 ARFragment.dispatchLocation(location);
                 return false;
-//            Toast.makeText(context, "Location marker touched.", Toast.LENGTH_LONG)
-//                    .show();
-//            return false;
             });
         }
 
         return base;
     }
 
-    public void displayTriangulationNodes(Activity activity) {
-        arSceneView.getScene().addOnUpdateListener(
-                frameTime -> {
-                    if (!hasFinishedLoading) {
-                        return;
-                    }
-                    if (locationScene == null) {
-                        // If our locationScene object hasn't been setup yet, this is a good time to do it
-                        // We know that here, the AR components have been initiated.
-                        locationScene = new LocationScene(activity, arSceneView, sensors, true);
-                        locationScene.setOffsetOverlapping(false);
-                        locationScene.setMinimalRefreshing(false);
-                    }
-
-                    handleARFrame();
-                });
-
-        ARFragment.dispatchReady();
-    }
-
-    public void addTriangulationIntersectionNodes(List<TriangulationIntersection> triangulationIntersections) {
-        if(locationScene != null && locationScene.mLocationMarkers.isEmpty()) {
-            for(TriangulationIntersection intersection : triangulationIntersections) {
-                ViewRenderable.builder()
-                        .setView(context, R.layout.location_marker_card)
-                        .build()
-                        .thenAccept(renderable -> {
-                            double locationLat = intersection.intersection.getLat();
-                            double locationLon = intersection.intersection.getLon();
-                            LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, getLocationMarkerNode(renderable, null));
-//                                                layoutLocationMarker.setHeight(2);
-//                                                layoutLocationMarker.setScaleModifier(0.2f);
-                            layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
-
-                            // An example "onRender" event, called every frame
-                            // Updates the layout with the markers distance
-                            layoutLocationMarker.setRenderEvent(node -> {
-                                View eView = renderable.getView();
-                                TextView nameTextView = eView.findViewById(R.id.name);
-                                TextView distanceTextView = eView.findViewById(R.id.distance);
-                                distanceTextView.setText(intersection.distance + "M");
-                                nameTextView.setText(intersection.name);
-                            });
-                            Log.d("INTERSECTION", intersection.name);
-                            // Adding the marker
-                            locationScene.mLocationMarkers.add(layoutLocationMarker);
-                        });
-            }
-            hasFinishedLoading = true;
+    private void dispatchLoadingProgress(String message) {
+        if(ARFragment != null) {
+            ARFragment.dispatchLoadingProgress(message);
         }
     }
 
+
+    public void dispatchDownloadEvent(boolean done) {
+        WritableMap params = Arguments.createMap();
+        params.putBoolean("done", done);
+        context
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("DownloadEvent", params);
+    }
 
     private static class ElevationLocationData {
         private Raster raster;

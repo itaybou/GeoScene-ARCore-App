@@ -10,12 +10,14 @@ public class BoundingBoxCenter {
     private static final double WGS84_b = 6356752.3; // Minor semiaxis [m]
 
     private Pair<Coordinate, Coordinate> bbox;
+    private double radiusKM;
     private Coordinate center;
 
     public BoundingBoxCenter() { }
 
     public BoundingBoxCenter(Coordinate center, double halfSideInKm) {
         bbox = getBoundingBox(center, halfSideInKm);
+        radiusKM = halfSideInKm;
         this.center = center;
     }
 
@@ -85,6 +87,10 @@ public class BoundingBoxCenter {
 
     public Coordinate getCenter() {
         return center;
+    }
+
+    public double getRadiusKM() {
+        return radiusKM;
     }
 
     public boolean isBoundingBoxContains(BoundingBoxCenter other) {

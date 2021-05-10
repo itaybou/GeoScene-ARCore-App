@@ -9,14 +9,21 @@ public class BoundingBoxDTO extends RealmObject {
     public double east;
     public double west;
     public double north;
+    public double centerLatitude;
+    public double centerLongitude;
+
+    public double radiusKM;
 
     public BoundingBoxDTO() {}
 
     public BoundingBoxDTO(BoundingBoxCenter bbox) {
+        centerLatitude = bbox.getCenter().getLat();
+        centerLongitude = bbox.getCenter().getLon();
         this.south = bbox.getSouth();
         this.east = bbox.getEast();
         this.north = bbox.getNorth();
         this.west = bbox.getWest();
+        radiusKM = bbox.getRadiusKM();
     }
 }
 

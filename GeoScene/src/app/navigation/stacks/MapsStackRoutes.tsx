@@ -27,7 +27,7 @@ import {
 } from '../../auth/Authentication';
 import { useGeolocation, useTheme } from '../../utils/hooks/Hooks';
 
-import { ARSceneViewTest } from '../../containers/screens/ar/TriangulationView';
+import { ARSceneViewTest } from '../../containers/screens/triangulation/TriangulationView';
 import { Center } from '../../components/layout/Center';
 import { Checkbox } from 'react-native-paper';
 import Header from '../../containers/Header';
@@ -206,7 +206,7 @@ export const MapsStackRoutes: React.FC<StackProps> = ({}) => {
         header: Header,
         animationEnabled: false,
       }}>
-      <Stack.Screen name="Maps" component={MapsTest} />
+      <Stack.Screen name="Maps" component={Maps} />
     </Stack.Navigator>
   );
 };

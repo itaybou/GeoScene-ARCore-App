@@ -30,10 +30,8 @@ public class Places {
         overpassClient = new OverpassClient();
     }
 
-    public Single<PointsOfInterest> searchPlaces(DeviceSensors sensors, int radiusKM) {
-        Location deviceLocation = sensors.getDeviceLocation();
-        Coordinate observer = new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude());
-        return searchAround(observer, radiusKM * 1000);
+    public Single<PointsOfInterest> searchPlaces(Coordinate center, int radiusKM) {
+        return searchAround(center, radiusKM * 1000);
     }
 
     private Single<PointsOfInterest> searchAround(Coordinate observer, int radiusMeter) {

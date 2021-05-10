@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import java.util.Arrays;
 
 import com.geoscene.oauth.services.ConfigurableApi;
+import com.geoscene.oauth.services.OSMOAuthRequest;
 import com.geoscene.oauth.services.SlackApi;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.builder.api.BaseApi;
@@ -83,7 +84,7 @@ public class OAuthManagerProviders {
     return null;
   }
 
-  static public OAuthRequest getRequestForProvider(
+  static public OSMOAuthRequest getRequestForProvider(
     final String providerName,
     final Verb httpVerb,
     final OAuth1AccessToken oa1token,
@@ -96,14 +97,14 @@ public class OAuthManagerProviders {
 
     String token = oa1token.getToken();
     OAuthConfig config = service.getConfig();
-    OAuthRequest request = new OAuthRequest(httpVerb, url.toString(), config);
+    OSMOAuthRequest request = new OSMOAuthRequest(httpVerb, url.toString(), config);
 
     request = OAuthManagerProviders.addParametersToRequest(request, token, params);
     // Nothing special for Twitter
     return request;
   }
 
-  static public OAuthRequest getRequestForProvider(
+  static public OSMOAuthRequest getRequestForProvider(
     final String providerName,
     final Verb httpVerb,
     final OAuth2AccessToken oa2token,
@@ -115,7 +116,7 @@ public class OAuthManagerProviders {
         OAuthManagerProviders.getApiFor20Provider(providerName, cfg, null, null);
 
     OAuthConfig config = service.getConfig();
-    OAuthRequest request = new OAuthRequest(httpVerb, url.toString(), config);
+    OSMOAuthRequest request = new OSMOAuthRequest(httpVerb, url.toString(), config);
     String token = oa2token.getAccessToken();
 
     request = OAuthManagerProviders.addParametersToRequest(request, token, params);
@@ -131,34 +132,39 @@ public class OAuthManagerProviders {
   }
 
   // Helper to add parameters to the request
-  static private OAuthRequest addParametersToRequest(
-    OAuthRequest request,
+  static private OSMOAuthRequest addParametersToRequest(
+    OSMOAuthRequest request,
     final String access_token,
     @Nullable final ReadableMap params
   ) {
-    String a = "a";
+    if(params != null)
+      Log.d("PARAMS", params.toString());
     if (params != null && params.hasKey("params")) {
       ReadableMapKeySetIterator iterator = params.keySetIterator();
       while (iterator.hasNextKey()) {
         String key = iterator.nextKey();
-        ReadableType readableType = params.getType(key);
-        switch(readableType) {
-          case String:
-            String val = params.getString(key);
-            // String escapedVal = Uri.encode(val);
-            if (val.equals("access_token")) {
-              val = access_token;
-            }
-            request.addParameter(key, val);
-            break;
-          default:
-            throw new IllegalArgumentException("Could not read object with key: " + key);
+        if(!key.equals("body")) {
+          ReadableType readableType = params.getType(key);
+          switch (readableType) {
+            case String:
+              String val = params.getString(key);
+              // String escapedVal = Uri.encode(val);
+              if (val.equals("access_token")) {
+                val = access_token;
+              }
+              request.addParameter(key, val);
+              break;
+            default:
+              throw new IllegalArgumentException("Could not read object with key: " + key);
+          }
         }
       }
     }
     if(params != null && params.hasKey("body")) {
       String body = params.getString("body");
       request.setPayload(body);
+      Log.d("PAYLOAD", request.getStringPayload());
+      Log.d("PAYLOAD", request.toString());
     }
     return request;
   }

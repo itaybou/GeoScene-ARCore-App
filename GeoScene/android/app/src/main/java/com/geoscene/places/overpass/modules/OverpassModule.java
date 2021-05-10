@@ -53,6 +53,6 @@ public class OverpassModule extends ReactContextBaseJavaModule {
                     resp.putString("data", json.get("elements").toString());
                     onComplete.invoke(null, resp);
                 },
-                throwable -> {throw throwable;});
+                throwable -> onComplete.invoke(throwable.getMessage(), null));
     }
 }

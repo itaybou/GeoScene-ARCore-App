@@ -57,14 +57,6 @@ public class ARFragment extends Fragment {
         this.visibleRadiusKM = visibleRadiusKM;
     }
 
-    public ARFragment(ReactContext reactContext, boolean triangulation) {
-        super();
-        this.reactContext = reactContext;
-        this.triangulation = triangulation;
-        this.triangulationIntersections = new ArrayList<>();
-    }
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +70,7 @@ public class ARFragment extends Fragment {
         ARLocationPermissionHelper.requestPermission(getActivity());
 
         dispatchLoadingProgress("Starting AR");
-        initializer= new ARNodesInitializer(getContext(), sensors, arSceneView, determineViewshed, visibleRadiusKM, this);
+        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, this);
 
         return view;
     }
@@ -142,11 +134,7 @@ public class ARFragment extends Fragment {
         startArSession();
         try {
             arSceneView.resume();
-            if(!triangulation) {
-                initializer.initializeLocationMarkers(getActivity());
-            } else {
-                initializer.displayTriangulationNodes(getActivity());
-            }
+            initializer.initializeLocationMarkers(getActivity());
         } catch (CameraNotAvailableException ex) {
             DemoUtils.displayError(getActivity(), "Unable to get camera", ex);
         }

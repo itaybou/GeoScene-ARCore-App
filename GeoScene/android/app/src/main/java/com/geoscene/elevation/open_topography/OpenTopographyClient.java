@@ -37,13 +37,13 @@ public class OpenTopographyClient {
         openTopographyAPI = retrofit.create(OpenTopographyService.class);
     }
 
-    public Single<Raster> fetchTopographyData(BoundingBoxCenter bbox, double altitude, boolean determineViewshed) {
+    public Single<Raster> fetchTopographyData(BoundingBoxCenter bbox, boolean determineViewshed) {
         double latitude = bbox.getCenter().getLat();
         double longitude = bbox.getCenter().getLon();
         return openTopographyAPI.getElevationData(DEM, bbox.getSouth(), bbox.getNorth(), bbox.getWest(), bbox.getEast(), FORMAT)
                 .map(response -> ASCIIGridParser.parseASCIIGrid(response.byteStream()))
                 .doOnSuccess(raster -> {
-                    raster.setViewshed(determineViewshed ? ViewShed.calculateViewshed(raster, latitude, longitude, altitude) : null);
+                    raster.setViewshed(determineViewshed ? ViewShed.calculateViewshed(raster, latitude, longitude) : null);
                     raster.setBoundingBox(bbox);
                 })
                 .doOnError(e -> Log.d("ERROR", "open topography error " + e.getMessage()));

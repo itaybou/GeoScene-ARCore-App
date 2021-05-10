@@ -126,7 +126,7 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
             JSONArray j = ArrayUtil.toJSONArray(triangulationData);
             for (int i = 0; i < j.length(); i++) {
                 JSONObject o = j.getJSONObject(i);
-                data.add(new TriangulationData(o.getString("id"), o.getString("name"), o.getDouble("latitude"), o.getDouble("longitude"), o.getDouble("azimuth")));
+                data.add(new TriangulationData(o.getString("id"), o.getString("name"), o.getString("description"), o.getDouble("latitude"), o.getDouble("longitude"), o.getDouble("azimuth")));
             }
             view.setTriangulationData(data);
         }
@@ -142,9 +142,9 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
                 JSONObject point = j.getJSONObject(1);
                 double azimuth = j.getDouble(2);
                 view.setShowTriangulationData(
-                        new TriangulationIntersection(intersection.getString("id"), intersection.getString("name"),
+                        new TriangulationIntersection(intersection.getString("id"), intersection.getString("name"), intersection.getString("description"),
                                 intersection.getDouble("latitude"), intersection.getDouble("longitude"), intersection.getDouble("distance")),
-                        new TriangulationData(point.getString("id"), point.getString("name"),
+                        new TriangulationData(point.getString("id"), point.getString("name"), point.getString("description"),
                                 point.getDouble("latitude"), point.getDouble("longitude"), point.getDouble("azimuth")), azimuth);
             } else {
                 System.out.println(j.toString());
@@ -152,7 +152,7 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
                 double azimuth = j.getDouble(1);
                 view.setShowTriangulationData(
                       null,
-                        new TriangulationData(null, null, point.getDouble("latitude"), point.getDouble("longitude"), 0), azimuth);
+                        new TriangulationData(null, null, null, point.getDouble("latitude"), point.getDouble("longitude"), 0), azimuth);
             }
         }
     }
