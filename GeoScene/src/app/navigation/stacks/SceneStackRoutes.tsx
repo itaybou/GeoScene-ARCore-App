@@ -10,6 +10,7 @@ import Header from '../../containers/Header';
 import React from 'react';
 import { Text } from 'react-native';
 import { ThemeButton } from '../../components/input/ThemeButton';
+import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { TriangulateStackRoutes } from './triangulation/TriangulationStackRoutes';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useRoute } from '@react-navigation/core';
@@ -21,10 +22,16 @@ const Stack = createStackNavigator<SceneRoutesParamList>();
 const Scenes: React.FC<SceneStackRouteNavProps<'Scene'>> = ({ navigation }) => {
   return (
     <Center>
-      <Text>Hello World</Text>
-      <ThemeButton text="START AR" onPress={() => navigation.navigate('AR')} />
-      <ThemeButton
-        text="START Triangulation"
+      <ThemeCardButton
+        text="AR Explore"
+        description="Start Augmented Reality view and explore your surroundings."
+        icon={'directions'}
+        onPress={() => navigation.navigate('AR')}
+      />
+      <ThemeCardButton
+        text="Triangulate"
+        description="Perform triangulation in order to tag locations visible to you."
+        icon={'compass'}
         onPress={() => navigation.navigate('TriangulateStack')}
       />
     </Center>

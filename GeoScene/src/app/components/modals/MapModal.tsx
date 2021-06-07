@@ -30,6 +30,7 @@ interface MapModalProps {
   showTriangulationData?: any[];
   useObserverLocation?: boolean;
   useTriangulation?: boolean;
+  boundingCircleRadius?: number;
 }
 
 const DEFAULT_BBOX_RADIUS = 5;
@@ -48,6 +49,7 @@ export const MapModal: React.FC<MapModalProps> = ({
   title,
   onMapSingleTap,
   showTriangulationData,
+  boundingCircleRadius,
   useTriangulation = false,
   useObserverLocation = false,
   enableZoom = false,
@@ -56,7 +58,9 @@ export const MapModal: React.FC<MapModalProps> = ({
   const theme = useTheme();
   const mapRef = useRef<number | null>(null);
   const { state } = useSettings();
-  const [radius, setRadius] = useState<number>(state.visibleRadius);
+  const [radius, setRadius] = useState<number>(
+    boundingCircleRadius ?? state.visibleRadius,
+  );
 
   const MapsManager = useMemo(
     () => UIManager.getViewManagerConfig('MapView'),
@@ -76,12 +80,25 @@ export const MapModal: React.FC<MapModalProps> = ({
         [
           shownPlace?.latitude,
           shownPlace?.longitude,
-          showSlider ? state.visibleRadius : DEFAULT_BBOX_RADIUS,
+          showSlider
+            ? state.visibleRadius
+            : boundingCircleRadius
+            ? boundingCircleRadius
+            : DEFAULT_BBOX_RADIUS,
           true,
         ], // map referece, use compass orientation, use observe location
       );
     }
   }, [mapRef.current, isVisible]);
+
+  // useEffect(() => {
+  //   if (boundingCircleRadius) setRadius(boundingCircleRadius);
+  //   UIManager.dispatchViewManagerCommand(
+  //     mapRef.current,
+  //     MapsManager.Commands.ZOOM_SET_BBOX.toString(),
+  //     [shownPlace?.latitude, shownPlace?.longitude, boundingCircleRadius, true], // map referece, use compass orientation, use observe location
+  //   );
+  // }, [shownPlace, boundingCircleRadius, MapsManager.Commands.ZOOM_SET_BBOX]);
 
   return (
     <BottomModal

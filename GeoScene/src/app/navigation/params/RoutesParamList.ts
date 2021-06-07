@@ -65,6 +65,7 @@ export type PlacesRoutesParamList = {
   Places: undefined;
   AddPlace?: AddPlaceProps;
   DownloadPlace: undefined;
+  DownloadedPlace: undefined;
   UserPlaces: undefined;
 };
 
@@ -107,6 +108,7 @@ export type MapsStackRouteNavProps<T extends keyof MapsRoutesParamList> = {
 
 export type SettingsRoutesParamList = {
   Settings: undefined;
+  About: undefined;
 };
 
 export type SettingsStackRouteNavProps<

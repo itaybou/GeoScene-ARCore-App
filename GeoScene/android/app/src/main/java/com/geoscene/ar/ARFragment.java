@@ -17,7 +17,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
-import com.geoscene.DemoUtils;
+import com.geoscene.ErrorHandling;
 import com.geoscene.R;
 import com.geoscene.permissions.ARLocationPermissionHelper;
 import com.geoscene.places.overpass.poi.Element;
@@ -96,7 +96,7 @@ public class ARFragment extends Fragment {
 //                    session.setDisplayGeometry(, , );
                 }
             } catch (UnavailableException e) {
-                DemoUtils.handleSessionException(getActivity(), e);
+                ErrorHandling.handleSessionException(getActivity(), e);
             }
         }
     }
@@ -136,9 +136,8 @@ public class ARFragment extends Fragment {
             arSceneView.resume();
             initializer.initializeLocationMarkers(getActivity());
         } catch (CameraNotAvailableException ex) {
-            DemoUtils.displayError(getActivity(), "Unable to get camera", ex);
+            ErrorHandling.displayError(getActivity(), "Unable to get camera", ex);
         }
-//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
 

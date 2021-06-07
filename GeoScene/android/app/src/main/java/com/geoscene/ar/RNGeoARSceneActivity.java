@@ -9,7 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.react.ReactActivity;
-import com.geoscene.DemoUtils;
+import com.geoscene.ErrorHandling;
 import com.geoscene.R;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
@@ -68,7 +68,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
                         // before calling get().
 
                         if (throwable != null) {
-                            DemoUtils.displayError(this, "Unable to load renderables", throwable);
+                            ErrorHandling.displayError(this, "Unable to load renderables", throwable);
                             return null;
                         }
 
@@ -77,7 +77,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
                             hasFinishedLoading = true;
 
                         } catch (InterruptedException | ExecutionException ex) {
-                            DemoUtils.displayError(this, "Unable to load renderables", ex);
+                            ErrorHandling.displayError(this, "Unable to load renderables", ex);
                         }
 
                         return null;
@@ -152,7 +152,7 @@ public class RNGeoARSceneActivity extends ReactActivity {
         try {
             arSceneView.resume();
         } catch (CameraNotAvailableException ex) {
-            DemoUtils.displayError(this, "Unable to get camera", ex);
+            ErrorHandling.displayError(this, "Unable to get camera", ex);
             finish();
         }
     }
@@ -172,22 +172,6 @@ public class RNGeoARSceneActivity extends ReactActivity {
         super.onDestroy();
         arSceneView.destroy();
     }
-
-//    @Override
-//    public void onRequestPermissionsResult(){
-//            int requestCode, @NonNull String[] permissions, @NonNull int[] results) {
-//        if (!ARLocationPermissionHelper.hasPermission(this)) {
-//            if (!ARLocationPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-//                // Permission denied with checking "Do not ask again".
-//                ARLocationPermissionHelper.launchPermissionSettings(this);
-//            } else {
-//                Toast.makeText(
-//                        this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
-//                        .show();
-//            }
-//            finish();
-//        }
-//    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {

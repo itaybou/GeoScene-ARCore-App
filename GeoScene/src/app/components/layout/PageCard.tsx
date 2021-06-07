@@ -1,17 +1,29 @@
+import { ColorValue, StyleSheet } from 'react-native';
+
 import { Card } from 'react-native-elements';
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { useTheme } from '../../utils/hooks/Hooks';
 
-interface CardProps {}
+interface CardProps {
+  background?: ColorValue | undefined;
+  disablePadding?: boolean;
+}
 
-export const PageCard: React.FC<CardProps> = ({ children }) => {
+export const PageCard: React.FC<CardProps> = ({
+  children,
+  background,
+  disablePadding = false,
+}) => {
   const theme = useTheme();
 
   return (
     <Card
-      wrapperStyle={styles.cardWrapper}
-      containerStyle={[styles.card, { backgroundColor: theme.colors.cards }]}>
+      wrapperStyle={disablePadding ? {} : styles.cardWrapper}
+      containerStyle={[
+        styles.card,
+        disablePadding ? {} : styles.marginContainer,
+        { backgroundColor: background ?? theme.colors.cards },
+      ]}>
       {children}
     </Card>
   );
@@ -23,10 +35,13 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     elevation: 2,
     alignSelf: 'stretch',
+  },
+  marginContainer: {
     marginBottom: 10,
     marginHorizontal: 10,
   },
   cardWrapper: {
     padding: 1,
+    width: '100%',
   },
 });

@@ -16,10 +16,6 @@ public class LoadingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
-
-
-//        Realm realm = Realm.getDefaultInstance();
-//        Log.i("Realm", realm.getPath());
         finish();
     }
 }

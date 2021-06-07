@@ -69,7 +69,7 @@ public class MainApplication extends Application implements ReactApplication {
                 .build();
 
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
-        Realm.deleteRealm(realmConfiguration); // REMOVEEEE
+
         new Thread(() -> CacheManager.clearCache(getApplicationContext())).start();
         CacheManager.schedule(getApplicationContext());
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());

@@ -19,16 +19,18 @@ interface Props {
   item: MenuItem;
   isFirstElement?: boolean;
   isLastElement?: boolean;
+  border?: boolean;
+  bottomText?: boolean;
 }
 
 export const SettingsListItem = ({
   item,
   isFirstElement,
   isLastElement,
+  border = false,
+  bottomText = false,
 }: Props) => {
   const theme = useTheme();
-
-  console.log(item.switchActive);
 
   return (
     <TouchableOpacity
@@ -41,11 +43,22 @@ export const SettingsListItem = ({
           borderBottomLeftRadius: isLastElement ? 16 : 0,
           borderBottomRightRadius: isLastElement ? 16 : 0,
         },
+        border
+          ? {
+              borderBottomColor: theme.colors.cards,
+              borderBottomWidth: 1,
+            }
+          : {},
       ]}
       activeOpacity={0.6}
       disabled={item.switch}
       onPress={item.onClick}>
-      <ThemeText style={styles.title}>{item.title}</ThemeText>
+      <View style={{ flexDirection: 'column' }}>
+        <ThemeText style={styles.title}>{item.title}</ThemeText>
+        {bottomText && (
+          <ThemeText style={styles.bottomText}>{item.additionalText}</ThemeText>
+        )}
+      </View>
 
       <View
         style={{
@@ -92,8 +105,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-
   title: {
     fontSize: 15,
+  },
+  bottomText: {
+    fontSize: 10,
   },
 });

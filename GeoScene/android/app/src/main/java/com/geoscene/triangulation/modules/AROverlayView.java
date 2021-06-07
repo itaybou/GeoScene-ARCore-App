@@ -81,9 +81,10 @@ public class AROverlayView extends View {
                 float x = (0.5f + cameraCoordinateVector[0] / cameraCoordinateVector[3]) * canvas.getWidth();
                 float y = (0.5f - cameraCoordinateVector[1] / cameraCoordinateVector[3]) * canvas.getHeight();
 
-                canvas.drawCircle(x, y, radius, intersectPaint);
+                canvas.drawRect(x - 2, 0, x + 2, canvas.getHeight(), intersectPaint);
+//                canvas.drawCircle(x, y, radius, intersectPaint);
                 String countText = String.format("%d intersections", arPoints.size());
-                canvas.drawText(countText, x - (30 * countText.length() / 2), y - 80, intersectPaint);
+                canvas.drawText(countText, x - (25 * countText.length() / 2), canvas.getHeight() / 2, intersectPaint);
             }
         }
     }

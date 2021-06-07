@@ -13,18 +13,19 @@ import {
 } from '../params/RoutesParamList';
 import { useEffect, useState } from 'react';
 
+import { AboutScreen } from '../../containers/screens/settings/AboutScreen';
 import { ActivityIndicator } from 'react-native-paper';
 import { AnimatedSwipeView } from '../../components/layout/AnimatedSwipeView';
 import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
 import React from 'react';
+import { SettingsScreen } from '../../containers/screens/settings/SettingsScreen';
 import { ThemeProvider } from '@react-navigation/native';
 import { createChangeset } from '../../api/osm/OSMApi';
 import { createStackNavigator } from '@react-navigation/stack';
 import promisify from '../../api/promisify';
 import useTheme from '../../utils/hooks/useTheme';
 import useUser from '../../utils/hooks/useUser';
-import { SettingsScreen } from '../../containers/screens/settings/SettingsScreen';
 
 interface StackProps {}
 
@@ -121,7 +122,6 @@ function Register({ route }: SettingsStackRouteNavProps<'Settings'>) {
 }
 
 export const SettingsStackRoutes: React.FC<StackProps> = ({}) => {
-  const theme = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -129,6 +129,7 @@ export const SettingsStackRoutes: React.FC<StackProps> = ({}) => {
         animationEnabled: false,
       }}>
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="About" component={AboutScreen} />
     </Stack.Navigator>
   );
 };

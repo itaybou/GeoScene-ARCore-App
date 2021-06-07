@@ -78,7 +78,7 @@ public class StorageAccess {
 
     public static void deletePersistedLocationInfoById(Context context, String id) {
         try (Realm realm = Realm.getDefaultInstance()) {
-            realm.executeTransactionAsync(transaction -> {
+            realm.executeTransaction(transaction -> {
                 PersistLocationObject locationData = transaction.where(PersistLocationObject.class)
                         .equalTo("cached", false)
                         .equalTo("id", id)

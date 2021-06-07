@@ -96,7 +96,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
         title: 'About GeoScene',
         switch: false,
         switchActive: null,
-        onClick: () => {},
+        onClick: () => navigation.navigate('About'),
       },
     },
   };

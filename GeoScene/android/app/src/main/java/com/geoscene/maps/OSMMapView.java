@@ -73,17 +73,21 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     private InternalCompassOrientationProvider compass;
     private Polygon bboxCircle;
     private MyLocationNewOverlay mLocationOverlay;
+    private CompassOverlay compassOverlay;
 
     private Polyline lineOfSight;
     private FolderOverlay triangulationLines;
     private ItemizedIconOverlay<OverlayItem> triangulationPoints;
     private ItemizedIconOverlay<OverlayItem> triangulationViewers;
 
+    private Overlay centerOverlay;
+
     private ItemizedIconOverlay<OverlayItem> locationMarkers = null;
     private double previousAzimuth;
 
     private static final long ORIENTATION_CHANGE_ANIMATION_SPEED = 200L;
     private boolean animateToIncludeTriangulationPoints;
+    private boolean getCenter;
 
     public OSMMapView(ReactContext reactContext) {
         super(reactContext);
@@ -99,6 +103,15 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         mapController = map.getController();
         reactContext.addLifecycleEventListener(this);
         zoomToBoundingBox();
+
+        centerOverlay = new Overlay() {
+            @Override
+            public boolean onTouchEvent(MotionEvent event, MapView mapView) {
+                IGeoPoint center = map.getMapCenter();
+                dispatchCenterLocation(center.getLatitude(), center.getLongitude());
+                return super.onTouchEvent(event, mapView);
+            }
+        };
         map.invalidate();
 
     }
@@ -107,10 +120,13 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         this.useCompassOrientation = useCompassOrientation;
         if (useCompassOrientation) {
             compass = new InternalCompassOrientationProvider(reactContext);
-            CompassOverlay compassOverlay = new CompassOverlay(reactContext, compass, map);
+            compassOverlay = new CompassOverlay(reactContext, compass, map);
             compassOverlay.enableCompass();
             map.getOverlays().add(compassOverlay);
             compass.startOrientationProvider(this);
+        } else {
+            map.getOverlays().remove(compassOverlay);
+            compass.stopOrientationProvider();
         }
     }
 
@@ -124,6 +140,18 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 mLocationOverlay.enableFollowLocation();
             }
             map.getOverlays().add(mLocationOverlay);
+            if(getCenter) {
+                IGeoPoint center = map.getMapCenter();
+                dispatchCenterLocation(center.getLatitude(), center.getLongitude());
+            }
+        } else {
+            if(mLocationOverlay != null) {
+                if(mLocationOverlay.isFollowLocationEnabled()){
+                    mLocationOverlay.disableFollowLocation();
+                }
+                map.getOverlays().remove(mLocationOverlay);
+                mLocationOverlay = null;
+            }
         }
     }
 
@@ -136,6 +164,9 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
     public void setShowBoundingCircle(boolean showBoundingCircle) {
         this.showBoundingCircle = showBoundingCircle;
+        if(!showBoundingCircle && bboxCircle != null) {
+            map.getOverlays().remove(bboxCircle);
+        }
     }
 
     public void setUseTriangulation(boolean useTriangulation) {
@@ -148,6 +179,15 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             zoomToBoundingBox();
             //mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, 0f);
         }
+    }
+
+    public void setEnableGetCenter(boolean getCenter) {
+        this.getCenter = getCenter;
+        if(getCenter) {
+            map.getOverlays().add(centerOverlay);
+            IGeoPoint center = map.getMapCenter();
+            dispatchCenterLocation(center.getLatitude(), center.getLongitude());
+        } else map.getOverlays().remove(centerOverlay);
     }
 
     public void setShowTriangulationData(TriangulationIntersection intersection, TriangulationData data, double azimuth) {
@@ -379,6 +419,11 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 BoundingBoxCenter bbox = new BoundingBoxCenter(observer, LocationConstants.OBSERVER_BBOX); // CHANGE TP GLOBAL SETTINGS
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), false, 5);
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5);
+                if(getCenter) {
+                    map.getOverlays().add(centerOverlay);
+                    IGeoPoint center = map.getMapCenter();
+                    dispatchCenterLocation(center.getLatitude(), center.getLongitude());
+                }
                 map.invalidate();
             }
         });
@@ -478,19 +523,15 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 event);
     }
 
-//    @Override
-//    protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
-//        super.onVisibilityChanged(changedView, visibility);
-//        if (visibility == View.VISIBLE) resume();//onResume called
-//        else pause();
-//    }
-//
-//    @Override
-//    public void onWindowFocusChanged(boolean hasWindowFocus) {
-//        super.onWindowFocusChanged(hasWindowFocus);
-//        if (hasWindowFocus) resume();
-//        else pause();
-//    }
+    public void dispatchCenterLocation(double latitude, double longitude) {
+        WritableMap event = Arguments.createMap();
+        event.putDouble("latitude", latitude);
+        event.putDouble("longitude", longitude);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "getCenter",
+                event);
+    }
 
     private void resume() {
         sensors.resume();
@@ -551,6 +592,4 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     @Override
     public void onHostDestroy() {
     }
-
-
 }

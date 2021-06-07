@@ -47,28 +47,5 @@ public class OpenTopographyClient {
                     raster.setBoundingBox(bbox);
                 })
                 .doOnError(e -> Log.d("ERROR", "open topography error " + e.getMessage()));
-//        System.out.println("("+bbox.getSouth()+ "," + bbox.getNorth()+ "," + bbox.getWest()+ "," + bbox.getEast() + ")");
-//        call.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(@NonNull Call<ResponseBody> call, Response<ResponseBody> response) {
-//                if (response.isSuccessful()) {
-//                    new Thread(() -> {
-//                        assert response.body() != null;
-//                        try {
-//                            Raster elevationRaster =
-//                            elevationDataCallback.onDataFetched(elevationRaster);
-//                            Log.wtf("TAG", String.valueOf(response.body().byteStream()));
-//                        } catch (IOException e) {
-//                            elevationDataCallback.onError(e.getMessage());
-//                        }
-//                    }).start();
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(@NonNull Call<ResponseBody> call, Throwable throwable) {
-//                System.out.println("BASSA");
-//            }
-//        });
     }
 }

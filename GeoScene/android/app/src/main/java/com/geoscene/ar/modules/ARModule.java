@@ -65,7 +65,6 @@ public class ARModule extends ReactContextBaseJavaModule {
     @ReactMethod
     void downloadAndStoreLocationData(String name, String description, double latitude, double longitude, int radiusKM) {
         DeviceSensors sensors = DeviceSensorsManager.getSensors(reactContext);
-        Log.d("HEREEE", "DOWNLOAD");
         ARNodesInitializer initializer = new ARNodesInitializer(reactContext, sensors, null, false, 0, null);
         initializer.dispatchDownloadEvent(false);
         Coordinate center = new Coordinate(latitude, longitude);
@@ -90,6 +89,11 @@ public class ARModule extends ReactContextBaseJavaModule {
             }
         }
         promise.resolve(data);
+    }
+
+    @ReactMethod
+    void deleteStoredLocationData(String id) {
+        StorageAccess.deletePersistedLocationInfoById(reactContext, id);
     }
 
     public Activity getActivity() {

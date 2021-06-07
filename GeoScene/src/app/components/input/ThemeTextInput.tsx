@@ -12,6 +12,8 @@ interface ThemeTextInputProps {
   error?: boolean;
   errorMessage?: string;
   multiline?: boolean;
+  maxLength?: number;
+  numeric?: boolean;
 }
 
 export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
@@ -19,6 +21,8 @@ export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
   value,
   onChangeText,
   error,
+  maxLength,
+  numeric,
   errorMessage,
   multiline = false,
 }) => {
@@ -27,6 +31,7 @@ export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
   return (
     <View style={styles.container}>
       <TextInput
+        maxLength={maxLength}
         mode="outlined"
         label={label}
         theme={{
@@ -42,6 +47,7 @@ export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
         underlineColor={theme.colors.accent}
         value={value}
         error={error}
+        keyboardType={numeric ? 'numeric' : 'default'}
         multiline={multiline}
         numberOfLines={multiline ? 5 : 1}
         onChangeText={onChangeText}

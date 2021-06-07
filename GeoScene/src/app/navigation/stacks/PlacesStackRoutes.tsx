@@ -16,12 +16,14 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { AddPlace } from '../../containers/screens/places/AddPlace';
 import { Center } from '../../components/layout/Center';
 import { DownloadPlace } from '../../containers/screens/places/DownloadPlace';
+import { DownloadedPlace } from '../../containers/screens/places/DownloadedPlace';
 import Header from '../../containers/Header';
 import { LocationSearchBar } from '../../components/input/LocationSearchBar';
 import { NativeMapView } from '../../../native/NativeViewsBridge';
 import { TabScreen } from '../../components/layout/TabScreen';
 import { TextInput } from 'react-native-paper';
 import { ThemeButton } from '../../components/input/ThemeButton';
+import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { UserPlaces } from '../../containers/screens/places/UserPlaces';
 import { createStackNavigator } from '@react-navigation/stack';
 import { requireNativeComponent } from 'react-native';
@@ -33,22 +35,32 @@ interface StackProps {}
 
 const Stack = createStackNavigator<PlacesRoutesParamList>();
 
-function Register({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
-  console.log(navigation);
+function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
   return (
     <Center>
-      <Text>Route name: {route.name}</Text>
-      <ThemeButton
-        onPress={() => navigation.navigate('AddPlace')}
-        text="Add Place"
-      />
-      <ThemeButton
-        onPress={() => navigation.navigate('DownloadPlace')}
-        text="Download Places"
-      />
-      <ThemeButton
-        onPress={() => navigation.navigate('UserPlaces')}
+      <ThemeCardButton
         text="My Places"
+        description="View the places you added to the map provider."
+        icon={'list'}
+        onPress={() => navigation.navigate('UserPlaces')}
+      />
+      <ThemeCardButton
+        text="Add Place"
+        description="Add a place to the map provider by current location or map choice."
+        icon={'plus'}
+        onPress={() => navigation.navigate('AddPlace')}
+      />
+      <ThemeCardButton
+        text="Download Area"
+        description="Download information in chossen area to later use while offline."
+        icon={'cloud-download'}
+        onPress={() => navigation.navigate('DownloadPlace')}
+      />
+      <ThemeCardButton
+        text="My Downloaded Areas"
+        description="View Downloaded information stored on device for offline use."
+        icon={'drawer'}
+        onPress={() => navigation.navigate('DownloadedPlace')}
       />
     </Center>
   );
@@ -62,9 +74,10 @@ export const PlacesStackRoutes: React.FC<StackProps> = ({}) => {
         header: Header,
         animationEnabled: false,
       }}>
-      <Stack.Screen name="Places" component={Register} />
+      <Stack.Screen name="Places" component={Places} />
       <Stack.Screen name="AddPlace" component={AddPlace} />
       <Stack.Screen name="DownloadPlace" component={DownloadPlace} />
+      <Stack.Screen name="DownloadedPlace" component={DownloadedPlace} />
       <Stack.Screen name="UserPlaces" component={UserPlaces} />
     </Stack.Navigator>
   );

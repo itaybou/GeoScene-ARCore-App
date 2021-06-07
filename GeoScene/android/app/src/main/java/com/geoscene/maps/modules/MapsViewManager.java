@@ -58,7 +58,6 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     @Override
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
-                "CREATE", COMMAND_CREATE,
                 "ZOOM_BBOX", COMMAND_ZOOM_BBOX,
                 "ZOOM_SET_BBOX", COMMAND_ZOOM_SET_BBOX
         );
@@ -68,8 +67,6 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     public void receiveCommand(@NonNull OSMMapView root, String commandId, @Nullable ReadableArray args) {
         Log.d(REACT_TAG, "command received: " + commandId + " view id: " + args);
         super.receiveCommand(root, commandId, args);
-        Log.d("MAPS", String.valueOf(root.getId()));
-        Log.d("MAPS", args.toString());
         int commandNo = Integer.parseInt(commandId);
         switch (commandNo) {
             case COMMAND_ZOOM_BBOX:
@@ -107,6 +104,11 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     @ReactProp(name = "showBoundingCircle", defaultBoolean = true)
     public void setShowBoundingCircle(OSMMapView view, boolean showBoundingCircle) {
         view.setShowBoundingCircle(showBoundingCircle);
+    }
+
+    @ReactProp(name = "enableGetCenter", defaultBoolean = true)
+    public void setEnableGetCenter(OSMMapView view, boolean getCenter) {
+        view.setEnableGetCenter(getCenter);
     }
 
     @ReactProp(name = "useTriangulation", defaultBoolean = false)
@@ -164,6 +166,8 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
         return MapBuilder.of(
                 "mapSingleTap",
                 MapBuilder.of("registrationName", "onMapSingleTap"),
+                "getCenter",
+                MapBuilder.of("registrationName", "onMapCenterChanged"),
                 "azimuth",
                 MapBuilder.of("registrationName", "onOrientationChanged"),
                 "triangulationIntersections",
