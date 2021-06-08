@@ -11,6 +11,18 @@ public class Tags extends RealmObject {
     @SerializedName("amenity")
     public String amenity;
 
+    @SerializedName("place")
+    public String place;
+
+    @SerializedName("natural")
+    public String natural;
+
+    @SerializedName("historic")
+    public String historic;
+
+    @SerializedName("landuse")
+    public String landuse;
+
     @SerializedName("name")
     public String name;
 
@@ -46,22 +58,4 @@ public class Tags extends RealmObject {
 
     @SerializedName("addr:housenumber")
     public String addressHouseNumber;
-
-    @SerializedName("wheelchair")
-    public String wheelchair;
-
-    @SerializedName("wheelchair:description")
-    public String wheelchairDescription;
-
-    @SerializedName("opening_hours")
-    public String openingHours;
-
-    @SerializedName("internet_access")
-    public String internetAccess;
-
-    @SerializedName("fee")
-    public String fee;
-
-    @SerializedName("operator")
-    public String operator;
 }

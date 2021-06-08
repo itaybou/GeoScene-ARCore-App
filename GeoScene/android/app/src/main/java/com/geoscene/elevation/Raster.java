@@ -27,6 +27,11 @@ public class Raster {
         this.elevations = elevations;
     }
 
+    public int getElevationByCoordinate(Coordinate coordinate) {
+        Pair<Integer, Integer> xy = getRowColByCoordinates(coordinate);
+        return getElevation(xy.getValue0(), xy.getValue1());
+    }
+
     public Pair<Integer, Integer> getRowColByCoordinates(Coordinate coordinate) {
         int y = rows - trunc((coordinate.getLat() - yLowerLeftCorner) / cellSize + 0.5);
         int x = trunc((coordinate.getLon() - xLowerLeftCorner) / cellSize + 0.5);

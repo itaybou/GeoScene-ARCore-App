@@ -1,13 +1,7 @@
-import {
-  ActivityIndicator,
-  Button,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import {
   PageHeaderContentType,
+  getGoogleSearchURL,
   getPageHeaderContent,
   getPageThumbnail,
   getPageURL,
@@ -16,20 +10,33 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Center } from '../components/layout/Center';
 import RNBounceable from '@freakycoder/react-native-bounceable';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
+import { ThemeButton } from '../components/input/ThemeButton';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
 import { WebViewScreen } from './screens/WebViewScreen';
 import useTheme from '../utils/hooks/useTheme';
 
 interface LocationDetailsFrameProps {
-  name?: string;
+  name_en?: string;
+  name_heb?: string;
+  main_name?: string;
+  type?: string;
+  elevation?: number;
+  distance?: string;
   onClose: () => void;
   onExpand: () => void;
 }
 
+const imagePlaceholder = require('../assets/img/image_placeholder.jpg');
+
 export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
-  name,
+  name_en,
+  name_heb,
+  main_name,
+  type,
+  elevation,
+  distance,
   onClose,
   onExpand,
 }) => {
@@ -44,16 +51,37 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
   );
 
   const getLocationDetails = useCallback(async () => {
-    if (name) {
+    if (name_en) {
       const detailsHeader:
         | PageHeaderContentType
-        | undefined = await getPageHeaderContent(name);
-      detailsHeader && setDetails(detailsHeader.content);
-      detailsHeader && setPageId(detailsHeader.page_id);
-      name && setThumbnailUri(await getPageThumbnail(name));
+        | undefined = await getPageHeaderContent(name_en);
+      detailsHeader ? setDetails(detailsHeader.content) : setDetails('');
+      detailsHeader ? setPageId(detailsHeader.page_id) : setPageId(null);
+      if (detailsHeader) {
+        const thumbnail_uri = await getPageThumbnail(name_en);
+        thumbnail_uri
+          ? setThumbnailUri(thumbnail_uri)
+          : setThumbnailUri(undefined);
+      }
+    } else if (name_heb) {
+      const detailsHeader:
+        | PageHeaderContentType
+        | undefined = await getPageHeaderContent(name_heb, true);
+      detailsHeader ? setDetails(detailsHeader.content) : setDetails('');
+      detailsHeader ? setPageId(detailsHeader.page_id) : setPageId(null);
+      if (detailsHeader) {
+        const thumbnail_uri = await getPageThumbnail(name_heb, true);
+        thumbnail_uri
+          ? setThumbnailUri(thumbnail_uri)
+          : setThumbnailUri(undefined);
+      }
+    } else {
+      setDetails('');
+      setPageId(null);
+      setThumbnailUri(undefined);
     }
     setLoading(false);
-  }, [name]);
+  }, [name_en, name_heb]);
 
   const closeLocationDetails = useCallback(() => {
     onClose();
@@ -75,18 +103,26 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
     setLoading(true);
     onExpand();
     if (pageId) {
-      setPageURL(await getPageURL(pageId));
+      setPageURL(await getPageURL(pageId, !name_en));
       setLoading(false);
     }
   }, [expanded, onExpand, pageId]);
+
+  const searchGoogle = useCallback(async () => {
+    setExpanded(!expanded);
+    setLoading(true);
+    onExpand();
+    if (name_en ?? name_heb ?? main_name) {
+      setPageURL(getGoogleSearchURL(name_en ?? name_heb ?? main_name));
+      setLoading(false);
+    }
+  }, [expanded, onExpand, name_en, name_heb, main_name]);
 
   useEffect(() => {
     setLoading(true);
     getLocationDetails();
   }, [getLocationDetails]);
-
-  console.log(pageURL);
-
+  console.log(details);
   return (
     <View style={[styles.container, { padding: expanded ? 0 : 12 }]}>
       {expanded && pageURL ? (
@@ -117,69 +153,116 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
           <WebViewScreen
             uri={pageURL}
             style={{ flex: 1 }}
-            name={name ?? 'Wikipedia'}
+            name={name_en ?? name_heb ?? main_name ?? 'Wikipedia'}
             showWebControls={true}
           />
         </View>
       ) : loading ? (
-        <Center style={{ flex: 1, zIndex: 1 }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.colors.cards,
+          }}>
           {/* <ThemeText>{loadingMessage}</ThemeText> */}
           <ActivityIndicator size="large" color={theme.colors.primary} />
-        </Center>
+        </View>
       ) : (
         <View
           style={{ flexDirection: 'row', flex: 1, alignItems: 'flex-start' }}>
-          <View style={{ flex: 0.8 }}>
+          <View style={{ flex: 0.8, paddingHorizontal: 10 }}>
             <View
               style={{
                 justifyContent: 'space-between',
                 flexDirection: 'row',
                 paddingEnd: 16,
               }}>
-              <ThemeText style={{ fontWeight: 'bold', fontSize: 20 }}>
-                {name}
-              </ThemeText>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'flex-end',
+                }}>
+                <ThemeText style={{ fontWeight: 'bold', fontSize: 20 }}>
+                  {!loading && (name_en ?? name_heb ?? main_name)}
+                </ThemeText>
+                <View
+                  style={{
+                    marginStart: 5,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                  }}>
+                  <ThemeText style={{ fontSize: 12 }}>
+                    {!loading && type}
+                  </ThemeText>
+                  <ThemeText style={{ fontSize: 12 }}>
+                    {!loading && elevation && `Elevation: ${elevation}`}
+                  </ThemeText>
+                  <ThemeText style={{ fontSize: 12 }}>
+                    {!loading && distance && `Distance: ${distance}`}
+                  </ThemeText>
+                </View>
+              </View>
               <View
                 style={{
                   flexDirection: 'row',
                 }}>
-                <RNBounceable onPress={expandDetails}>
-                  <View
-                    style={{
-                      backgroundColor: theme.colors.accent,
-                      borderRadius: 10,
-                      flexDirection: 'row',
-                      paddingVertical: 3,
-                      alignItems: 'center',
-                      paddingHorizontal: 12,
-                      justifyContent: 'center',
-                      marginEnd: 10,
-                    }}>
-                    <ThemeIcon
-                      name="book-open"
-                      color={theme.colors.text}
-                      size={18}
+                {details !== '' && details !== undefined && (
+                  <View style={{ flexDirection: 'row', marginEnd: 10 }}>
+                    <ThemeButton
+                      onPress={searchGoogle}
+                      text="Google"
+                      icon={'social-google'}
+                      lean={true}
                     />
-                    <ThemeText
-                      style={{
-                        fontWeight: 'bold',
-                        fontSize: 10,
-                        marginLeft: 6,
-                      }}>
-                      Wikipedia
-                    </ThemeText>
+
+                    <ThemeButton
+                      onPress={expandDetails}
+                      text="Wikipedia"
+                      icon={'book-open'}
+                      lean={true}
+                    />
                   </View>
-                </RNBounceable>
+                )}
+
                 {closeButton}
               </View>
             </View>
             {/* <TabBarIcon name="close" color={theme.colors.accent} /> */}
-            <ThemeText>{details}</ThemeText>
+            <ScrollView>
+              {details ? (
+                <ThemeText>{details}</ThemeText>
+              ) : (
+                <View>
+                  <ThemeText
+                    style={{
+                      color: theme.colors.error,
+                    }}>{`No wikipedia details found for ${
+                    name_en ?? name_heb ?? main_name
+                  }`}</ThemeText>
+                  <ThemeButton
+                    onPress={searchGoogle}
+                    text="Search Google"
+                    icon={'social-google'}
+                  />
+                </View>
+              )}
+            </ScrollView>
           </View>
-          <View style={{ flex: 0.2 }}>
-            {thumbnailUri && (
-              <Image source={{ uri: thumbnailUri }} style={{ flex: 1 }} />
-            )}
+          <View
+            style={{
+              flex: 0.2,
+            }}>
+            <Image
+              source={thumbnailUri ? { uri: thumbnailUri } : imagePlaceholder}
+              style={{
+                flex: 1,
+                height: null,
+                resizeMode: 'contain',
+                width: null,
+              }}
+            />
           </View>
         </View>
       )}

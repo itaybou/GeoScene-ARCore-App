@@ -48,6 +48,18 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
 
   const location = useGeolocation();
 
+  const activePlaceTypes = [
+    ...Object.keys(state.placeTypes['place']).filter(
+      (k) => state.placeTypes['place'][k].on,
+    ),
+    ...Object.keys(state.placeTypes['natural']).filter(
+      (k) => state.placeTypes['natural'][k].on,
+    ),
+    ...Object.keys(state.placeTypes['historic']).filter(
+      (k) => state.placeTypes['historic'][k].on,
+    ),
+  ].length;
+
   const menuItems: MenuItems = {
     theme: {
       darkMode: {
@@ -85,7 +97,9 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       },
       locationTypes: {
         title: 'Scene Location Types',
-        additionalText: `${state.locationTypes} types`,
+        additionalText: `${activePlaceTypes} ${
+          activePlaceTypes > 1 || activePlaceTypes === 0 ? 'types' : 'type'
+        }`,
         switch: false,
         switchActive: null,
         onClick: () => setLocationTypesModalVisible(true),
@@ -130,13 +144,6 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       showHeader: false,
       data: [menuItems.about.about],
     },
-    // {
-    //   title: 'Feedback and Help',
-    //   icon: (color: string) => (
-    //     <TabBarIcon name="question" size={20} color={color} />
-    //   ),
-    //   data: ['help'],
-    // },
   ];
 
   return (
@@ -165,7 +172,6 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       <LocationTypesModal
         title={menuItems.scene.locationTypes.title}
         isVisible={locationTypesModalVisible}
-        onButtonPress={() => {}}
         hide={() => setLocationTypesModalVisible(false)}
       />
     </TabScreen>

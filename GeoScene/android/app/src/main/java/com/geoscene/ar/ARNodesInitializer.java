@@ -2,9 +2,9 @@ package com.geoscene.ar;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.location.Location;
 import android.util.Log;
+import org.javatuples.Pair;
 import android.view.View;
 import android.widget.TextView;
 
@@ -15,13 +15,13 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.geoscene.R;
-import com.geoscene.ar.modules.ARModule;
 import com.geoscene.constants.LocationConstants;
 import com.geoscene.data_access.CacheManager;
 import com.geoscene.data_access.PersistLocationObject;
 import com.geoscene.data_access.StorageAccess;
 import com.geoscene.elevation.Elevation;
 import com.geoscene.elevation.Raster;
+import com.geoscene.geography.LocationUtils;
 import com.geoscene.location_markers.LocationMarker;
 import com.geoscene.location_markers.LocationScene;
 import com.geoscene.places.Places;
@@ -31,18 +31,18 @@ import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.geography.Coordinate;
 import com.geoscene.geography.mercator.BoundingBoxCenter;
-import com.geoscene.triangulation.TriangulationIntersection;
 import com.geoscene.viewshed.ViewShed;
 import com.google.ar.core.Frame;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
-import org.javatuples.Pair;
-
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
@@ -52,36 +52,37 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class ARNodesInitializer {
 
-    public static boolean hasFinishedLoading = false;
-    private static ViewRenderable locationMarkerRenderable;
+    public boolean hasFinishedLoading = false;
+    private ViewRenderable locationMarkerRenderable;
 
-    private static ArSceneView arSceneView;
-    private static LocationScene locationScene;
-    private static DeviceSensors sensors;
-    private static ReactContext context;
+    private ArSceneView arSceneView;
+    private LocationScene locationScene;
+    private DeviceSensors sensors;
+    private ReactContext context;
+    private Map<String, HashSet<String>> placesTypes;
 
-    private static ARFragment ARFragment;
-    private static boolean determineViewshed;
-    private static int radiusKM;
+    private ARFragment arFragment;
+    private boolean determineViewshed;
+    private int radiusKM;
 
-    public ARNodesInitializer(ReactContext context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, ARFragment ARFragment) {
+    public ARNodesInitializer(ReactContext context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, Map<String, HashSet<String>> placesTypes, ARFragment arFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
-        this.ARFragment = ARFragment;
+        this.arFragment = arFragment;
         hasFinishedLoading = true;
-        ARNodesInitializer.determineViewshed = determineViewshed;
-        ARNodesInitializer.radiusKM = radiusKM;
+        this.determineViewshed = determineViewshed;
+        this.radiusKM = radiusKM;
+        this.placesTypes = placesTypes;
     }
 
     private void getAndRenderMarkerInformation() {
         Location deviceLocation = sensors.getDeviceLocation();
         BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude()), LocationConstants.OBSERVER_BBOX); //PADDING_KM);
         PersistLocationObject cachedLocationInfo = CacheManager.fetchFromCache(bbox);
-        Log.d("CACHED_LOCATION", String.valueOf(cachedLocationInfo));
-        Log.d("determineViewshed", String.valueOf(determineViewshed));
+
         if(cachedLocationInfo != null) {
-            ARFragment.dispatchUseCache();
+            arFragment.dispatchUseCache();
             Raster raster = cachedLocationInfo.getRaster(context);
             raster.setViewshed(determineViewshed? ViewShed.calculateViewshed(raster, deviceLocation.getLatitude(), deviceLocation.getLongitude()) : null);
             raster.setBoundingBox(bbox);
@@ -156,7 +157,6 @@ public class ARNodesInitializer {
                     // If our locationScene object hasn't been setup yet, this is a good time to do it
                     // We know that here, the AR components have been initiated.
                     locationScene = new LocationScene(activity, arSceneView, sensors, false);
-                    locationScene.setOffsetOverlapping(false);
                     locationScene.setMinimalRefreshing(false);
                     locationScene.setOffsetOverlapping(true);
                     getAndRenderMarkerInformation();
@@ -181,49 +181,88 @@ public class ARNodesInitializer {
 
     private void renderFOVMarkers(Raster raster, PointsOfInterest pois) {
         dispatchLoadingProgress("Determining your field of view.");
-        List<Pair<Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(raster, pois);
+        List<Pair<Element, Coordinate>> visibleLocations = FOVAnalyzer.intersectVisiblePlaces(raster, pois, placesTypes);
 
         Log.d("LOCATIONS", visibleLocations.toString());
         dispatchLoadingProgress("Field of view determined successfully.");
+
+        Location deviceLocation = sensors.getDeviceLocation();
+        int observerElevation = raster.getElevationByCoordinate(new Coordinate(deviceLocation.getLatitude(), deviceLocation.getLongitude()));
+        List<Boolean> readyNodes = new ArrayList<>();
+
+        List<Integer> elevations = visibleLocations.stream().map(l -> {
+            double locationLat = l.getValue1().getLat();
+            double locationLon = l.getValue1().getLon();
+            return raster.getElevationByCoordinate(new Coordinate(locationLat, locationLon));
+        }).collect(Collectors.toList());
+
+        Integer maxHeightDiff = elevations.stream().mapToInt(i -> i - observerElevation).max().orElse(0);
+        Integer minHeightDiff = elevations.stream().mapToInt(i -> i - observerElevation).min().orElse(0);
+
         for (Pair<Element, Coordinate> visibleLocation : visibleLocations) {
+            double locationLat = visibleLocation.getValue1().getLat();
+            double locationLon = visibleLocation.getValue1().getLon();
+            int elevation = raster.getElevationByCoordinate(new Coordinate(locationLat, locationLon));
+            int elevationDiff = elevation - observerElevation;
+
             ViewRenderable.builder()
                 .setView(context, R.layout.location_marker_card)
                 .build()
                 .thenAccept(renderable -> {
-                    double locationLat = visibleLocation.getValue1().getLat();
-                    double locationLon = visibleLocation.getValue1().getLon();
-                    LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, getLocationMarkerNode(renderable, visibleLocation.getValue0()));
+                    Node locationNode = getLocationMarkerNode(renderable, visibleLocation.getValue0(), elevation, visibleLocation.getValue1());
+                    LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, locationNode);
 //                                                layoutLocationMarker.setHeight(2);
 //                                                layoutLocationMarker.setScaleModifier(0.2f);
                     layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
+                    View eView = renderable.getView();
+                    TextView nameTextView = eView.findViewById(R.id.name);
+                    TextView typeTextView = eView.findViewById(R.id.type);
+                    TextView distanceTextView = eView.findViewById(R.id.distance);
 
+                    typeTextView.setText(ARFragment.getNodeTypeString(visibleLocation.getValue0()));
+                    nameTextView.setText(visibleLocation.getValue0().tags.nameEng != null ? visibleLocation.getValue0().tags.nameEng : visibleLocation.getValue0().tags.name);
                     // An example "onRender" event, called every frame
                     // Updates the layout with the markers distance
                     layoutLocationMarker.setRenderEvent(node -> {
-                        View eView = renderable.getView();
-                        TextView nameTextView = eView.findViewById(R.id.name);
-                        TextView distanceTextView = eView.findViewById(R.id.distance);
-                        distanceTextView.setText(node.getDistance() + "M");
-                        nameTextView.setText(visibleLocation.getValue0().tags.name);
+                        if(locationScene.getDistanceLimit() < node.getDistance()) {
+                            locationScene.setDistanceLimit(node.getDistance());
+                        }
+                        distanceTextView.setText(node.getDistance() >= 1000 ? String.format("%.3f", ((float)node.getDistance() / (float)1000)) + "KM" : node.getDistance() + "m");
                     });
                     // Adding the marker
                     locationScene.mLocationMarkers.add(layoutLocationMarker);
+                    readyNodes.add(true);
+                    if(readyNodes.size() == visibleLocations.size()) {
+                        arFragment.dispatchReady();
+                        hasFinishedLoading = true;
+                    }
                 });
         }
+
+        dispatchObserverElevation(observerElevation);
         dispatchLoadingProgress("Starting Augmented reality scene.");
-        ARFragment.dispatchReady();
-        hasFinishedLoading = true;
     }
 
+
     @SuppressLint("ClickableViewAccessibility")
-    private Node getLocationMarkerNode(ViewRenderable renderable, Element location) {
+    private Node getLocationMarkerNode(ViewRenderable renderable, Element location, int elevation, Coordinate coord) {
         Node base = new Node();
         base.setRenderable(renderable);
         // Add  listeners etc here
         View eView = renderable.getView();
         if(location != null) {
             eView.setOnTouchListener((v, event) -> {
-                ARFragment.dispatchLocation(location);
+                Location deviceLocation = sensors.getDeviceLocation();
+                int markerDistance = (int) Math.round(
+                        LocationUtils.distance(
+                                coord.getLat(),
+                                deviceLocation.getLatitude(),
+                                coord.getLon(),
+                                deviceLocation.getLongitude(),
+                                0,
+                                0)
+                );
+                arFragment.dispatchLocation(location, elevation, markerDistance >= 1000 ? String.format("%.3f", ((float)markerDistance / (float)1000)) + "KM" : markerDistance + "m");
                 return false;
             });
         }
@@ -232,8 +271,8 @@ public class ARNodesInitializer {
     }
 
     private void dispatchLoadingProgress(String message) {
-        if(ARFragment != null) {
-            ARFragment.dispatchLoadingProgress(message);
+        if(arFragment != null) {
+            arFragment.dispatchLoadingProgress(message);
         }
     }
 
@@ -244,6 +283,16 @@ public class ARNodesInitializer {
         context
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit("DownloadEvent", params);
+    }
+
+    public LocationScene getLocationScene() {
+        return locationScene;
+    }
+
+    private void dispatchObserverElevation(int elevation) {
+        if(arFragment != null) {
+            arFragment.dispatchObserverElevation(elevation);
+        }
     }
 
     private static class ElevationLocationData {

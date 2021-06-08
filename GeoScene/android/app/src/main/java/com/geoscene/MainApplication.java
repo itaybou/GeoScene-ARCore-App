@@ -16,6 +16,7 @@ import com.facebook.soloader.SoLoader;
 import com.geoscene.ar.modules.ARPackage;
 import com.geoscene.maps.modules.MapsPackage;
 import com.geoscene.triangulation.modules.ARCameraPackage;
+import com.marcshilling.idletimer.IdleTimerPackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
-//import io.realm.Realm;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -69,7 +69,7 @@ public class MainApplication extends Application implements ReactApplication {
                 .build();
 
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
-
+        Realm.deleteRealm(realmConfiguration); /// REMOVE
         new Thread(() -> CacheManager.clearCache(getApplicationContext())).start();
         CacheManager.schedule(getApplicationContext());
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
@@ -100,16 +100,3 @@ public class MainApplication extends Application implements ReactApplication {
         }
     }
 }
-
-
-//class NetworkDebugModule implements OkHttpClientFactory {
-//    public OkHttpClient createNewNetworkModuleClient() {
-//        return new OkHttpClient.Builder()
-//                .connectTimeout(0, TimeUnit.MILLISECONDS)
-//                .readTimeout(0, TimeUnit.MILLISECONDS)
-//                .writeTimeout(0, TimeUnit.MILLISECONDS)
-//                .cookieJar(new ReactCookieJarContainer())
-//                .addNetworkInterceptor(new StethoInterceptor())
-//                .build();
-//    }
-//}

@@ -7,6 +7,7 @@ interface ThemeSliderProps {
   step: number;
   range: { min: number; max: number };
   onValueChange: (value: number) => void;
+  disabled?: boolean;
 }
 
 export const ThemeSlider: React.FC<ThemeSliderProps> = ({
@@ -14,16 +15,24 @@ export const ThemeSlider: React.FC<ThemeSliderProps> = ({
   step,
   range,
   onValueChange,
+  disabled = false,
 }) => {
   const theme = useTheme();
   return (
     <Slider
       value={value}
+      disabled={disabled}
       step={step}
       minimumValue={range.min}
       maximumValue={range.max}
-      thumbTintColor={theme.colors.accent_secondary}
-      minimumTrackTintColor={theme.colors.accent_secondary_dark}
+      thumbTintColor={
+        disabled ? theme.colors.error : theme.colors.accent_secondary
+      }
+      minimumTrackTintColor={
+        disabled
+          ? theme.colors.inactiveTint
+          : theme.colors.accent_secondary_dark
+      }
       onValueChange={onValueChange}
     />
   );

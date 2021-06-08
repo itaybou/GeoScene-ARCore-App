@@ -14,8 +14,8 @@ export const Center: React.FC<CenterProps> = ({ children, style }) => {
     <TabScreen
       style={[
         styles.center,
-        style,
         { backgroundColor: theme.colors.background },
+        style,
       ]}>
       {children}
     </TabScreen>

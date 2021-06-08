@@ -17,6 +17,7 @@ interface ThemeButtonProps {
   text?: string;
   icon?: string;
   disabled?: boolean;
+  lean?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -25,15 +26,20 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
   icon,
   style,
   onPress,
+  lean = false,
   disabled = false,
 }) => {
   const theme = useTheme();
   return (
     <TouchableHighlight
       style={[
-        styles.button,
+        lean ? styles.buttonLean : styles.button,
         style,
-        { backgroundColor: theme.colors.accent_secondary },
+        {
+          backgroundColor: disabled
+            ? theme.colors.inactiveTint
+            : theme.colors.accent_secondary,
+        },
       ]}
       disabled={disabled}
       onPress={onPress}
@@ -41,13 +47,19 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
       activeOpacity={0.2}>
       <View
         style={[
-          styles.buttonInner,
+          lean ? styles.buttonInnerLean : styles.buttonInner,
           {
-            backgroundColor: theme.colors.accent_secondary_bright,
+            backgroundColor: disabled
+              ? theme.colors.inactiveTint
+              : theme.colors.accent_secondary_bright,
           },
         ]}>
         {icon && <ThemeIcon name={icon} size={18} color={'black'} />}
-        {text && <Text style={icon && styles.textMargin}>{text}</Text>}
+        {text && (
+          <Text style={icon && [styles.textMargin, lean && styles.textLean]}>
+            {text}
+          </Text>
+        )}
       </View>
     </TouchableHighlight>
   );
@@ -64,11 +76,32 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 2,
   },
+  buttonLean: {
+    margin: 2,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 2,
+    paddingVertical: 0,
+    borderRadius: 8,
+    elevation: 2,
+  },
   buttonInner: {
     flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 18,
     paddingVertical: 4,
     borderRadius: 8,
   },
+  buttonInnerLean: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
   textMargin: { marginStart: 4 },
+  textLean: { fontSize: 12 },
 });

@@ -1,28 +1,18 @@
 package com.geoscene.ar.modules;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Handler;
-import android.os.storage.StorageManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.geoscene.ar.ARNodesInitializer;
-import com.geoscene.ar.RNGeoARSceneActivity;
 import com.geoscene.data_access.PersistLocationObject;
 import com.geoscene.data_access.StorageAccess;
 import com.geoscene.geography.Coordinate;
@@ -31,8 +21,6 @@ import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.ArCoreApk;
 
 import java.util.List;
-
-import io.realm.RealmResults;
 
 public class ARModule extends ReactContextBaseJavaModule {
 
@@ -65,7 +53,7 @@ public class ARModule extends ReactContextBaseJavaModule {
     @ReactMethod
     void downloadAndStoreLocationData(String name, String description, double latitude, double longitude, int radiusKM) {
         DeviceSensors sensors = DeviceSensorsManager.getSensors(reactContext);
-        ARNodesInitializer initializer = new ARNodesInitializer(reactContext, sensors, null, false, 0, null);
+        ARNodesInitializer initializer = new ARNodesInitializer(reactContext, sensors, null, false, 0, null, null);
         initializer.dispatchDownloadEvent(false);
         Coordinate center = new Coordinate(latitude, longitude);
         initializer.downloadAndStoreLocationInformation(name, description, center, radiusKM);

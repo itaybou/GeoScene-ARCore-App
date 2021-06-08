@@ -1,5 +1,6 @@
 import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
+import { PlaceTypes } from '../SettingsProvider';
 import { SettingsType } from '../SettingsProvider';
 import { ThemesType } from '../../themes/Themes';
 import { name as appName } from '../../../../app.json';
@@ -12,6 +13,7 @@ export enum SettingsActionTypes {
   CHANGE_THEME,
   CHANGE_VIEWSHED,
   CHANGE_VISIBLE_RADIUS,
+  CHANGE_PLACE_TYPES,
 }
 
 type SettingsPayload = {
@@ -26,6 +28,9 @@ type SettingsPayload = {
   };
   [SettingsActionTypes.CHANGE_VISIBLE_RADIUS]: {
     visibleRadius: number;
+  };
+  [SettingsActionTypes.CHANGE_PLACE_TYPES]: {
+    placeTypes: PlaceTypes;
   };
 };
 
@@ -54,6 +59,14 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       const newState = {
         ...state,
         visibleRadius: action.payload.visibleRadius,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_PLACE_TYPES: {
+      const newState = {
+        ...state,
+        placeTypes: action.payload.placeTypes,
       };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;

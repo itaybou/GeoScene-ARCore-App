@@ -1,6 +1,7 @@
 package com.geoscene.location_markers;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
@@ -27,8 +28,8 @@ public class LocationNode extends AnchorNode {
     private double distanceInAR;
     private float scaleModifier = 1F;
     private float height = 0F;
-    private float gradualScalingMinScale = 0.2F;
-    private float gradualScalingMaxScale = 1.0F;
+    private float gradualScalingMinScale = 0.15F;
+    private float gradualScalingMaxScale = 0.65F;
 
     private LocationMarker.ScalingMode scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN;
     private LocationScene locationScene;
@@ -120,6 +121,7 @@ public class LocationNode extends AnchorNode {
             if (locationScene.shouldOffsetOverlapping()) {
                 if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
                     setHeight(getHeight() + 1.2F);
+                    Log.d("Height", String.valueOf(getHeight()));
                 }
             }
 

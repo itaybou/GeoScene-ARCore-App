@@ -263,7 +263,7 @@ public class OverpassFilterQuery extends AbstractOverpassSubQuery {
      */
     @Override
     public String build() {
-        builder.append(";<;)");
+        builder.append(";)");
 
         return builder.build();
     }

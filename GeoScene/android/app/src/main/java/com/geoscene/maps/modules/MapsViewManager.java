@@ -34,6 +34,8 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     public final int COMMAND_CREATE = 0;
     public final int COMMAND_ZOOM_BBOX = 1;
     public final int COMMAND_ZOOM_SET_BBOX = 2;
+    public final int COMMAND_DIST_MY_LOCATION = 3;
+    public final int COMMAND_ZOOM_IN_OUT = 4;
 
     public MapsViewManager(ReactApplicationContext reactContext) {
         super();
@@ -59,7 +61,9 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
                 "ZOOM_BBOX", COMMAND_ZOOM_BBOX,
-                "ZOOM_SET_BBOX", COMMAND_ZOOM_SET_BBOX
+                "ZOOM_SET_BBOX", COMMAND_ZOOM_SET_BBOX,
+                "DIST_MY_LOCATION", COMMAND_DIST_MY_LOCATION,
+                "ZOOM_IN_OUT", COMMAND_ZOOM_IN_OUT
         );
     }
 
@@ -73,7 +77,13 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
                 root.zoomToBoundingBox();
                 break;
             case COMMAND_ZOOM_SET_BBOX:
-                root.zoomToBoundingBox(args.getDouble(0), args.getDouble(1), args.getInt(2), args.getBoolean(3));
+                root.zoomToBoundingBox(args.getDouble(0), args.getDouble(1), args.getInt(2), args.getBoolean(3), true);
+                break;
+            case COMMAND_DIST_MY_LOCATION:
+                root.distanceWithMyLocation();
+                break;
+            case COMMAND_ZOOM_IN_OUT:
+                root.zoomToBoundingBox(-1, -1, args.getInt(0), args.getBoolean(1), args.getBoolean(2));
                 break;
             default:
                 Log.w(REACT_TAG, "Invalid command recieved from ReactNative");
@@ -109,6 +119,11 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     @ReactProp(name = "enableGetCenter", defaultBoolean = true)
     public void setEnableGetCenter(OSMMapView view, boolean getCenter) {
         view.setEnableGetCenter(getCenter);
+    }
+
+    @ReactProp(name = "enableDistanceCalculation", defaultBoolean = true)
+    public void setEnableDistanceCalculation(OSMMapView view, boolean enableDistanceCalculation) {
+        view.setEnableDistanceCalculation(enableDistanceCalculation);
     }
 
     @ReactProp(name = "useTriangulation", defaultBoolean = false)
@@ -170,6 +185,8 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
                 MapBuilder.of("registrationName", "onMapCenterChanged"),
                 "azimuth",
                 MapBuilder.of("registrationName", "onOrientationChanged"),
+                "distance",
+                MapBuilder.of("registrationName", "onDistanceCalculation"),
                 "triangulationIntersections",
                 MapBuilder.of("registrationName", "onTriangulationIntersection")
         );

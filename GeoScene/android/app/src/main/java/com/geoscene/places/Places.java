@@ -35,26 +35,45 @@ public class Places {
     }
 
     private Single<PointsOfInterest> searchAround(Coordinate observer, int radiusMeter) {
-        OverpassQuery query = new OverpassQuery()
+        OverpassQuery query =
+        new OverpassQuery()
                 .format(JSON)
-                .timeout(30)
+                .timeout(120)
                 .filterQuery()
                 .way()
-                .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village")))
+                .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village","island","farm")))
                 .around(radiusMeter, observer.getLat(), observer.getLon())
-//                .prepareNext()
-//                .way()
-//                .tagMultiple("natural", new HashSet<>(Arrays.asList("sand", "wood", "peak")))
-//                .around(50000, 31.712730622002724, 34.580646038992704)
-//                .prepareNext()
-//                .rel()
-//                .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village")))
-//                .around(50000, 31.780850160208008, 34.69151594355443)
+                .prepareNext()
+                .node()
+                .tag("name")
+                .tagMultiple("place", new HashSet<>(Arrays.asList("city", "town", "village","island","farm")))
+                .around(radiusMeter, observer.getLat(), observer.getLon())
+                .prepareNext()
+                .way()
+                .tag("name")
+                .tagMultiple("natural", new HashSet<>(Arrays.asList("sand", "wood", "peak","hill","valley","volcano","cliff","dune")))
+                .around(radiusMeter, observer.getLat(), observer.getLon())
+                .prepareNext()
+                .node()
+                .tag("name")
+                .tagMultiple("natural", new HashSet<>(Arrays.asList("sand", "wood", "peak","hill","valley","volcano","cliff","dune")))
+                .around(radiusMeter, observer.getLat(), observer.getLon())
+                .prepareNext()
+                .way()
+                .tag("name")
+                .tagMultiple("historic", new HashSet<>(Arrays.asList("archaeological_site", "battlefield", "aircraft","building","castle","fort", "ruins", "tomb")))
+                .around(radiusMeter, observer.getLat(), observer.getLon())
+                .prepareNext()
+                .node()
+                .tag("name")
+                .tagMultiple("historic", new HashSet<>(Arrays.asList("archaeological_site", "battlefield","building","castle","fort", "ruins", "tomb")))
+                .around(radiusMeter, observer.getLat(), observer.getLon())
+
                 .end()
                 .output(OutputVerbosity.BODY, OutputModificator.BB, OutputOrder.QT);
 
-//        System.out.println(query.build());
-        return overpassClient.executeQuery(query.build());
+        String queryString = query.build();
+        return overpassClient.executeQuery(queryString);
     }
 
     public Single<JsonObject> searchUserPOIs(String userName) {

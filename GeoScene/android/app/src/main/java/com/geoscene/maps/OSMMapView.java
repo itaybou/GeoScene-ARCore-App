@@ -66,6 +66,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     private boolean useObserverLocation;
     private boolean enableZoom;
     private boolean enableLocationMarkerTap;
+    private boolean enableDistanceCalculation;
     private boolean showBoundingCircle;
 
     private List<TriangulationData> triangulationData;
@@ -77,11 +78,14 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
     private Polyline lineOfSight;
     private FolderOverlay triangulationLines;
+    private FolderOverlay distanceLines;
     private ItemizedIconOverlay<OverlayItem> triangulationPoints;
     private ItemizedIconOverlay<OverlayItem> triangulationViewers;
 
     private Overlay centerOverlay;
+    private Overlay distanceOverlay;
 
+    private ArrayList<OverlayItem> distanceMarkers;
     private ItemizedIconOverlay<OverlayItem> locationMarkers = null;
     private double previousAzimuth;
 
@@ -98,6 +102,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         map = findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.getOverlays().clear();
+        distanceMarkers = new ArrayList<>();
 
         sensors = DeviceSensorsManager.getSensors(reactContext);
         mapController = map.getController();
@@ -126,7 +131,12 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             compass.startOrientationProvider(this);
         } else {
             map.getOverlays().remove(compassOverlay);
-            compass.stopOrientationProvider();
+            mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, 0.0f);
+            if(compass != null) {
+                compass.stopOrientationProvider();
+            }
+            if (lineOfSight != null)
+                map.getOverlays().remove(lineOfSight);
         }
     }
 
@@ -177,7 +187,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         this.animateToIncludeTriangulationPoints = animateToIncludeTriangulationPoints;
         if(!animateToIncludeTriangulationPoints) {
             zoomToBoundingBox();
-            //mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, 0f);
         }
     }
 
@@ -271,7 +280,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
     public void setEnableLocationMarkerTap(boolean enableLocationMarkerTap) {
         this.enableLocationMarkerTap = enableLocationMarkerTap;
-        Log.d("LOCATION_TAP", String.valueOf(enableLocationMarkerTap));
         if (this.enableLocationMarkerTap) {
             Overlay overlay = new Overlay() {
                 @Override
@@ -306,6 +314,92 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             };
             map.getOverlays().add(overlay);
         }
+    }
+
+    public void setEnableDistanceCalculation(boolean enableDistanceCalculation) {
+        this.enableDistanceCalculation = enableDistanceCalculation;
+        if (this.enableDistanceCalculation) {
+            distanceOverlay = new Overlay() {
+                @Override
+                public boolean onSingleTapConfirmed(MotionEvent e, MapView mapView) {
+                    mapView.getOverlays().remove(locationMarkers);
+                    if(distanceMarkers.size() == 2) {
+                        distanceMarkers.clear();
+                        mapView.getOverlays().remove(distanceLines);
+                        dispatchDistance(0, true);
+                    } else {
+                        Projection proj = mapView.getProjection();
+                        GeoPoint loc = (GeoPoint) proj.fromPixels((int) e.getX(), (int) e.getY());
+                        double longitude = loc.getLongitude();
+                        double latitude = loc.getLatitude();
+
+                        OverlayItem item = new OverlayItem("", "", new GeoPoint(latitude, longitude));
+                        // item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+                        distanceMarkers.add(item);
+                        locationMarkers = new ItemizedIconOverlay<>(reactContext, distanceMarkers, null);
+                        drawDistanceCalculation();
+                    }
+                    map.invalidate();
+                    return true;
+                }
+
+                @Override
+                public boolean onDoubleTapEvent(MotionEvent e, MapView mapView) {
+                    return true;
+                }
+
+                @Override
+                public boolean onDoubleTap(MotionEvent e, MapView pMapView) {
+                    return true;
+                }
+            };
+            map.getOverlays().add(distanceOverlay);
+        } else {
+            distanceMarkers.clear();
+            map.getOverlays().remove(locationMarkers);
+            map.getOverlays().remove(distanceLines);
+            map.getOverlays().remove(distanceOverlay);
+        }
+    }
+
+    public void distanceWithMyLocation() {
+        map.getOverlays().remove(locationMarkers);
+        if(distanceMarkers.size() == 2) {
+            distanceMarkers.clear();
+            map.getOverlays().remove(distanceLines);
+            dispatchDistance(0, true);
+        } else {
+            observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
+            OverlayItem item = new OverlayItem("", "", observer);
+            // item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+            distanceMarkers.add(item);
+            locationMarkers = new ItemizedIconOverlay<>(reactContext, distanceMarkers, null);
+            drawDistanceCalculation();
+        }
+        map.invalidate();
+    }
+
+    public void drawDistanceCalculation() {
+        if (distanceMarkers.size() == 2) {
+            IGeoPoint point1 = distanceMarkers.get(0).getPoint();
+            IGeoPoint point2 = distanceMarkers.get(1).getPoint();
+            float aerialDistance = (float) LocationUtils.aerialDistance(point1.getLatitude(), point2.getLatitude(), point1.getLongitude(), point2.getLongitude());
+            dispatchDistance(aerialDistance, false);
+            Polyline polyline = new Polyline(map);
+            polyline.setPoints(new ArrayList<GeoPoint>() {{
+                add(new GeoPoint(point1.getLatitude(), point1.getLongitude()));
+                add(new GeoPoint(point2.getLatitude(), point2.getLongitude()));
+            }});
+            polyline.getOutlinePaint().setColor(Color.BLACK);
+            polyline.getOutlinePaint().setStrokeWidth(4f);
+            distanceLines = new FolderOverlay();
+            distanceLines.add(polyline);
+            map.getOverlays().add(distanceLines);
+
+        } else {
+            dispatchDistance(0, true);
+        }
+        map.getOverlays().add(locationMarkers);
     }
 
 
@@ -369,7 +463,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                         intersections.add(new TriangulationIntersection(triangulation.id, triangulation.name, triangulation.description, intersection.getLat(), intersection.getLon(), aerialDistance));
                         markers.add(new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon())));
                         List<Coordinate> arc = triangulation.getTriangulationArc();
-                        Log.d("MapView", String.valueOf(arc.size()));
 
                         Coordinate viewerCoordinate = arc.get(0);
                         viewers.add(new OverlayItem("", "", new GeoPoint(viewerCoordinate.getLat(), viewerCoordinate.getLon())));
@@ -383,7 +476,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 }
             }
             dispatchTriangulationIntersection(intersections);
-
+            observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
             if (!markers.isEmpty()) {
                 triangulationPoints = new ItemizedIconOverlay<>(reactContext, markers, null);
                 triangulationViewers = new ItemizedIconOverlay<>(reactContext, viewers, null);
@@ -429,17 +522,24 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         });
     }
 
-    public void zoomToBoundingBox(double latitude, double longitude, int radius, boolean placeMarker) {
+    public void zoomToBoundingBox(double latitude, double longitude, int radius, boolean placeMarker, boolean changeCircleZoom) {
         map.post(() -> {
             if (map.getMeasuredHeight() > 0 && map.getMeasuredWidth() > 0) {
-                observer = new GeoPoint(latitude, longitude);
-                mapController.setCenter(observer);
+                if(latitude != -1 && longitude != -1) {
+                    observer = new GeoPoint(latitude, longitude);
+                    mapController.setCenter(observer);
+                    if (getCenter) {
+                        map.getOverlays().add(centerOverlay);
+                        IGeoPoint center = map.getMapCenter();
+                        dispatchCenterLocation(center.getLatitude(), center.getLongitude());
+                    }
+                } else observer = new GeoPoint(map.getMapCenter().getLatitude(), map.getMapCenter().getLongitude());
                 List<GeoPoint> points = Polygon.pointsAsCircle(observer, radius * 1000);
 
                 if (!points.isEmpty()) {
                     BoundingBox bbox = getPointsBbox(points);
                     map.zoomToBoundingBox(bbox, true, 5);
-                    if (showBoundingCircle) {
+                    if (showBoundingCircle && changeCircleZoom) {
                         if (bboxCircle != null)
                             map.getOverlays().remove(bboxCircle);
                         bboxCircle = new Polygon() {
@@ -558,6 +658,17 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 event);
     }
 
+    public void dispatchDistance(float distance, boolean cancelDistance) {
+        WritableMap event = Arguments.createMap();
+        if(!cancelDistance) {
+            event.putDouble("distance", distance);
+        }
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "distance",
+                event);
+    }
+
     private void dispatchTriangulationIntersection(List<TriangulationIntersection> intersections) {
         WritableMap event = Arguments.createMap();
         WritableArray data = Arguments.createArray();
@@ -592,4 +703,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     @Override
     public void onHostDestroy() {
     }
+
+
 }

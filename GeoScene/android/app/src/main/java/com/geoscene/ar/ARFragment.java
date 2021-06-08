@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -23,7 +22,6 @@ import com.geoscene.permissions.ARLocationPermissionHelper;
 import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
-import com.geoscene.triangulation.TriangulationIntersection;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;
@@ -32,7 +30,9 @@ import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ARFragment extends Fragment {
@@ -41,20 +41,19 @@ public class ARFragment extends Fragment {
     private ArSceneView arSceneView;
     private ARNodesInitializer initializer;
     private DeviceSensors sensors;
+    private Map<String, HashSet<String>> placesTypes;
 
     private ReactContext reactContext;
     private boolean determineViewshed;
-    private boolean triangulation;
     private int visibleRadiusKM;
 
-    private List<TriangulationIntersection> triangulationIntersections;
 
-
-    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM) {
+    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes) {
         super();
         this.reactContext = reactContext;
         this.determineViewshed = determineViewshed;
         this.visibleRadiusKM = visibleRadiusKM;
+        this.placesTypes = placesTypes;
     }
 
     @Override
@@ -70,7 +69,7 @@ public class ARFragment extends Fragment {
         ARLocationPermissionHelper.requestPermission(getActivity());
 
         dispatchLoadingProgress("Starting AR");
-        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, this);
+        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, this);
 
         return view;
     }
@@ -92,8 +91,6 @@ public class ARFragment extends Fragment {
                     return;
                 } else {
                     arSceneView.setupSession(session);
-//                    session.setDisplayGeometry(Surface.ROTATION_180, 500, 500);
-//                    session.setDisplayGeometry(, , );
                 }
             } catch (UnavailableException e) {
                 ErrorHandling.handleSessionException(getActivity(), e);
@@ -127,25 +124,20 @@ public class ARFragment extends Fragment {
         return session;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        sensors.resume();
-        startArSession();
-        try {
-            arSceneView.resume();
-            initializer.initializeLocationMarkers(getActivity());
-        } catch (CameraNotAvailableException ex) {
-            ErrorHandling.displayError(getActivity(), "Unable to get camera", ex);
-        }
+    static String getNodeTypeString(Element nodeDetails) {
+        String type = nodeDetails.tags.historic != null ? nodeDetails.tags.historic : nodeDetails.tags.natural != null? nodeDetails.tags.natural : nodeDetails.tags.place;
+        type = type.replace("_", " ");
+        return type.substring(0, 1).toUpperCase() + type.substring(1);
     }
 
-
-
-    public void dispatchLocation(Element location) {
+    public void dispatchLocation(Element location, int elevation, String distance) {
         WritableMap event = Arguments.createMap();
         event.putString("en_name", location.tags.nameEng);
-        event.putString("heb_name", location.tags.nameHeb);
+        event.putString("heb_name", location.tags.name.matches(".*[א-ת].*") ? location.tags.name : location.tags.nameHeb);
+        event.putString("main_name", location.tags.name);
+        event.putString("type", getNodeTypeString(location));
+        event.putString("distance", distance);
+        event.putInt("mElevation", elevation);
         reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
                 getId(),
                 "locationMarkerTouch",
@@ -179,6 +171,28 @@ public class ARFragment extends Fragment {
                 event);
     }
 
+    public void dispatchObserverElevation(int elevation) {
+        WritableMap event = Arguments.createMap();
+        event.putInt("elevation", elevation);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "elevation",
+                event);
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sensors.resume();
+        startArSession();
+        try {
+            arSceneView.resume();
+            initializer.initializeLocationMarkers(getActivity());
+        } catch (CameraNotAvailableException ex) {
+            ErrorHandling.displayError(getActivity(), "Unable to get camera", ex);
+        }
+    }
 
     /**
      * Make sure we call locationScene.pause();

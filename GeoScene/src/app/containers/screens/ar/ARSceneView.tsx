@@ -19,11 +19,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSettings, useTheme } from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
+import IdleTimerManager from 'react-native-idle-timer';
 import { LocationDetailsFrame } from '../../LocationDetailsFrame';
 import Orientation from 'react-native-orientation';
 import { SceneStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
+import { event } from 'react-native-reanimated';
 
 const ANIMATION_TIMING_CONFIG = {
   duration: 250,
@@ -34,6 +36,10 @@ const ANIMATION_TIMING_CONFIG = {
 interface LocationNameProps {
   en_name: string;
   heb_name: string;
+  main_name: string;
+  type: string;
+  distance: string;
+  mElevation: number;
 }
 
 interface MapButtonProps {
@@ -60,13 +66,13 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
 
   const [ready, setReady] = useState<boolean>(false);
   const [ARDisplayed, setARDisplayed] = useState<boolean>(false);
-  const [mapDisplayed, setMapDisplayed] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('Initializing');
   const [loadingMap, setLoadingMap] = useState<boolean>(true);
 
   const [mapShown, setMapShown] = useState<boolean>(false);
   const [detailsShown, setDetailsShown] = useState<boolean>(false);
   const [detailsExpanded, setDetailsExpanded] = useState<boolean>(false);
+  const [elevation, setElevation] = useState<number | undefined>(undefined);
   const [locationName, setLocationName] = useState<
     LocationNameProps | null | undefined
   >(null);
@@ -75,48 +81,19 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   const mapRef = useRef<number | null>(null);
   const mapAnimation = useRef(new Animated.Value(0)).current;
   const detailsAnimation = useRef(new Animated.Value(0)).current;
-  // const ARAnimation = useRef(new Animated.Value(1)).current;
-
-  // const ARAnimation =
-
-  // let arRef: React.Component<unknown, {}, any> | null = null;
-  // let mapsRef: React.Component<unknown, {}, any> | null = null;
-
-  // const androidARViewId = useRef(findNodeHandle(arRef));
-  // const androidMapsViewId = useRef(findNodeHandle(mapsRef));
 
   const ARManager = UIManager.getViewManagerConfig('ARFragment');
   const MapsManager = UIManager.getViewManagerConfig('MapView');
 
   useEffect(() => {
     Orientation.lockToLandscapeLeft();
-
-    // setWidth(Dimensions.get('window').width);
-    // setHeight(Dimensions.get('window').height);
-    // console.log(androidARViewId.current);
-    // console.log(androidMapsViewId.current);
-
-    // UIManager.dispatchViewManagerCommand(
-    //   androidMapsViewId.current,
-    //   MapsManager.Commands.CREATE.toString(),
-    //   [androidMapsViewId.current],
-    // );
     StatusBar.setHidden(true);
-    // StatusBar.setBackgroundColor('transparent');
-    // StatusBar.setTranslucent(true);
-    // console.log(androidViewId);
+    IdleTimerManager.setIdleTimerDisabled(true);
 
     return () => {
-      // console.log({ ref: arRef.current, display: ARDisplayed });
-      // if (arRef.current && ARDisplayed) {
-      //   UIManager.dispatchViewManagerCommand(
-      //     arRef.current,
-      //     ARManager.Commands.CLOSE.toString(),
-      //     [arRef.current],
-      //   );
-      // }
       StatusBar.setHidden(false);
       Orientation.unlockAllOrientations();
+      IdleTimerManager.setIdleTimerDisabled(false);
     };
   }, []);
 
@@ -125,7 +102,12 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
       UIManager.dispatchViewManagerCommand(
         arRef.current,
         ARManager.Commands.CREATE.toString(),
-        [arRef.current, state.determineViewshed, state.visibleRadius],
+        [
+          arRef.current,
+          state.determineViewshed,
+          state.visibleRadius,
+          state.placeTypes,
+        ],
       );
       setARDisplayed(true);
     }
@@ -170,6 +152,29 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   return (
     <SafeAreaView
       style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
+      {elevation && (
+        <View
+          style={{
+            position: 'absolute',
+            left: 5,
+            top: 5,
+            zIndex: 100,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.colors.tabs,
+            paddingVertical: 4,
+            paddingHorizontal: 8,
+            borderRadius: 10,
+          }}>
+          <ThemeText
+            style={{
+              fontSize: 14,
+              fontWeight: 'bold',
+            }}>
+            {`Est. Elevation: ${elevation}m`}
+          </ThemeText>
+        </View>
+      )}
       <View style={{ flex: 1, flexDirection: 'row' }}>
         {!ready && (
           <Center style={{ flex: 1, zIndex: 1 }}>
@@ -191,12 +196,29 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
               flex: 1,
             }}
             ref={(nativeRef) => (arRef.current = findNodeHandle(nativeRef))}
+            onUserElevation={(event: any) =>
+              setElevation(event.nativeEvent.elevation)
+            }
             onUseCache={(event: any) =>
               console.log('cache: ' + event.nativeEvent)
             }
             onLocationMarkerTouch={(event: any) => {
-              const { en_name, heb_name } = event.nativeEvent;
-              setLocationName({ en_name, heb_name });
+              const {
+                en_name,
+                heb_name,
+                main_name,
+                type,
+                distance,
+                mElevation,
+              } = event.nativeEvent;
+              setLocationName({
+                en_name,
+                heb_name,
+                main_name,
+                type,
+                distance,
+                mElevation,
+              });
               if (!detailsShown) {
                 toggleShowDetailsFrame();
               }
@@ -266,7 +288,12 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
           },
         ]}>
         <LocationDetailsFrame
-          name={locationName?.en_name}
+          name_en={locationName?.en_name}
+          name_heb={locationName?.heb_name}
+          main_name={locationName?.main_name}
+          type={locationName?.type}
+          distance={locationName?.distance}
+          elevation={locationName?.mElevation}
           onExpand={expandDetailsFrame}
           onClose={() => {
             if (detailsShown) {

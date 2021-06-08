@@ -20,18 +20,18 @@ import com.geoscene.geography.LocationUtils;
 
 public class LocationScene {
 
-    private float RENDER_DISTANCE = 25f;
+    private final float RENDER_DISTANCE = 25f;
     public ArSceneView mArSceneView;
     public Activity context;
     public DeviceSensors sensors;
     public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
     // Anchors are currently re-drawn on an interval. There are likely better
     // ways of doing this, however it's sufficient for now.
-    private int anchorRefreshInterval = 1000 * 30; // 5 seconds
+    private int anchorRefreshInterval = 1000 * 2; // 5 seconds
     // Limit of where to draw markers within AR scene.
     // They will auto scale, but this helps prevents rendering issues
     private int distanceLimit = 5000;
-    private boolean offsetOverlapping = false;
+    private boolean offsetOverlapping = true;
     private boolean removeOverlapping = false;
     // Bearing adjustment. Can be set to calibrate with true north
     private int bearingAdjustment = 0;
@@ -282,7 +282,7 @@ public class LocationScene {
 
                 // Raise distant markers for better illusion of distance
                 // Hacky - but it works as a temporary measure
-                int cappedRealDistance = markerDistance > 500 ? 500 : markerDistance;
+                int cappedRealDistance = markerDistance > (distanceLimit / 2) ? (distanceLimit / 2) : markerDistance;
                 if (renderDistance != markerDistance)
                     heightAdjustment += 0.005F * (cappedRealDistance - renderDistance);
 
@@ -335,6 +335,9 @@ public class LocationScene {
                 } else {
                     marker.anchorNode.setHeight(marker.getHeight());
                 }
+
+                Log.d("Height", String.valueOf(marker.anchorNode.getHeight()));
+                Log.d("Distance", String.valueOf(getDistanceLimit()));
 
                 if (minimalRefreshing)
                     marker.anchorNode.scaleAndRotate();

@@ -27,15 +27,18 @@ function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
     <Center>
       <ThemeLogo height={60} width={400} />
       <PageCard>
+        <ThemeText style={{ fontSize: 18, fontWeight: 'bold' }}>
+          Device Sensors:
+        </ThemeText>
         {location.loading ? (
           <ThemeText>Loading...</ThemeText>
         ) : (
           <>
-            <ThemeText>Lat: {location.latitude}</ThemeText>
-            <ThemeText>Lon: {location.longitude}</ThemeText>
-            <ThemeText>Acc: {location.accuracy}</ThemeText>
-            <ThemeText>Alt: {location.altitude}</ThemeText>
-            <ThemeText>Speed: {location.speed}</ThemeText>
+            <ThemeText>Latitude: {location.latitude?.toFixed(6)}</ThemeText>
+            <ThemeText>Longitude: {location.longitude?.toFixed(6)}</ThemeText>
+            <ThemeText>Accuracy: {location.accuracy?.toFixed(2)}m</ThemeText>
+            <ThemeText>Altitude: {location.altitude?.toFixed(3)}m</ThemeText>
+            <ThemeText>Speed: {location.speed?.toFixed(2)}m/s</ThemeText>
             {location.error && (
               <ThemeText
                 style={{ color: theme.colors.error, fontWeight: 'bold' }}>
