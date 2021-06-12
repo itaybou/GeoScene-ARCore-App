@@ -16,6 +16,7 @@ import { LocationSearchBar } from '../../../components/input/LocationSearchBar';
 import { MapModal } from '../../../components/modals/MapModal';
 import { NativeEventEmitter } from 'react-native';
 import { NativeMapView } from '../../../../native/NativeViewsBridge';
+import { OptionModal } from '../../../components/modals/OptionModal';
 import { PlacesStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TabScreen } from '../../../components/layout/TabScreen';
@@ -45,6 +46,7 @@ export function DownloadedPlace({
   const [removeModalVisible, setShowRemoveModalVisible] = useState<boolean>(
     false,
   );
+  const [toDelete, setToDelete] = useState<any>(undefined);
 
   const navigation = useNavigation();
 
@@ -107,10 +109,9 @@ export function DownloadedPlace({
           }}>
           <ThemeButton
             icon="trash"
-            onPress={async () => {
+            onPress={() => {
+              setToDelete(item);
               setShowRemoveModalVisible(true);
-              await ARModule.deleteStoredLocationData(item.id);
-              getDownloadedPlacesData();
             }}
           />
           <ThemeButton
@@ -128,6 +129,8 @@ export function DownloadedPlace({
       </View>
     );
   };
+
+  console.log(toDelete);
 
   return !data ? (
     <Center>
@@ -167,9 +170,20 @@ export function DownloadedPlace({
           hide={() => setPlaceMap(null)}
         />
       </TabScreen>
-      <LoadingModal
+      <OptionModal
+        text={`Are you sure you want to delete stored location ${toDelete?.name} data?`}
+        big={false}
+        statusBarTranslucent={false}
         isVisible={removeModalVisible}
-        text={'Removing downloaded location data.'}
+        hide={() => {
+          setShowRemoveModalVisible(false);
+          setToDelete(undefined);
+        }}
+        onOK={async () => {
+          await ARModule.deleteStoredLocationData(toDelete.id);
+          getDownloadedPlacesData();
+          setToDelete(undefined);
+        }}
       />
     </>
   );

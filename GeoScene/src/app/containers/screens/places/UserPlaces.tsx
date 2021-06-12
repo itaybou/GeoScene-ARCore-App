@@ -43,12 +43,6 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
   const location = useGeolocation();
 
   const fetchUserPlaces = async () => {
-    // addNewLocation(
-    //   location.latitude ?? 31.2,
-    //   location.longitude ?? 34.5,
-    //   'Node',
-    //   '',
-    // );
     await promisify(
       'getUserPOIs',
       Overpass,

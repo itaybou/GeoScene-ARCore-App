@@ -12,6 +12,7 @@ import android.view.WindowManager;
 
 import org.javatuples.Pair;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class DeviceOrientation implements SensorEventListener {
@@ -133,4 +134,5 @@ public class DeviceOrientation implements SensorEventListener {
     public float[] getOrientationMatrix() {
         return orientationMatrix;
     }
+
 }

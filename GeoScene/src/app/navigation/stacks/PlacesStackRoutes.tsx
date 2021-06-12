@@ -30,26 +30,32 @@ import { requireNativeComponent } from 'react-native';
 import { searchPlacesByName } from '../../api/nomination/OSMNominationAPI';
 import useGeolocation from '../../utils/hooks/useGeolocation';
 import useTheme from '../../utils/hooks/useTheme';
+import useUser from '../../utils/hooks/useUser';
 
 interface StackProps {}
 
 const Stack = createStackNavigator<PlacesRoutesParamList>();
 
 function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
+  const { state } = useUser();
   return (
     <Center>
-      <ThemeCardButton
-        text="My Places"
-        description="View the places you added to the map provider."
-        icon={'list'}
-        onPress={() => navigation.navigate('UserPlaces')}
-      />
-      <ThemeCardButton
-        text="Add Place"
-        description="Add a place to the map provider by current location or map choice."
-        icon={'plus'}
-        onPress={() => navigation.navigate('AddPlace')}
-      />
+      {state.user && (
+        <ThemeCardButton
+          text="My Places"
+          description="View the places you added to the map provider."
+          icon={'list'}
+          onPress={() => navigation.navigate('UserPlaces')}
+        />
+      )}
+      {state.user && (
+        <ThemeCardButton
+          text="Add Place"
+          description="Add a place to the map provider by current location or map choice."
+          icon={'plus'}
+          onPress={() => navigation.navigate('AddPlace')}
+        />
+      )}
       <ThemeCardButton
         text="Download Area"
         description="Download information in chossen area to later use while offline."

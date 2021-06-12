@@ -109,7 +109,9 @@ export const AddPlace = ({ navigation, route }) => {
             <View
               style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <ThemeText>
-                {coordinate === null
+                {coordinate === null ||
+                coordinate.latitude === undefined ||
+                coordinate.longitude === undefined
                   ? 'No coordinate chosen.'
                   : `Current coordinates:\n${getCoordinateString}`}
               </ThemeText>

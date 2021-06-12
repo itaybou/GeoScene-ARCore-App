@@ -60,7 +60,7 @@ export const createChangeset = async () => {
     .up()
     .ele('tag', { k: 'comment', v: 'adding new node' })
     .end({ pretty: false, allowEmpty: false });
-  //console.log(xml);
+
   try {
     const response = await authManager.makeRequest(
       'osm',
@@ -77,7 +77,7 @@ export const createChangeset = async () => {
 
     return parseServerResponse(response);
   } catch (ex) {
-    console.log(ex);
+    console.error(ex);
     return null;
   }
 };
@@ -115,7 +115,7 @@ export const createNode = async (
     );
     return parseServerResponse(response);
   } catch (ex) {
-    console.log(ex);
+    console.error(ex);
     return null;
   }
 };
@@ -155,7 +155,7 @@ export const deleteNode = async (
 
     return parseServerResponse(response);
   } catch (ex) {
-    console.log(ex);
+    console.error(ex);
     return null;
   }
 };
@@ -169,7 +169,6 @@ export const updateNode = async (
   name: string,
   description: string,
 ) => {
-  console.log(nodeID);
   const xml = osmXMLRoot()
     .ele('node', {
       id: nodeID,
@@ -186,7 +185,6 @@ export const updateNode = async (
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: false, allowEmpty: false });
 
-  console.log(xml);
   try {
     const response = await authManager.makeRequest(
       'osm',

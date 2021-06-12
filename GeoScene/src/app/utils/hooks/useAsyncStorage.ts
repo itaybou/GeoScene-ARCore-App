@@ -27,7 +27,7 @@ export const useAsyncStorage = <T>(key: string): useAsyncStoragePayload<T> => {
   };
 
   const clearStorage = () => {
-    AsyncStorage.removeItem(key);
+    AsyncStorage.removeItem(`${appName}::${key}`);
     storage = null;
   };
 

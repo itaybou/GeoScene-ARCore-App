@@ -9,6 +9,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Center } from '../components/layout/Center';
+import FastImage from 'react-native-fast-image';
 import RNBounceable from '@freakycoder/react-native-bounceable';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ThemeButton } from '../components/input/ThemeButton';
@@ -62,7 +63,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
         thumbnail_uri
           ? setThumbnailUri(thumbnail_uri)
           : setThumbnailUri(undefined);
-      }
+      } else setThumbnailUri(undefined);
     } else if (name_heb) {
       const detailsHeader:
         | PageHeaderContentType
@@ -74,7 +75,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
         thumbnail_uri
           ? setThumbnailUri(thumbnail_uri)
           : setThumbnailUri(undefined);
-      }
+      } else setThumbnailUri(undefined);
     } else {
       setDetails('');
       setPageId(null);
@@ -122,7 +123,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
     setLoading(true);
     getLocationDetails();
   }, [getLocationDetails]);
-  console.log(details);
+
   return (
     <View style={[styles.container, { padding: expanded ? 0 : 12 }]}>
       {expanded && pageURL ? (
@@ -196,12 +197,6 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                   <ThemeText style={{ fontSize: 12 }}>
                     {!loading && type}
                   </ThemeText>
-                  <ThemeText style={{ fontSize: 12 }}>
-                    {!loading && elevation && `Elevation: ${elevation}`}
-                  </ThemeText>
-                  <ThemeText style={{ fontSize: 12 }}>
-                    {!loading && distance && `Distance: ${distance}`}
-                  </ThemeText>
                 </View>
               </View>
               <View
@@ -229,7 +224,15 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                 {closeButton}
               </View>
             </View>
-            {/* <TabBarIcon name="close" color={theme.colors.accent} /> */}
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
+              <ThemeText style={{ fontSize: 12 }}>
+                {!loading && elevation && `Est. Elevation: ${elevation}`}
+              </ThemeText>
+              <ThemeText style={{ fontSize: 12, marginStart: 16 }}>
+                {!loading && distance && `Distance: ${distance}`}
+              </ThemeText>
+            </View>
             <ScrollView>
               {details ? (
                 <ThemeText>{details}</ThemeText>
@@ -254,13 +257,19 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
             style={{
               flex: 0.2,
             }}>
-            <Image
-              source={thumbnailUri ? { uri: thumbnailUri } : imagePlaceholder}
+            <FastImage
+              source={
+                thumbnailUri !== undefined
+                  ? {
+                      uri: thumbnailUri,
+                      headers: { Authorization: 'token' },
+                      priority: FastImage.priority.high,
+                    }
+                  : imagePlaceholder
+              }
+              resizeMode={FastImage.resizeMode.cover}
               style={{
                 flex: 1,
-                height: null,
-                resizeMode: 'contain',
-                width: null,
               }}
             />
           </View>

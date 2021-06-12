@@ -65,57 +65,6 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
   let animatedValueX = 0;
   let animatedValueY = 0;
 
-  // const panResponder = useRef(
-  //   PanResponder.create({
-  //     // Ask to be the responder:
-  //     onStartShouldSetPanResponder: () => false,
-  //     onStartShouldSetPanResponderCapture: () => false,
-  //     onMoveShouldSetPanResponder: (evt, gestureState) =>
-  //       !isAnimating && gestureState.dx > 22,
-  //     onPanResponderGrant: () => {
-  //       pan.setOffset({
-  //         x: animatedValueX,
-  //         y: animatedValueY,
-  //       });
-  //       pan.setValue({ x: 0, y: 0 }); // Initial value
-  //     },
-  //     onPanResponderMove: (evt, gestureState) => {
-  //       console.log(gestureState.dx, gestureState.dy);
-  //       if (gestureState.dx > 0) {
-  //         pan.setValue({ x: gestureState.dx, y: 0 });
-  //       }
-  //     },
-  //     onPanResponderRelease: (evt, gestureState) => {
-  //       // The user has released all touches while this view is the
-  //       // responder. This typically means a gesture has succeeded
-  //       // Flatten the offset so it resets the default positioning
-  //       console.log(gestureState.dx, gestureState.dy);
-  //       if (gestureState.dx > 0 && gestureState.vx > 0) {
-  //         if (gestureState.vx >= 0.5 || gestureState.dx >= 100) {
-  //           setIsAnimating(true);
-  //           Animated.timing(pan, {
-  //             toValue: { x: gestureState.dx > 0 ? gestureState.dx : 0, y: 0 },
-  //             ...TIMING_CONFIG,
-  //             useNativeDriver: false,
-  //           }).start(() => {
-  //             setIsAnimating(false);
-  //             onCloseAnimation && onCloseAnimation();
-  //           });
-  //         }
-  //         // } else {
-  //         //   setIsAnimating(true);
-  //         //   Animated.spring(pan, {
-  //         //     toValue: { x: gestureState.dx, y: 0 },
-  //         //     useNativeDriver: false,
-  //         //   }).start(() => {
-  //         //     setIsAnimating(false);
-  //         //   });
-  //         // }
-  //       }
-  //     },
-  //   }),
-  // ).current;
-
   useEffect(() => {
     if (isViewOpen) {
       animatedValueX = 0;
@@ -133,36 +82,6 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
     }
   }, [isViewOpen]);
 
-  // useEffect(() => {
-  //   if (props.PressToanimate) {
-  //     setIsAnimating(true);
-  //     Animated.timing(pan, {
-  //       toValue: {
-  //         x: 0,
-  //         y: props.PressToanimateDirection == 'up' ? -height : height,
-  //       },
-  //       ...TIMING_CONFIG,
-  //       useNativeDriver: false,
-  //     }).start(() => {
-  //       setIsAnimating(false);
-  //       props.onClose();
-  //     });
-  //   }
-  // }, [props.PressToanimate]);
-
-  // let handleGetStyle = (opacity: number) => {
-  //   return [
-  //     [
-  //       styles.container,
-  //       {
-  //         transform: [{ translateX: pan.x }, { translateY: pan.y }],
-  //         opacity: opacity,
-  //       },
-  //       // [props.HeaderStyle],
-  //     ],
-  //   ];
-  // };
-
   let handleGetStyleBody = (opacity: Animated.AnimatedInterpolation) => {
     return [
       [
@@ -172,7 +91,6 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
           opacity: opacity,
         },
       ],
-      // [props.ContentModalStyle],
     ];
   };
   let handleMainBodyStyle = (opacity: Animated.AnimatedInterpolation) => {
@@ -183,7 +101,6 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
           opacity: opacity,
         },
       ],
-      // [props.MainContainerModal],
     ];
   };
 
@@ -196,19 +113,10 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
       style={{
         transform: [{ translateX: pan.x }, { translateY: pan.y }],
         backgroundColor: '#ff5588',
-      }}
-      // {...panResponder.panHandlers}
-    >
+      }}>
       <View style={{ flex: 1 }}>
-        {/* <Button
-          title="t"
-          onPress={() => {
-            console.log('Pressed');
-          }}
-        /> */}
         <MapButton
           onPress={() => {
-            console.log('Presseddd');
             setIsAnimating(true);
             Animated.timing(pan, {
               ...TIMING_CONFIG,
@@ -216,7 +124,6 @@ export const AnimatedSwipeView: React.FC<AnimatedSwipeViewProps> = ({
               useNativeDriver: false,
             }).start(() => {
               setShown(!isViewOpen);
-              console.log(pan.x);
               setIsAnimating(false);
             });
           }}

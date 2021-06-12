@@ -8,6 +8,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ARModule } from '../../../../native/NativeModulesBridge';
+import { ErrorModal } from '../../../components/modals/ErrorModal';
 import { LoadingModal } from '../../../components/modals/LoadingModal';
 import { LocationSearchBar } from '../../../components/input/LocationSearchBar';
 import { NativeEventEmitter } from 'react-native';
@@ -42,6 +43,8 @@ export function DownloadPlace({
     latitude: location.latitude,
   });
 
+  const [errorModalVisible, setErrorModalVisible] = useState<boolean>(false);
+
   // const
   const mapRef = useRef<number | null>(null);
   const MapsManager = useMemo(
@@ -54,11 +57,14 @@ export function DownloadPlace({
     const downloadEventListener = eventEmitter.addListener(
       'DownloadEvent',
       (event) => {
-        if (event.done) {
+        if (event.done && !event.error) {
           setShowDownloadModalVisible(false);
           setName('');
           setDescription('');
           setRadius('15');
+        } else if (event.error) {
+          setShowDownloadModalVisible(false);
+          setErrorModalVisible(true);
         }
       },
     );
@@ -160,7 +166,13 @@ export function DownloadPlace({
           />
         </View>
         <ThemeButton
-          disabled={!name || !description}
+          disabled={
+            !name ||
+            !description ||
+            locationMarker === null ||
+            locationMarker.latitude === null ||
+            locationMarker.longitude === null
+          }
           icon="cloud-download"
           text="Download"
           onPress={async () => {
@@ -178,6 +190,11 @@ export function DownloadPlace({
       <LoadingModal
         isVisible={downloadModalVisible}
         text={'Downloading location data, this may take up to a minute.'}
+      />
+      <ErrorModal
+        isVisible={errorModalVisible}
+        text="Error occurred while trying to download data, please try again later"
+        hide={() => setErrorModalVisible(false)}
       />
     </>
   );

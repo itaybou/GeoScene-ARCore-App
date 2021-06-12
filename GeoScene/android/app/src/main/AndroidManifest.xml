@@ -25,6 +25,7 @@
       android:theme="@style/AppTheme">
 
         <meta-data android:name="com.google.ar.core" android:value="required" />
+        <meta-data android:name="com.bumptech.glide.integration.okhttp3.OkHttpGlideModule" tools:node="remove" />
         <!-- CacheManger clear service-->
         <service
                 android:name=".data_access.CacheManager"

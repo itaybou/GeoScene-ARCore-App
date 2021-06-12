@@ -38,6 +38,12 @@ public class Raster {
         return new Pair<>(x >= cols ? cols - 1 : Math.max(x, 0), y >= rows ? rows - 1 : Math.max(y, 0));
     }
 
+    public Coordinate getCoordinateByRowCol(int x, int y) {
+        double latitude = (rows - y) * cellSize + yLowerLeftCorner + (cellSize * 0.5);
+        double longitude = x * cellSize + xLowerLeftCorner + (cellSize * 0.5);
+        return new Coordinate(latitude, longitude);
+    }
+
     private int trunc(double value) {
         return value < 0 ? (int) Math.ceil(value) : (int) Math.floor(value);
     }

@@ -97,6 +97,14 @@ public class BoundingBoxCenter {
         return other.getWest() >= getWest() && other.getSouth() >= getSouth() && other.getNorth() <= getNorth() && other.getEast() <= getEast();
     }
 
+    public boolean isBoundingBoxContains(Coordinate min, Coordinate max) {
+        return min.getLon() >= getWest() && min.getLat() >= getSouth() && max.getLat() <= getNorth() && max.getLon() <= getEast();
+    }
+
+    public boolean isBoundingBoxContains(double latitude, double longitude) {
+        return latitude >= getSouth() && latitude <= getNorth() && longitude >= getWest() && longitude <= getEast();
+    }
+
     public String toString() {
         return String.format("[%s,%s,%s,%s]", getSouth(), getWest(), getNorth(), getEast());
     }

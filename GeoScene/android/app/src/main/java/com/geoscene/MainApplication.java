@@ -16,7 +16,6 @@ import com.facebook.soloader.SoLoader;
 import com.geoscene.ar.modules.ARPackage;
 import com.geoscene.maps.modules.MapsPackage;
 import com.geoscene.triangulation.modules.ARCameraPackage;
-import com.marcshilling.idletimer.IdleTimerPackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -69,7 +68,7 @@ public class MainApplication extends Application implements ReactApplication {
                 .build();
 
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
-        Realm.deleteRealm(realmConfiguration); /// REMOVE
+
         new Thread(() -> CacheManager.clearCache(getApplicationContext())).start();
         CacheManager.schedule(getApplicationContext());
         initializeFlipper(this, getReactNativeHost().getReactInstanceManager());

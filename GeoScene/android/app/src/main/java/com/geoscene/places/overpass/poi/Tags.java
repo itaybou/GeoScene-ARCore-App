@@ -20,6 +20,9 @@ public class Tags extends RealmObject {
     @SerializedName("historic")
     public String historic;
 
+    @SerializedName("created_by")
+    public String createdBy;
+
     @SerializedName("landuse")
     public String landuse;
 

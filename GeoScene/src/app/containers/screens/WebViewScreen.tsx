@@ -90,8 +90,6 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
       setCurrentUrl(uri);
     }
   };
-  // var selectElement = form.querySelector('input[name="commit"]');
-  console.log(currentUrl);
 
   return (
     <>
@@ -101,6 +99,7 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
         source={{ uri: currentUrl }}
         originWhitelist={['https://*']}
         startInLoadingState={true}
+        androidHardwareAccelerationDisabled={false}
         javaScriptEnabledAndroid={injectedCode !== undefined}
         injectedJavaScript={injectedCode}
         onMessage={onMessage}

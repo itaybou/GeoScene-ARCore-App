@@ -1,14 +1,14 @@
 import * as React from 'react';
 
-import { SectionList, StyleSheet, View } from 'react-native';
-
 import {
   MenuItem,
   SectionData,
 } from '../../containers/screens/settings/SettingsScreen';
-import useTheme from '../../utils/hooks/useTheme';
+import { SectionList, StyleSheet, View } from 'react-native';
+
 import { SettingsListItem } from './SettingsListItem';
 import { SettingsListSectionHeader } from './SettingsListSectionHeader';
+import useTheme from '../../utils/hooks/useTheme';
 
 interface SettingsListProps {
   settingsData: SectionData;
@@ -35,6 +35,7 @@ export const SettingsList: React.FC<SettingsListProps> = ({ settingsData }) => {
             item={props.item}
             isFirstElement={isFirstElement}
             isLastElement={isLastElement}
+            bottomText={props.item.bottomText}
           />
         );
       }}

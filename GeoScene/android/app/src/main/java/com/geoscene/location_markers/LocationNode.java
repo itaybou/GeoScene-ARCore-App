@@ -28,7 +28,7 @@ public class LocationNode extends AnchorNode {
     private double distanceInAR;
     private float scaleModifier = 1F;
     private float height = 0F;
-    private float gradualScalingMinScale = 0.15F;
+    private float gradualScalingMinScale = 0.2F;
     private float gradualScalingMaxScale = 0.65F;
 
     private LocationMarker.ScalingMode scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN;
@@ -94,13 +94,10 @@ public class LocationNode extends AnchorNode {
 
     @Override
     public void onUpdate(FrameTime frameTime) {
-
         // Typically, getScene() will never return null because onUpdate() is only called when the node
         // is in the scene.
         // However, if onUpdate is called explicitly or if the node is removed from the scene on a
         // different thread during onUpdate, then getScene may be null.
-
-
         for (Node n : getChildren()) {
             if (getScene() == null) {
                 return;
@@ -118,12 +115,12 @@ public class LocationNode extends AnchorNode {
             double distanceInAR = Math.sqrt(dx * dx + dy * dy + dz * dz);
             setDistanceInAR(distanceInAR);
 
-            if (locationScene.shouldOffsetOverlapping()) {
-                if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
-                    setHeight(getHeight() + 1.2F);
-                    Log.d("Height", String.valueOf(getHeight()));
-                }
-            }
+//            if (locationScene.shouldOffsetOverlapping()) {
+//                if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
+//                    locationMarker.setHeight(locationMarker.getHeight() + 1.2F);
+//                    setHeight(locationMarker.getHeight());
+//                }
+//            }
 
             if (locationScene.shouldRemoveOverlapping()) {
                 Ray ray = new Ray();

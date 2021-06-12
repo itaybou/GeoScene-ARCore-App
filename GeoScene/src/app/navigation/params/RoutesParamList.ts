@@ -29,6 +29,7 @@ export type InternalStackRouteNavProps<
 export type ExternalRoutesParamList = {
   Profile: undefined;
   Messages: undefined;
+  SignUp: undefined;
   ProfileSettings: undefined;
 };
 
@@ -78,6 +79,7 @@ export type SceneRoutesParamList = {
   Scene: undefined;
   AR: undefined;
   TriangulateStack: undefined;
+  Compass: undefined;
 };
 
 export type SceneStackRouteNavProps<T extends keyof SceneRoutesParamList> = {

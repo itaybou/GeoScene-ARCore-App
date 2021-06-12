@@ -74,8 +74,6 @@ export default class OAuthManager {
       app_name: this.appName,
     });
 
-    console.log('making request', provider, url, opts);
-
     return promisify('makeRequest', OAuthManagerBridge)(
       provider,
       url,

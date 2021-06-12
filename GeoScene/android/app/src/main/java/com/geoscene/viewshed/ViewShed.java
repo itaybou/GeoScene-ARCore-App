@@ -16,7 +16,7 @@ import java.util.List;
 public class ViewShed {
     public static final String TAG = "VIEWSHED";
     static final int HEIGHT_TOLERENCE = 0; // maybe not true
-    static final int DISTANCE_PRICE = 8;
+    static final int DISTANCE_PRICE = 10;
 
     static double calcluateSlope(Cell source, Cell target, int distancePrice) {
         double deltaZ = target.getValue() - source.getValue() - distancePrice;

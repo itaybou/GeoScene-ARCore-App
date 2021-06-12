@@ -10,36 +10,28 @@
 
     <androidx.cardview.widget.CardView
             android:id="@+id/card_viewspOffet"
-
             android:elevation="9dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
-            android:paddingBottom="100dp"
             android:layout_centerHorizontal="true"
             app:cardUseCompatPadding="true"
-
             app:cardCornerRadius="20dp"
             app:cardElevation="5dp"
-
             >
         <!-- Media -->
         <!-- Title, secondary and supporting text -->
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:paddingVertical="8dp"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="12dp"
                 >
-
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-
                     >
-
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -69,22 +61,19 @@
                         android:textColor="?android:attr/textColorSecondary" />
 
             </LinearLayout>
-
-
         </LinearLayout>
-
     </androidx.cardview.widget.CardView>
     <ImageView
-            android:id="@+id/image"
-            android:elevation="9dp"
-            android:layout_width="18dp"
-            android:layout_height="match_parent"
-            android:layout_marginTop="84dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitXY"
-            android:layout_centerHorizontal="true"
-            android:layout_alignBottom="@id/card_viewspOffet"
-            android:background="@drawable/marker"
-/>
+        android:id="@+id/image"
+        android:elevation="9dp"
+        android:layout_width="17dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="84dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/card_viewspOffet"
+        android:background="@drawable/marker"
+    />
 
 </RelativeLayout>

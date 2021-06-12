@@ -10,6 +10,9 @@ export interface PageHeaderContentType {
   content: string;
 }
 
+const heMultiExtract = 'האם התכוונתם ל';
+const enMultiExtract = 'Did you mean';
+
 export const getPageHeaderContent = async (
   name: string,
   is_heb?: boolean,
@@ -19,9 +22,14 @@ export const getPageHeaderContent = async (
       (is_heb ? HEB_API_ADDRESS : API_ADDRESS) +
         `&prop=extracts&exintro&titles=${name}&exintro=&exsentences=3&explaintext=&redirects=&formatversion=2&format=json`,
     );
+    const extract = json.query.pages[0].extract;
     return {
       page_id: json.query.pages[0].pageid,
-      content: json.query.pages[0].extract,
+      content:
+        (is_heb && extract.startsWith(heMultiExtract)) ||
+        (!is_heb && extract.startsWith(enMultiExtract))
+          ? undefined
+          : extract,
     };
   } catch (ex) {
     return undefined;

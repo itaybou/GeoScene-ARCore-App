@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 
+import androidx.core.content.ContextCompat;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactContext;
@@ -229,7 +231,9 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                     }
                     triangulationLines = new FolderOverlay();
                     OverlayItem marker = new OverlayItem("", "", new GeoPoint(intersection.intersection.getLat(), intersection.intersection.getLon()));
+                    marker.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
                     OverlayItem viewer = new OverlayItem("", "", new GeoPoint(arc.get(0).getLat(), arc.get(0).getLon()));
+                    viewer.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.observer));
                     lineOfSight = new Polyline(map);
                     lineOfSight.setPoints(myArc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
                     lineOfSight.getOutlinePaint().setColor(Color.RED);
@@ -292,7 +296,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
                     ArrayList<OverlayItem> markers = new ArrayList<>();
                     OverlayItem item = new OverlayItem("", "", new GeoPoint(latitude, longitude));
-                    //                item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+                    item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
                     markers.add(item);
 
                     mapView.getOverlays().remove(locationMarkers);
@@ -334,7 +338,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                         double latitude = loc.getLatitude();
 
                         OverlayItem item = new OverlayItem("", "", new GeoPoint(latitude, longitude));
-                        // item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+                        item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
                         distanceMarkers.add(item);
                         locationMarkers = new ItemizedIconOverlay<>(reactContext, distanceMarkers, null);
                         drawDistanceCalculation();
@@ -371,7 +375,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         } else {
             observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
             OverlayItem item = new OverlayItem("", "", observer);
-            // item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+            item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
             distanceMarkers.add(item);
             locationMarkers = new ItemizedIconOverlay<>(reactContext, distanceMarkers, null);
             drawDistanceCalculation();
@@ -414,8 +418,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         t = (int) t;
         t = t * 2;
 
-        //
-        if(useTriangulation && map.getRepository() != null && Math.abs(previousAzimuth - azimuth) >= 1e-2) { // Reduce azimuth to include only 2 digits (EPSILON DIFF)
+        if(useTriangulation && map.getRepository() != null && Math.abs(previousAzimuth - azimuth) >= 1e-2) { // Reduce azimuth to include only 2 digits after point changes(EPSILON DIFF)
             dispatchAzimuth(azimuth);
             calculateAndDrawTriangulations(azimuth, t);
         }
@@ -461,11 +464,16 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                     double aerialDistance = LocationUtils.aerialDistance(lat, intersection.getLat(), lon, intersection.getLon());
                     if (aerialDistance < Triangulation.MAX_TRIANGULATION_DISTANCE) { // Smaller than triangulation arc
                         intersections.add(new TriangulationIntersection(triangulation.id, triangulation.name, triangulation.description, intersection.getLat(), intersection.getLon(), aerialDistance));
-                        markers.add(new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon())));
+                        OverlayItem item = new OverlayItem("", "", new GeoPoint(intersection.getLat(), intersection.getLon()));
+                        item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
+                        markers.add(item);
                         List<Coordinate> arc = triangulation.getTriangulationArc();
 
                         Coordinate viewerCoordinate = arc.get(0);
-                        viewers.add(new OverlayItem("", "", new GeoPoint(viewerCoordinate.getLat(), viewerCoordinate.getLon())));
+
+                        OverlayItem viewer = new OverlayItem("", "", new GeoPoint(viewerCoordinate.getLat(), viewerCoordinate.getLon()));
+                        viewer.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.observer));
+                        viewers.add(viewer);
 
                         Polyline polyline = new Polyline(map);
                         polyline.setPoints(arc.stream().map(c -> new GeoPoint(c.getLat(), c.getLon())).collect(Collectors.toList()));
@@ -488,7 +496,6 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             List<IGeoPoint> bboxPoints = markers.stream().map(OverlayItem::getPoint).collect(Collectors.toList());
             if (bboxPoints.isEmpty() && animateToIncludeTriangulationPoints) {
                 BoundingBoxCenter bbox = new BoundingBoxCenter(new Coordinate(location.getLatitude(), location.getLongitude()), LocationConstants.OBSERVER_BBOX * 2);
-//                    map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5, map.getZoomLevelDouble() * 100, ORIENTATION_CHANGE_ANIMATION_SPEED * 5);
                 mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, bearing);
             } else if (animateToIncludeTriangulationPoints) {
                 bboxPoints.add(observer);
@@ -554,7 +561,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
                                     ArrayList<OverlayItem> markers = new ArrayList<>();
                                     OverlayItem item = new OverlayItem("", "", new GeoPoint(latitude, longitude));
-//                item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+                                    item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
                                     markers.add(item);
 
                                     mapView.getOverlays().remove(locationMarkers);
@@ -585,7 +592,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 if (placeMarker) {
                     ArrayList<OverlayItem> markers = new ArrayList<>();
                     OverlayItem item = new OverlayItem("", "", new GeoPoint(latitude, longitude));
-//                item.setMarker(ContextCompat.getDrawable(context, R.drawable.ic_maps_marker_large));
+                    item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.marker_small));
                     markers.add(item);
                     map.getOverlays().remove(locationMarkers);
                     locationMarkers = new ItemizedIconOverlay<>(getContext(), markers, null);

@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.concurrent.TimeUnit;
 
 import com.geoscene.elevation.Raster;
+import com.geoscene.exceptions.WebRequestException;
 import com.geoscene.geography.mercator.BoundingBoxCenter;
 import com.geoscene.viewshed.ViewShed;
 
@@ -46,6 +47,6 @@ public class OpenTopographyClient {
                     raster.setViewshed(determineViewshed ? ViewShed.calculateViewshed(raster, latitude, longitude) : null);
                     raster.setBoundingBox(bbox);
                 })
-                .doOnError(e -> Log.d("ERROR", "open topography error " + e.getMessage()));
+                .doOnError(e -> {throw new WebRequestException(e.getMessage());});
     }
 }

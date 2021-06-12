@@ -69,7 +69,7 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
             case COMMAND_CREATE:
-                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3));
+                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3), args.getBoolean(4), args.getBoolean(5));
                 break;
             case COMMAND_CLOSE:
                 closeARFragment(root);
@@ -81,15 +81,17 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
 
     private void closeARFragment(FrameLayout root) {
         if(arFragment != null) {
-            Log.d("AR", "close");
+            Log.d("AR_CLOSE", "close");
             arFragment.close();
+            ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager().beginTransaction().remove(arFragment).commit();
+            arFragment = null;
         }
     }
 
-    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes) {
+    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes, boolean showPlacesApp, boolean showLocationCenter) {
         Map<String, HashSet<String>> placesTypes = parsePlaceTypes(placeTypes);
         Log.d("PLACES", String.valueOf(placesTypes));
-        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes);
+        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter);
 
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
@@ -135,6 +137,10 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
                 MapBuilder.of("registrationName", "onLoadingProgress"),
                 "cacheUse",
                 MapBuilder.of("registrationName", "onUseCache"),
+                "localUse",
+                MapBuilder.of("registrationName", "onLocalUse"),
+                "count",
+                MapBuilder.of("registrationName", "onLocationCount"),
                 "elevation",
                 MapBuilder.of("registrationName", "onUserElevation")
         );

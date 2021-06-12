@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Animated,
+  BackHandler,
   Easing,
   GestureResponderEvent,
   SafeAreaView,
@@ -15,12 +16,14 @@ import {
   NativeARView,
   NativeMapView,
 } from '../../../../native/NativeViewsBridge';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettings, useTheme } from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
+import { ErrorModal } from '../../../components/modals/ErrorModal';
 import IdleTimerManager from 'react-native-idle-timer';
 import { LocationDetailsFrame } from '../../LocationDetailsFrame';
+import { OptionModal } from '../../../components/modals/OptionModal';
 import Orientation from 'react-native-orientation';
 import { SceneStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
@@ -60,9 +63,16 @@ const MapButton: React.FC<MapButtonProps> = ({ onPress }) => {
   );
 };
 
-export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
+export function ARSceneView({
+  route,
+  navigation,
+}: SceneStackRouteNavProps<'AR'>) {
   const theme = useTheme();
   const { state } = useSettings();
+
+  const [closeModalShown, setCloseModalShown] = useState<boolean>(false);
+  const [errorModalShown, setErrorModalShown] = useState<boolean>(false);
+  const [azimuth, setAzimuth] = useState<number | undefined>(undefined);
 
   const [ready, setReady] = useState<boolean>(false);
   const [ARDisplayed, setARDisplayed] = useState<boolean>(false);
@@ -77,6 +87,14 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
     LocationNameProps | null | undefined
   >(null);
 
+  const [locationCount, setLocationCount] = useState<number | undefined>(
+    undefined,
+  );
+  const [cacheUse, setCacheUse] = useState<boolean>(false);
+  const [localUse, setLocalUse] = useState<string | undefined>(undefined);
+
+  const [infoOpen, setInfoOpen] = useState<boolean>(false);
+
   const arRef = useRef<number | null>(null);
   const mapRef = useRef<number | null>(null);
   const mapAnimation = useRef(new Animated.Value(0)).current;
@@ -85,12 +103,32 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   const ARManager = UIManager.getViewManagerConfig('ARFragment');
   const MapsManager = UIManager.getViewManagerConfig('MapView');
 
+  const closeSession = useCallback(() => {
+    if (arRef.current) {
+      UIManager.dispatchViewManagerCommand(
+        arRef.current,
+        ARManager.Commands.CLOSE.toString(),
+        [],
+      );
+      navigation.navigate('Scene');
+    }
+  }, [ARManager.Commands.CLOSE]);
+
   useEffect(() => {
     Orientation.lockToLandscapeLeft();
     StatusBar.setHidden(true);
     IdleTimerManager.setIdleTimerDisabled(true);
 
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setCloseModalShown(true);
+        return true;
+      },
+    );
+
     return () => {
+      backHandler.remove();
       StatusBar.setHidden(false);
       Orientation.unlockAllOrientations();
       IdleTimerManager.setIdleTimerDisabled(false);
@@ -107,11 +145,13 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
           state.determineViewshed,
           state.visibleRadius,
           state.placeTypes,
+          state.showPlacesApp,
+          state.showLocationCenter,
         ],
       );
       setARDisplayed(true);
     }
-  }, [ARManager.Commands.CREATE, ARDisplayed]);
+  }, [ARManager.Commands.CREATE, ARDisplayed, state]);
 
   const mapReverseAnimation = mapAnimation.interpolate({
     inputRange: [0, 1],
@@ -126,7 +166,7 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   const toggleShowDetailsFrame = (afterAnimation?: () => void) => {
     Orientation.lockToLandscapeLeft();
     Animated.timing(detailsAnimation, {
-      toValue: detailsShown ? 0 : 0.3,
+      toValue: detailsShown ? 0 : 0.32,
       ...ANIMATION_TIMING_CONFIG,
     }).start(() => {
       afterAnimation && afterAnimation();
@@ -138,7 +178,7 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   const expandDetailsFrame = (afterAnimation?: () => void) => {
     Orientation.lockToLandscapeLeft();
     Animated.timing(detailsAnimation, {
-      toValue: detailsExpanded ? 0.3 : 1,
+      toValue: detailsExpanded ? 0.32 : 1,
       ...ANIMATION_TIMING_CONFIG,
     }).start(() => {
       afterAnimation && afterAnimation();
@@ -152,7 +192,7 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
   return (
     <SafeAreaView
       style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
-      {elevation && (
+      {elevation && ready && (
         <View
           style={{
             position: 'absolute',
@@ -166,13 +206,83 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
             paddingHorizontal: 8,
             borderRadius: 10,
           }}>
-          <ThemeText
-            style={{
-              fontSize: 14,
-              fontWeight: 'bold',
-            }}>
-            {`Est. Elevation: ${elevation}m`}
-          </ThemeText>
+          <TouchableOpacity onPress={() => setInfoOpen(!infoOpen)}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <View
+                style={{
+                  marginEnd: infoOpen ? 10 : 5,
+                  paddingVertical: infoOpen ? 0 : 12,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <ThemeIcon
+                  name={infoOpen ? 'arrow-left' : 'arrow-right'}
+                  size={10}
+                  color={theme.colors.text}
+                />
+              </View>
+              {infoOpen && (
+                <View>
+                  <ThemeText
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                    }}>
+                    {`Est. Elevation: ${elevation}m`}
+                  </ThemeText>
+                  <ThemeText
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 'bold',
+                    }}>{`Azimuth: ${azimuth?.toFixed(3)}°`}</ThemeText>
+                  <View style={{ flexDirection: 'row' }}>
+                    {(cacheUse || localUse) && (
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}>
+                        <ThemeIcon
+                          name={'folder-alt'}
+                          size={10}
+                          color={theme.colors.accent_secondary}
+                        />
+                        <View style={{ marginStart: 4 }}>
+                          <ThemeText
+                            style={{
+                              fontSize: 12,
+                              color: theme.colors.accent_secondary,
+                              fontWeight: 'bold',
+                            }}>
+                            {localUse !== undefined
+                              ? localUse.length < 20
+                                ? `Saved: ${localUse}`
+                                : `${localUse.substring(0, 18)}...`
+                              : 'Cache'}
+                          </ThemeText>
+                        </View>
+                      </View>
+                    )}
+                    <ThemeText
+                      style={{
+                        fontSize: 12,
+                        marginStart: cacheUse ? 12 : 0,
+                      }}>
+                      {locationCount === undefined || locationCount === 0
+                        ? `No locations visible`
+                        : `Showing ${locationCount} locations`}
+                    </ThemeText>
+                  </View>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
         </View>
       )}
       <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -184,23 +294,21 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
         )}
         <Animated.View
           style={{
-            //height,
             flex: mapReverseAnimation,
-            // width: mapShown ? width * 0.6 : width,
-            // height,
             display: ready ? 'flex' : 'none',
           }}>
           <NativeARView
             style={{
-              //height,
               flex: 1,
             }}
             ref={(nativeRef) => (arRef.current = findNodeHandle(nativeRef))}
             onUserElevation={(event: any) =>
               setElevation(event.nativeEvent.elevation)
             }
-            onUseCache={(event: any) =>
-              console.log('cache: ' + event.nativeEvent)
+            onUseCache={(event: any) => setCacheUse(true)}
+            onLocalUse={(event: any) => setLocalUse(event.nativeEvent.name)}
+            onLocationCount={(event) =>
+              setLocationCount(event.nativeEvent.count)
             }
             onLocationMarkerTouch={(event: any) => {
               const {
@@ -223,61 +331,69 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
                 toggleShowDetailsFrame();
               }
             }}
-            onReady={() => {
-              setReady(true);
+            onReady={(event) => {
+              if (event.nativeEvent.ready) {
+                setReady(true);
+              } else setErrorModalShown(true);
             }}
             onLoadingProgress={(event: any) =>
               setLoadingMessage(event.nativeEvent.message)
             }
           />
         </Animated.View>
-        <Animated.View
-          style={{
-            //height,
-            flex: mapAnimation,
-            // width: mapShown ? width * 0.4 : 0,
-            flexDirection: 'row',
-            display: ready ? 'flex' : 'none',
-          }}>
-          <MapButton
-            onPress={() => {
-              setMapShown(!mapShown);
-              if (!mapShown) {
-                setLoadingMap(true);
-              }
-              Animated.timing(mapAnimation, {
-                toValue: mapShown ? 0 : 0.4,
-                ...ANIMATION_TIMING_CONFIG,
-              }).start(() => {
-                if (!mapShown) {
-                  UIManager.dispatchViewManagerCommand(
-                    mapRef.current,
-                    MapsManager.Commands.ZOOM_BBOX.toString(),
-                    [],
-                  );
-                  setLoadingMap(false);
-                }
-              });
-            }}
-          />
-          {loadingMap && mapShown && (
-            <Center>
-              <ThemeText>Loading Map</ThemeText>
-              {mapShown && (
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-              )}
-            </Center>
-          )}
-          <NativeMapView
-            enableZoom={false}
-            useObserverLocation={true}
-            useCompassOrientation={true}
+        {ready && (
+          <Animated.View
             style={{
-              flex: loadingMap ? 0 : 1,
-            }}
-            ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
-          />
-        </Animated.View>
+              flex: mapAnimation,
+              flexDirection: 'row',
+              display: ready ? 'flex' : 'none',
+            }}>
+            <MapButton
+              onPress={() => {
+                setMapShown(!mapShown);
+                if (!mapShown) {
+                  setLoadingMap(true);
+                }
+                Animated.timing(mapAnimation, {
+                  toValue: mapShown ? 0 : 0.4,
+                  ...ANIMATION_TIMING_CONFIG,
+                }).start(() => {
+                  if (!mapShown) {
+                    UIManager.dispatchViewManagerCommand(
+                      mapRef.current,
+                      MapsManager.Commands.ZOOM_BBOX.toString(),
+                      [],
+                    );
+                    setLoadingMap(false);
+                  }
+                });
+              }}
+            />
+            {loadingMap && mapShown && (
+              <Center>
+                <ThemeText>Loading Map</ThemeText>
+                {mapShown && (
+                  <ActivityIndicator
+                    size="large"
+                    color={theme.colors.primary}
+                  />
+                )}
+              </Center>
+            )}
+            <NativeMapView
+              enableZoom={false}
+              useObserverLocation={true}
+              useCompassOrientation={true}
+              onOrientationChanged={(event) =>
+                setAzimuth(event.nativeEvent.azimuth)
+              }
+              style={{
+                flex: loadingMap ? 0 : 1,
+              }}
+              ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
+            />
+          </Animated.View>
+        )}
       </View>
       <Animated.View
         style={[
@@ -302,6 +418,21 @@ export function ARSceneView({ route }: SceneStackRouteNavProps<'AR'>) {
           }}
         />
       </Animated.View>
+      <OptionModal
+        text="Are you sure you want to close the current Augmented Reality Session?"
+        isVisible={closeModalShown}
+        hide={() => setCloseModalShown(false)}
+        onOK={closeSession}
+      />
+      <ErrorModal
+        text="External error occurred while fetching data, please try again later."
+        isVisible={errorModalShown}
+        hide={() => {
+          closeSession();
+          setErrorModalShown(false);
+          navigation.navigate('Scene');
+        }}
+      />
     </SafeAreaView>
   );
 }

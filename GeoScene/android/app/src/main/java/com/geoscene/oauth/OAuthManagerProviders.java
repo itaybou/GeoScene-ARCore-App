@@ -5,36 +5,25 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.List;
 import java.net.URL;
-import java.net.MalformedURLException;
+
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
-import com.geoscene.oauth.services.ConfigurableApi;
+import com.geoscene.oauth.services.OSMApi;
 import com.geoscene.oauth.services.OSMOAuthRequest;
-import com.geoscene.oauth.services.SlackApi;
 import com.github.scribejava.core.model.Verb;
-import com.github.scribejava.core.builder.api.BaseApi;
-import com.github.scribejava.core.oauth.OAuthService;
 import com.github.scribejava.core.oauth.OAuth10aService;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth1AccessToken;
-import com.github.scribejava.core.model.OAuth1RequestToken;
-import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.OAuthConfig;
 
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.oauth.OAuth20Service;
 
-import com.github.scribejava.apis.TwitterApi;
-import com.github.scribejava.apis.FacebookApi;
-import com.github.scribejava.apis.GoogleApi20;
-import com.github.scribejava.apis.GitHubApi;
-
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
@@ -47,9 +36,7 @@ public class OAuthManagerProviders {
     @Nullable final ReadableMap opts,
     final String callbackUrl
   ) {
-    if (providerName.equalsIgnoreCase("twitter")) {
-      return OAuthManagerProviders.twitterService(params, opts, callbackUrl);
-    } else if (params.containsKey("access_token_url") && params.containsKey("authorize_url")) {
+    if (params.containsKey("access_token_url") && params.containsKey("authorize_url")) {
       return OAuthManagerProviders.osmService(params, opts, callbackUrl);
     }
     return null;
@@ -61,25 +48,6 @@ public class OAuthManagerProviders {
     @Nullable final ReadableMap opts,
     final String callbackUrl
   ) {
-    if (providerName.equalsIgnoreCase("facebook")) {
-      return OAuthManagerProviders.facebookService(params, opts, callbackUrl);
-    }
-
-    if (providerName.equalsIgnoreCase("google")) {
-      return OAuthManagerProviders.googleService(params, opts, callbackUrl);
-    }
-
-    if (providerName.equalsIgnoreCase("github")) {
-      return OAuthManagerProviders.githubService(params, opts, callbackUrl);
-    }
-
-    if (providerName.equalsIgnoreCase("slack")) {
-      return OAuthManagerProviders.slackService(params, opts, callbackUrl);
-    }
-
-//    if (params.containsKey("access_token_url") && params.containsKey("authorize_url")) {
-//      return OAuthManagerProviders.configurableService(params, opts, callbackUrl);
-//    }
 
     return null;
   }
@@ -163,36 +131,8 @@ public class OAuthManagerProviders {
     if(params != null && params.hasKey("body")) {
       String body = params.getString("body");
       request.setPayload(body);
-      Log.d("PAYLOAD", request.getStringPayload());
-      Log.d("PAYLOAD", request.toString());
     }
     return request;
-  }
-
-  private static OAuth10aService twitterService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl) {
-    String consumerKey = (String) cfg.get("consumer_key");
-    String consumerSecret = (String) cfg.get("consumer_secret");
-
-    ServiceBuilder builder = new ServiceBuilder()
-          .apiKey(consumerKey)
-          .apiSecret(consumerSecret)
-          .debug();
-
-    String scopes = (String) cfg.get("scopes");
-    if (scopes != null) {
-      // String scopeStr = OAuthManagerProviders.getScopeString(scopes, "+");
-      // Log.d(TAG, "scopeStr: " + scopeStr);
-      // builder.scope(scopeStr);
-    }
-
-    if (callbackUrl != null) {
-      builder.callback(callbackUrl);
-    }
-
-    return builder.build(TwitterApi.instance());
   }
 
   private static OAuth10aService osmService(
@@ -207,76 +147,11 @@ public class OAuthManagerProviders {
             .apiSecret(consumerSecret)
             .debug();
 
-    String scopes = (String) cfg.get("scopes");
-    if (scopes != null) {
-      // String scopeStr = OAuthManagerProviders.getScopeString(scopes, "+");
-      // Log.d(TAG, "scopeStr: " + scopeStr);
-      // builder.scope(scopeStr);
-    }
-
     if (callbackUrl != null) {
       builder.callback(callbackUrl);
     }
 
     return builder.build(OSMApi.instance());
-  }
-
-  private static OAuth20Service facebookService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl) {
-    ServiceBuilder builder = OAuthManagerProviders._oauth2ServiceBuilder(cfg, opts, callbackUrl);
-    return builder.build(FacebookApi.instance());
-  }
-
-  private static OAuth20Service googleService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl)
-  {
-    ServiceBuilder builder = OAuthManagerProviders._oauth2ServiceBuilder(cfg, opts, callbackUrl);
-    return builder.build(GoogleApi20.instance());
-  }
-
-  private static OAuth20Service githubService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl)
-  {
-
-    ServiceBuilder builder = OAuthManagerProviders._oauth2ServiceBuilder(cfg, opts, callbackUrl);
-    return builder.build(GitHubApi.instance());
-  }
-
-  private static OAuth20Service configurableService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl
-  ) {
-    ServiceBuilder builder = OAuthManagerProviders._oauth2ServiceBuilder(cfg, opts, callbackUrl);
-    Log.d(TAG, "Creating ConfigurableApi");
-    //Log.d(TAG, "    authorize_url:     " + cfg.get("authorize_url"));
-    //Log.d(TAG, "    access_token_url:  " + cfg.get("access_token_url"));
-    ConfigurableApi api = ConfigurableApi.instance()
-      .setAccessTokenEndpoint((String) cfg.get("access_token_url"))
-      .setAuthorizationBaseUrl((String) cfg.get("authorize_url"));
-    if (cfg.containsKey("access_token_verb")) {
-      //Log.d(TAG, "    access_token_verb: " + cfg.get("access_token_verb"));
-      api.setAccessTokenVerb((String) cfg.get("access_token_verb"));
-    }
-
-    return builder.build(api);
-  }
-
-  private static OAuth20Service slackService(
-    final HashMap cfg,
-    @Nullable final ReadableMap opts,
-    final String callbackUrl
-    ) {
-
-    Log.d(TAG, "Make the builder: " + SlackApi.class);
-    ServiceBuilder builder = OAuthManagerProviders._oauth2ServiceBuilder(cfg, opts, callbackUrl);
-    return builder.build(SlackApi.instance());
   }
 
   private static ServiceBuilder _oauth2ServiceBuilder(

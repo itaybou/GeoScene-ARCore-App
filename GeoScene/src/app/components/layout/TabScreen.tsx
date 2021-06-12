@@ -2,6 +2,7 @@ import { Keyboard, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
 import useKeyboardPadding from '../../utils/hooks/useKeyboardPadding';
 import useTheme from '../../utils/hooks/useTheme';
 

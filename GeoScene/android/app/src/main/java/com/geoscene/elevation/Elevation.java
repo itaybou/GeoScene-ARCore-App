@@ -4,6 +4,7 @@ import android.location.Location;
 import android.util.Log;
 
 import com.geoscene.elevation.open_topography.OpenTopographyClient;
+import com.geoscene.exceptions.WebRequestException;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.geography.Coordinate;
 import com.geoscene.geography.mercator.BoundingBoxCenter;

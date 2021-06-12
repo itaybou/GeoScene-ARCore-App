@@ -1,6 +1,9 @@
 package com.geoscene.geography.modules;
 
 import android.app.Activity;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -12,7 +15,10 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.geoscene.geography.Coordinate;
+import com.geoscene.geography.LocationUtils;
 import com.geoscene.geography.mercator.BoundingBoxCenter;
+import com.geoscene.sensors.DeviceSensors;
+import com.geoscene.sensors.DeviceSensorsManager;
 
 public class GeographyModule extends ReactContextBaseJavaModule {
 
@@ -42,6 +48,20 @@ public class GeographyModule extends ReactContextBaseJavaModule {
         event.putDouble("north", bbox.getNorth());
         event.putDouble("east", bbox.getEast());
         event.putDouble("west", bbox.getWest());
+        promise.resolve(event);
+    }
+
+    @ReactMethod
+    public void distance(ReadableMap data, Promise promise) {
+        double latitude = data.getDouble("latitude");
+        double longitude = data.getDouble("longitude");
+
+        DeviceSensors sensorManager = DeviceSensorsManager.getSensors(reactContext);
+        Location observer = sensorManager.getDeviceLocation();
+        double distance = LocationUtils.aerialDistance(observer.getLatitude(), latitude, observer.getLongitude(), longitude);
+
+        WritableMap event = Arguments.createMap();
+        event.putDouble("distance", distance);
         promise.resolve(event);
     }
 

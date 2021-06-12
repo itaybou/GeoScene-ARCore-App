@@ -2,6 +2,7 @@ package com.geoscene.places.overpass;
 
 import android.util.Log;
 
+import com.geoscene.exceptions.WebRequestException;
 import com.geoscene.places.POIClient;
 import com.geoscene.places.overpass.poi.PointsOfInterest;
 import com.google.gson.JsonObject;
@@ -40,7 +41,8 @@ public class OverpassClient implements POIClient {
     }
 
     public Single<PointsOfInterest> executeQuery(String query) {
-        return operpassAPI.executeSearchQuery(query).map(x -> x).doOnError(e -> Log.d(TAG, "overpass error " + e.toString()));
+        return operpassAPI.executeSearchQuery(query).map(x -> x)
+                .doOnError(e -> {throw new WebRequestException(e.getMessage());});
     }
 
     public Single<JsonObject> executeJSONQuery(String query) {

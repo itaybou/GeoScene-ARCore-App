@@ -23,27 +23,12 @@ import { auth, deauth } from '../auth/Authentication';
 import { useTheme, useUser } from '../utils/hooks/Hooks';
 
 import { Badge } from 'react-native-elements/dist/badge/Badge';
-import RNBounceable from '@freakycoder/react-native-bounceable';
 import { StackHeaderProps } from '@react-navigation/stack';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
-
-// const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
-//   const theme = useTheme();
-
-//   return (
-//     <View style={[styles.main, { backgroundColor: theme.colors.background }]}>
-//       <View>
-//         <Text style={styles.headerText}>{scene.route.name + 2}</Text>
-//       </View>
-//     </View>
-//   );
-// };
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const defaultProfilePicture = require('../assets/img/profile.png');
-// const searchIcon = require("./local-assets/search.png");
-// const bagIcon = require("./local-assets/shopping-bag.png");
-// const notificationIcon = require("./local-assets/notification.png");
 
 export interface ISource {
   source: string | { uri: string };
@@ -64,12 +49,9 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
     return (
       <View style={styles.leftAlignedContainer}>
         {navigation.canGoBack() && (
-          <RNBounceable
-            bounceEffect={0.8}
-            bounceFriction={2}
-            onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <ThemeIcon name="arrow-left" color={theme.colors.text} size={18} />
-          </RNBounceable>
+          </TouchableOpacity>
         )}
         <View style={styles.titleContainer}>
           <ThemeText style={styles.titleTextStyle}>{routeTitle}</ThemeText>
@@ -81,9 +63,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
   const renderHeaderIcon = (screen: string, icon: string, size?: number) => {
     return (
       <View style={styles.iconButtonContainer}>
-        <RNBounceable
-          bounceEffect={0.8}
-          bounceFriction={2}
+        <TouchableOpacity
           onPress={() => navigation.navigate('External', { screen: screen })}>
           {state.user &&
           icon === 'envelope' &&
@@ -100,7 +80,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
               color={theme.colors.text}
             />
           )}
-        </RNBounceable>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -174,6 +154,8 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
   };
 
   const renderRightAlignedComponent = () => {
+    const { Popover } = renderers;
+
     return state.user ? (
       <View style={styles.rightAlignedContainer}>
         {renderHeaderIcon('ProfileSettings', 'user', 18)}
@@ -181,17 +163,56 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         {renderProfilePicture()}
       </View>
     ) : (
-      <RNBounceable onPress={() => auth(dispatch)}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
+      <Menu
+        renderer={Popover}
+        rendererProps={{
+          placement: 'bottom',
+          preferredPlacement: 'bottom',
+          anchorStyle: { backgroundColor: theme.colors.cards },
+        }}>
+        <MenuTrigger>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <ThemeText style={{ fontSize: 12 }}>Login</ThemeText>
+            <ThemeIcon name={'login'} size={20} color={theme.colors.text} />
+          </View>
+        </MenuTrigger>
+        <MenuOptions
+          customStyles={{
+            optionsWrapper: { width: 200, backgroundColor: theme.colors.cards },
           }}>
-          <ThemeText style={{ fontSize: 10 }}>Login</ThemeText>
-          <ThemeIcon name={'login'} size={20} color={theme.colors.text} />
-        </View>
-      </RNBounceable>
+          <MenuOption
+            onSelect={() => {
+              auth(dispatch);
+            }}>
+            <View style={{ flexDirection: 'row', padding: 4 }}>
+              <View style={{ marginRight: 8 }}>
+                <ThemeIcon name={'login'} size={15} color={theme.colors.text} />
+              </View>
+              <ThemeText>Sign In</ThemeText>
+            </View>
+          </MenuOption>
+          <MenuOption
+            onSelect={() =>
+              navigation.navigate('External', { screen: 'SignUp' })
+            }>
+            <View style={{ flexDirection: 'row', padding: 4 }}>
+              <View style={{ marginRight: 8 }}>
+                <ThemeIcon
+                  name={'people'}
+                  size={15}
+                  color={theme.colors.text}
+                />
+              </View>
+              <ThemeText>Sign Up</ThemeText>
+            </View>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
     );
   };
 

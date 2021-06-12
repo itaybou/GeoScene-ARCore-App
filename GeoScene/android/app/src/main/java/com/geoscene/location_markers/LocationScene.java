@@ -8,34 +8,38 @@ import android.util.Log;
 import com.geoscene.sensors.DeviceSensors;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.math.Vector3;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import com.geoscene.sensors.DeviceLocationChanged;
 import com.geoscene.geography.LocationUtils;
 
 public class LocationScene {
 
-    private final float RENDER_DISTANCE = 25f;
+    private String TAG = "LocationScene";
+
+    private final float RENDER_DISTANCE = 10f;
     public ArSceneView mArSceneView;
     public Activity context;
     public DeviceSensors sensors;
     public ArrayList<LocationMarker> mLocationMarkers = new ArrayList<>();
     // Anchors are currently re-drawn on an interval. There are likely better
     // ways of doing this, however it's sufficient for now.
-    private int anchorRefreshInterval = 1000 * 2; // 5 seconds
+    private int anchorRefreshInterval = 1000 * 2; // 2 seconds
     // Limit of where to draw markers within AR scene.
     // They will auto scale, but this helps prevents rendering issues
     private int distanceLimit = 5000;
-    private boolean offsetOverlapping = true;
+    private boolean offsetOverlapping = false;
     private boolean removeOverlapping = false;
     // Bearing adjustment. Can be set to calibrate with true north
     private int bearingAdjustment = 0;
-    private String TAG = "LocationScene";
     private boolean anchorsNeedRefresh = true;
     private boolean minimalRefreshing = false;
     private boolean refreshAnchorsAsLocationChanges = false;
@@ -51,13 +55,10 @@ public class LocationScene {
     private Session mSession;
     private DeviceLocationChanged locationChangedEvent;
 
-    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors, boolean triangulation) {
+    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors) {
         this.context = context;
         this.mSession = mArSceneView.getSession();
         this.mArSceneView = mArSceneView;
-        if(triangulation) {
-            anchorRefreshInterval = 2 * 1000;
-        }
 
         startCalculationTask();
         this.sensors = sensors;
@@ -131,7 +132,8 @@ public class LocationScene {
     public void clearMarkers() {
         for (LocationMarker lm : mLocationMarkers) {
             if (lm.anchorNode != null) {
-                lm.anchorNode.getAnchor().detach();
+                if(lm.anchorNode.getAnchor() != null)
+                    lm.anchorNode.getAnchor().detach();
                 lm.anchorNode.setEnabled(false);
                 lm.anchorNode = null;
             }
@@ -235,12 +237,12 @@ public class LocationScene {
                                 0,
                                 0)
                 );
-//                int markerDistance = 1000;
-
                 if (markerDistance > marker.getOnlyRenderWhenWithin()) {
                     // Don't render if this has been set and we are too far away.
-                    Log.i(TAG, "Not rendering. Marker distance: " + markerDistance
-                            + " Max render distance: " + marker.getOnlyRenderWhenWithin());
+                    if(debugEnabled) {
+                        Log.i(TAG, "Not rendering. Marker distance: " + markerDistance
+                                + " Max render distance: " + marker.getOnlyRenderWhenWithin());
+                    }
                     continue;
                 }
 
@@ -259,15 +261,11 @@ public class LocationScene {
 
                 double rotation = Math.floor(markerBearing);
 
-                Log.d(TAG, "currentDegree " + deviceOrientation
-                        + " bearing " + bearing + " markerBearing " + markerBearing
-                        + " rotation " + rotation + " distance " + markerDistance);
-
-                // When pointing device upwards (camera towards sky)
-                // the compass bearing can flip.
-                // In experiments this seems to happen at pitch~=-25
-                //if (deviceOrientation.pitch > -25)
-                //rotation = rotation * Math.PI / 180;
+                if(debugEnabled) {
+                    Log.d(TAG, "currentDegree " + deviceOrientation
+                            + " bearing " + bearing + " markerBearing " + markerBearing
+                            + " rotation " + rotation + " distance " + markerDistance);
+                }
 
                 int renderDistance = markerDistance;
 
@@ -282,7 +280,7 @@ public class LocationScene {
 
                 // Raise distant markers for better illusion of distance
                 // Hacky - but it works as a temporary measure
-                int cappedRealDistance = markerDistance > (distanceLimit / 2) ? (distanceLimit / 2) : markerDistance;
+                int cappedRealDistance = Math.min(markerDistance, (distanceLimit / 2));
                 if (renderDistance != markerDistance)
                     heightAdjustment += 0.005F * (cappedRealDistance - renderDistance);
 
@@ -304,6 +302,19 @@ public class LocationScene {
 
                 // Don't immediately assign newly created anchor in-case of exceptions
                 Pose translation = Pose.makeTranslation(xRotated, y, zRotated);
+//                boolean obstructed = false;
+//
+//                for(Plane plane : planes) {
+//                    Log.d("PLANE", plane.getExtentX() +", " + plane.getExtentZ());
+//                    if(plane.isPoseInExtents(translation)) {
+//                        obstructed = true;
+//                        break;
+//                    }
+//                }
+//                if(obstructed) {
+//                    marker.anchorNode.setEnabled(false);
+//                    continue;
+//                }
                 Anchor newAnchor = mSession.createAnchor(
                         frame.getCamera()
                                 .getDisplayOrientedPose()
@@ -315,7 +326,7 @@ public class LocationScene {
                 marker.anchorNode.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
 
                 marker.anchorNode.setParent(mArSceneView.getScene());
-                marker.anchorNode.addChild(mLocationMarkers.get(i).node);
+                marker.anchorNode.addChild(marker.node);
                 marker.node.setLocalPosition(Vector3.zero());
 
                 if (marker.getRenderEvent() != null) {
@@ -329,15 +340,20 @@ public class LocationScene {
 
                 // Locations further than RENDER_DISTANCE are remapped to be rendered closer.
                 // => height differential also has to ensure the remap is correct
+                if (shouldOffsetOverlapping()) {
+                    if (mArSceneView.getScene().overlapTestAll(marker.node).size() > 0) {
+                        marker.setHeight(marker.getHeight() + 50);
+                    }
+                }
                 if (markerDistance > RENDER_DISTANCE) {
                     float renderHeight = RENDER_DISTANCE * marker.getHeight() / markerDistance;
                     marker.anchorNode.setHeight(renderHeight);
                 } else {
-                    marker.anchorNode.setHeight(marker.getHeight());
+                    marker.anchorNode.setHeight(marker.anchorNode.getHeight());
                 }
 
-                Log.d("Height", String.valueOf(marker.anchorNode.getHeight()));
-                Log.d("Distance", String.valueOf(getDistanceLimit()));
+//                Log.d("Height", String.valueOf(marker.anchorNode.getHeight()));
+//                Log.d("Distance", String.valueOf(getDistanceLimit()));
 
                 if (minimalRefreshing)
                     marker.anchorNode.scaleAndRotate();
@@ -373,7 +389,7 @@ public class LocationScene {
         anchorRefreshTask.run();
     }
 
-    void stopCalculationTask() {
+    public void stopCalculationTask() {
         mHandler.removeCallbacks(anchorRefreshTask);
     }
 }

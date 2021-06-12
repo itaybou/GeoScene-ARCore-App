@@ -1,6 +1,5 @@
-package com.geoscene.oauth;
+package com.geoscene.oauth.services;
 
-import com.github.scribejava.apis.TwitterApi;
 import com.github.scribejava.core.builder.api.DefaultApi10a;
 import com.github.scribejava.core.model.OAuth1RequestToken;
 

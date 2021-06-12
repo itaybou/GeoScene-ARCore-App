@@ -34,11 +34,33 @@ function Profile({}: ExternalStackRouteNavProps<'Profile'>) {
   const { state } = useUser();
   const user = state.user;
 
-  return <WebViewScreen name="Profile" uri={PREFIX + `user/${user?.name}`} />;
+  return (
+    <WebViewScreen
+      showWebControls={true}
+      name="Profile"
+      uri={PREFIX + `user/${user?.name}`}
+    />
+  );
 }
 
 function Messages({}: ExternalStackRouteNavProps<'Messages'>) {
-  return <WebViewScreen name="Messages" uri={PREFIX + 'messages/inbox'} />;
+  return (
+    <WebViewScreen
+      showWebControls={true}
+      name="Messages"
+      uri={PREFIX + 'messages/inbox'}
+    />
+  );
+}
+
+function SignUp({}: ExternalStackRouteNavProps<'SignUp'>) {
+  return (
+    <WebViewScreen
+      showWebControls={true}
+      name="SignUp"
+      uri={PREFIX + 'user/new'}
+    />
+  );
 }
 
 function PorfileSettings({}: ExternalStackRouteNavProps<'ProfileSettings'>) {
@@ -53,6 +75,7 @@ function PorfileSettings({}: ExternalStackRouteNavProps<'ProfileSettings'>) {
 
   return (
     <WebViewScreen
+      showWebControls={true}
       name="Profile Settings"
       uri={PREFIX + `user/${user?.name}/account`}
       injectedCode={injectedCode}
@@ -88,6 +111,7 @@ export const ExternalStackRoutes: React.FC<StackProps> = ({}) => {
       }}>
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="Messages" component={Messages} />
+      <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen
         name="ProfileSettings"
         component={PorfileSettings}

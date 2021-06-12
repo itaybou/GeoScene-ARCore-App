@@ -29,6 +29,7 @@ export type MenuItem = {
   switch: boolean;
   switchActive: boolean | null;
   onClick: () => void;
+  bottomText: boolean;
 };
 
 type MenuItems = {
@@ -65,6 +66,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       darkMode: {
         title: 'Dark Mode',
         switch: true,
+        bottomText: false,
         switchActive: state.theme === 'dark',
         onClick: () =>
           dispatch({
@@ -78,7 +80,9 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
     scene: {
       viewshed: {
         title: 'Determine Visible Places',
+        additionalText: 'Show only locations estimated to be in line of sight.',
         switch: true,
+        bottomText: true,
         switchActive: state.determineViewshed,
         onClick: () =>
           dispatch({
@@ -88,15 +92,32 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
             },
           }),
       },
+      center: {
+        title: 'Show Visible Place Center',
+        switch: true,
+        bottomText: true,
+        additionalText:
+          'Show location center instead of the visible area detected.',
+        switchActive: state.showLocationCenter,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_LOCATION_CENTER,
+            payload: {
+              showLocationCenter: !state.showLocationCenter,
+            },
+          }),
+      },
       visibleRadius: {
         title: 'Visible Radius',
         additionalText: `${state.visibleRadius}Km`,
         switch: false,
         switchActive: null,
+        bottomText: false,
         onClick: () => setMapModalVisible(true),
       },
       locationTypes: {
         title: 'Scene Location Types',
+        bottomText: false,
         additionalText: `${activePlaceTypes} ${
           activePlaceTypes > 1 || activePlaceTypes === 0 ? 'types' : 'type'
         }`,
@@ -104,11 +125,26 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
         switchActive: null,
         onClick: () => setLocationTypesModalVisible(true),
       },
+      showPlacesApp: {
+        title: 'Show GeoScene Places',
+        additionalText: 'Include GeoScene added locations in search.',
+        switch: true,
+        bottomText: true,
+        switchActive: state.showPlacesApp,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_SHOW_PLACES_APP,
+            payload: {
+              showPlacesApp: !state.showPlacesApp,
+            },
+          }),
+      },
     },
     about: {
       about: {
         title: 'About GeoScene',
         switch: false,
+        bottomText: false,
         switchActive: null,
         onClick: () => navigation.navigate('About'),
       },
@@ -134,8 +170,10 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       ),
       data: [
         menuItems.scene.viewshed,
+        menuItems.scene.center,
         menuItems.scene.visibleRadius,
         menuItems.scene.locationTypes,
+        menuItems.scene.showPlacesApp,
       ],
     },
     {

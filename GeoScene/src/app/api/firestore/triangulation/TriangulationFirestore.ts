@@ -69,7 +69,7 @@ export const getTriangulationRecords = async (coordinate: {
         const distanceInM = distanceInKm * 1000;
         if (
           distanceInM <= MAX_QUERY_RADIUS_M &&
-          distanceInM > MIN_QUERY_RADIUS_M
+          distanceInM >= MIN_QUERY_RADIUS_M
         ) {
           matchingDocs.push({ id: doc.id, ...doc.data() });
         }
@@ -84,8 +84,7 @@ export const getTriangulationRecords = async (coordinate: {
 export const deleteTriangulationRecord = async (id: string) => {
   try {
     await Triangulation.doc(id).delete();
-    console.log(`Triangulation record - ${id} deleted.`);
   } catch (ex) {
-    console.log(ex);
+    console.error(ex);
   }
 };

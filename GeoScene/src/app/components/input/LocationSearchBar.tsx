@@ -34,41 +34,12 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
   const [results, setResults] = useState<LocationSearchResult[]>([]);
   const [resultsShown, setResultsShown] = useState<boolean>(false);
 
-  //   console.log(loading);
-  //   console.log(results);
-  //   console.log(query);
-  //   useEffect(() => {
-  //     setLoading(true);
-
-  //     let cancelRequest = false;
-  //     const timeOutId = setTimeout(() => {
-  //       // searchPlacesByName(query).then((res) => {
-  //       //   if (cancelRequest) return;
-
-  //       //   setResults(res);
-  //       //   setLoading(false);
-  //       // });
-  //       setLoading(false);
-  //     }, 1000);
-
-  //     return () => {
-  //       clearTimeout(timeOutId);
-  //       cancelRequest = true;
-  //     };
-  //   }, [query]);
-
   const searchResults = () => {
     setLoading(true);
     if (previousQuery !== query) {
       searchPlacesByName(query).then((res) => {
-        //   if (cancelRequest) return;
-
-        //   setResults(res);
-        //   setLoading(false);
-        // });
         Keyboard.dismiss();
         setResults(res);
-        console.log(res);
         setResultsShown(true);
         setLoading(false);
       });

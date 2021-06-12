@@ -71,15 +71,21 @@ export const placeTypes = {
 export interface SettingsType {
   theme: ThemesType;
   determineViewshed: boolean;
+  showLocationCenter: boolean;
+  showPlacesApp: boolean;
   visibleRadius: number;
   placeTypes: PlaceTypes;
+  initialized: boolean;
 }
 
 const initialSettings: SettingsType = {
   theme: 'light' as ThemesType,
   determineViewshed: true,
+  showLocationCenter: true,
+  showPlacesApp: true,
   visibleRadius: 30,
   placeTypes,
+  initialized: false,
 };
 
 export const SettingsContext = createContext<{
@@ -105,10 +111,10 @@ export const SettingsProvider: React.FC<SettingsProvider> = ({ children }) => {
     if (data) {
       dispatch({
         type: SettingsActionTypes.SET_SETTINGS,
-        payload: { settings: data },
+        payload: { settings: { ...data, initialized: true } },
       });
     } else {
-      updateStorage(initialSettings);
+      updateStorage({ ...initialSettings, initialized: true });
     }
     SplashScreen.hide();
   };

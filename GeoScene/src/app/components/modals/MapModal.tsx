@@ -31,6 +31,7 @@ interface MapModalProps {
   useObserverLocation?: boolean;
   useTriangulation?: boolean;
   boundingCircleRadius?: number;
+  enableSwipeDown?: boolean;
 }
 
 const DEFAULT_BBOX_RADIUS = 5;
@@ -50,6 +51,7 @@ export const MapModal: React.FC<MapModalProps> = ({
   onMapSingleTap,
   showTriangulationData,
   boundingCircleRadius,
+  enableSwipeDown = true,
   useTriangulation = false,
   useObserverLocation = false,
   enableZoom = false,
@@ -91,18 +93,10 @@ export const MapModal: React.FC<MapModalProps> = ({
     }
   }, [mapRef.current, isVisible]);
 
-  // useEffect(() => {
-  //   if (boundingCircleRadius) setRadius(boundingCircleRadius);
-  //   UIManager.dispatchViewManagerCommand(
-  //     mapRef.current,
-  //     MapsManager.Commands.ZOOM_SET_BBOX.toString(),
-  //     [shownPlace?.latitude, shownPlace?.longitude, boundingCircleRadius, true], // map referece, use compass orientation, use observe location
-  //   );
-  // }, [shownPlace, boundingCircleRadius, MapsManager.Commands.ZOOM_SET_BBOX]);
-
   return (
     <BottomModal
       isVisible={isVisible}
+      enableSwipeDown={enableSwipeDown}
       screenPercent={screenPercent}
       hide={hide}
       showButtonIcon={showButtonIcon}

@@ -1,9 +1,12 @@
+// @ts-nocheck
+
 import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
 import { PlaceTypes } from '../SettingsProvider';
 import { SettingsType } from '../SettingsProvider';
 import { ThemesType } from '../../themes/Themes';
 import { name as appName } from '../../../../app.json';
+import { cloneObject } from '../../utils/object/ObjectUtils';
 import { useAsyncStorage } from '../../utils/hooks/useAsyncStorage';
 
 export const SETTINGS_KEY = `${appName}::settings`;
@@ -12,7 +15,9 @@ export enum SettingsActionTypes {
   SET_SETTINGS,
   CHANGE_THEME,
   CHANGE_VIEWSHED,
+  CHANGE_LOCATION_CENTER,
   CHANGE_VISIBLE_RADIUS,
+  CHANGE_SHOW_PLACES_APP,
   CHANGE_PLACE_TYPES,
 }
 
@@ -26,11 +31,19 @@ type SettingsPayload = {
   [SettingsActionTypes.CHANGE_VIEWSHED]: {
     determineViewshed: boolean;
   };
+  [SettingsActionTypes.CHANGE_LOCATION_CENTER]: {
+    showLocationCenter: boolean;
+  };
   [SettingsActionTypes.CHANGE_VISIBLE_RADIUS]: {
     visibleRadius: number;
   };
+  [SettingsActionTypes.CHANGE_SHOW_PLACES_APP]: {
+    showPlacesApp: boolean;
+  };
   [SettingsActionTypes.CHANGE_PLACE_TYPES]: {
-    placeTypes: PlaceTypes;
+    category: any;
+    placeType: any;
+    value: boolean;
   };
 };
 
@@ -55,6 +68,14 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;
     }
+    case SettingsActionTypes.CHANGE_LOCATION_CENTER: {
+      const newState = {
+        ...state,
+        showLocationCenter: action.payload.showLocationCenter,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
     case SettingsActionTypes.CHANGE_VISIBLE_RADIUS: {
       const newState = {
         ...state,
@@ -63,10 +84,21 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;
     }
-    case SettingsActionTypes.CHANGE_PLACE_TYPES: {
+    case SettingsActionTypes.CHANGE_SHOW_PLACES_APP: {
       const newState = {
         ...state,
-        placeTypes: action.payload.placeTypes,
+        showPlacesApp: action.payload.showPlacesApp,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_PLACE_TYPES: {
+      let placeTypes = cloneObject(state.placeTypes);
+      placeTypes[action.payload.category][action.payload.placeType].on =
+        action.payload.value;
+      const newState = {
+        ...state,
+        placeTypes,
       };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;

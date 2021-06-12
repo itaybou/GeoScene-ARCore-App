@@ -20,6 +20,8 @@ import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.ArCoreApk;
 
+import org.javatuples.Pair;
+
 import java.util.List;
 
 public class ARModule extends ReactContextBaseJavaModule {
@@ -53,8 +55,8 @@ public class ARModule extends ReactContextBaseJavaModule {
     @ReactMethod
     void downloadAndStoreLocationData(String name, String description, double latitude, double longitude, int radiusKM) {
         DeviceSensors sensors = DeviceSensorsManager.getSensors(reactContext);
-        ARNodesInitializer initializer = new ARNodesInitializer(reactContext, sensors, null, false, 0, null, null);
-        initializer.dispatchDownloadEvent(false);
+        ARNodesInitializer initializer = new ARNodesInitializer(reactContext, sensors);
+        initializer.dispatchDownloadEvent(false, false);
         Coordinate center = new Coordinate(latitude, longitude);
         initializer.downloadAndStoreLocationInformation(name, description, center, radiusKM);
     }
@@ -82,6 +84,15 @@ public class ARModule extends ReactContextBaseJavaModule {
     @ReactMethod
     void deleteStoredLocationData(String id) {
         StorageAccess.deletePersistedLocationInfoById(reactContext, id);
+    }
+
+    @ReactMethod
+    void deleteCachedLocationData(final Promise promise) {
+        Pair<Integer, Integer> deletedCount = StorageAccess.deleteCachedLocations(reactContext);
+        WritableMap response = Arguments.createMap();
+        response.putInt("deleted_raster", deletedCount.getValue0());
+        response.putInt("deleted_pois", deletedCount.getValue1());
+        promise.resolve(response);
     }
 
     public Activity getActivity() {

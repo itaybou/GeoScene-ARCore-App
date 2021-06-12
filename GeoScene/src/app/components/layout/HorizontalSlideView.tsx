@@ -41,18 +41,12 @@ export const HorizontalSlideView: React.FC<HorizontalSlideViewProps> = ({
 
   const panResponderMove = useCallback(
     (event: GestureResponderEvent, gestureState: PanResponderGestureState) => {
-      console.log(gestureState.dx);
-      console.log(`collapsed ${collapsed}`);
-      // console.log(customStyle);
       if (collapsed && gestureState.dx < -80) {
-        console.log('left');
         customStyle.left = left - gestureState.dx;
         customStyle.width = DEVICE_WIDTH + gestureState.dx;
-        console.log(customStyle.width);
         collapsed && setCollapsed(false);
         updateNativeProps();
       } else if (!collapsed && gestureState.dx > 15) {
-        console.log('right');
         setLeft(0);
         customStyle.left = gestureState.dx;
         customStyle.width = -gestureState.dx + SWIPE_WIDTH;
@@ -64,7 +58,6 @@ export const HorizontalSlideView: React.FC<HorizontalSlideViewProps> = ({
   );
   const panResponderRelease = useCallback(
     (event: GestureResponderEvent, gestureState: PanResponderGestureState) => {
-      console.log(gestureState.dx, gestureState.dy);
       if (gestureState.dx > 200) {
         customStyle.left = 0;
         customStyle.width = 0;
@@ -98,7 +91,6 @@ export const HorizontalSlideView: React.FC<HorizontalSlideViewProps> = ({
     setPanResponder(
       PanResponder.create({
         onMoveShouldSetPanResponder: (event, gestureState) => {
-          console.log(gestureState.dx, gestureState.dy);
           return (
             Math.abs(gestureState.dx) >= 5 || Math.abs(gestureState.dy) >= 5
           );

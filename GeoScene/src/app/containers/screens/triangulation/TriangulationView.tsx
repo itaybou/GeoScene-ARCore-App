@@ -27,6 +27,7 @@ import React, {
 import { useGeolocation, useTheme } from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
+import { Compass } from '../../../components/assets/Compass';
 import { IntersectionModal } from './IntersectionModal';
 import { IntersectionRecordModal } from './IntersectionRecordModal';
 import Orientation from 'react-native-orientation';

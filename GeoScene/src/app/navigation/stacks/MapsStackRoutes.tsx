@@ -8,6 +8,7 @@ import { useGeolocation, useSettings, useTheme } from '../../utils/hooks/Hooks';
 
 import { BottomModal } from '../../components/modals/BottomModal';
 import { Checkbox } from 'react-native-paper';
+import { Compass } from '../../components/assets/Compass';
 import Header from '../../containers/Header';
 import { NativeMapView } from '../../../native/NativeViewsBridge';
 import { SettingsListItem } from '../../components/settings/SettingsListItem';
@@ -195,6 +196,16 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
               )}
             </View>
           </>
+        )}
+        {azimuth && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 38,
+              left: 5,
+            }}>
+            <Compass azimuth={azimuth} />
+          </View>
         )}
       </TabScreen>
       <BottomModal

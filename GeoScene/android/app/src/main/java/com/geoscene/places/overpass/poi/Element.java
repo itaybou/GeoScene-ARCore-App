@@ -35,7 +35,9 @@ public class Element extends RealmObject implements IRealmCascadeObject  {
     public void cascadeDelete() {
         Log.d("PersistLocationObject", tags.name == null? "null" : tags.name);
         tags.deleteFromRealm();
-        bounds.deleteFromRealm();
+        if(bounds != null) {
+            bounds.deleteFromRealm();
+        }
         geometry.deleteAllFromRealm();
         deleteFromRealm();
     }

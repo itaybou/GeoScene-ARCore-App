@@ -12,12 +12,14 @@ public class DeviceSensorsManager implements DeviceSensors {
 
     DeviceLocation location;
     DeviceOrientation orientation;
+    DeviceNetwork network;
 
     private static DeviceSensors sensors;
 
     private DeviceSensorsManager(Context context) {
         location = new DeviceLocation(context);
         orientation = new DeviceOrientation(context);
+        network = new DeviceNetwork(context);
     }
 
     public static DeviceSensors getSensors(Context context) {
@@ -47,6 +49,11 @@ public class DeviceSensorsManager implements DeviceSensors {
     @Override
     public float getOrientation() {
         return orientation.getOrientation();
+    }
+
+    @Override
+    public boolean isNetworkActive() {
+        return network.isNetworkAvailable();
     }
 
     @Override

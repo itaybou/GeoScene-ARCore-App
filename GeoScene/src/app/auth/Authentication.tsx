@@ -1,5 +1,4 @@
 import OAuthManager from './Auth';
-// // import * as osmAuth from 'osm-auth';
 import React from 'react';
 import { UserActionTypes } from '../providers/reducers/UserReducer';
 
@@ -35,7 +34,6 @@ export const getActiveUser = async () => {
       },
     );
 
-    console.log(details?.data?.osm?.user);
     return {
       name: details.data.osm.user['-display_name'],
       img: details.data.osm.user.img['-href'],
@@ -45,8 +43,6 @@ export const getActiveUser = async () => {
     console.error(err);
   }
   return null;
-  // .then((details) => console.log(details.data.osm.user['-display_name']))
-  // .catch((err) => console.log(err));
 };
 
 export const auth = async (dispatch: React.Dispatch<any>) => {
@@ -54,27 +50,25 @@ export const auth = async (dispatch: React.Dispatch<any>) => {
   authManager
     .authorize('osm')
     .then(async (resp) => {
-      console.log(resp);
       const user = await getActiveUser();
       dispatch({
         type: UserActionTypes.SIGN_IN,
         payload: { user: user ?? null },
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 };
 
 export const deauth = async (dispatch: React.Dispatch<any>) => {
   authManager
     .deauthorize('osm')
     .then(async (resp) => {
-      console.log('deauth ' + resp);
       dispatch({
         type: UserActionTypes.SIGN_IN,
         payload: { user: null },
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 };
 
 export const authorizationDetails = async () => {

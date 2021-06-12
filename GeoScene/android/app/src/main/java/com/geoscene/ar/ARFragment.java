@@ -23,17 +23,15 @@ import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.CameraConfig;
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ARFragment extends Fragment {
     private boolean installRequested;
@@ -46,14 +44,20 @@ public class ARFragment extends Fragment {
     private ReactContext reactContext;
     private boolean determineViewshed;
     private int visibleRadiusKM;
+    private boolean showPlacesApp;
+    private boolean showLocationCenter;
 
+    private boolean closed;
 
-    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes) {
+    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes, boolean showPlacesApp, boolean showLocationCenter) {
         super();
         this.reactContext = reactContext;
         this.determineViewshed = determineViewshed;
         this.visibleRadiusKM = visibleRadiusKM;
         this.placesTypes = placesTypes;
+        this.showPlacesApp = showPlacesApp;
+        this.showLocationCenter = showLocationCenter;
+        closed = false;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class ARFragment extends Fragment {
         ARLocationPermissionHelper.requestPermission(getActivity());
 
         dispatchLoadingProgress("Starting AR");
-        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, this);
+        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, this);
 
         return view;
     }
@@ -78,6 +82,7 @@ public class ARFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         startArSession();
+        initializer.initializeLocationMarkers(getActivity());
     }
 
     public void startArSession() {
@@ -90,6 +95,8 @@ public class ARFragment extends Fragment {
                     installRequested = ARLocationPermissionHelper.hasPermission(getActivity());
                     return;
                 } else {
+                    arSceneView.getPlaneRenderer().setVisible(false);
+                    arSceneView.getPlaneRenderer().setEnabled(false);
                     arSceneView.setupSession(session);
                 }
             } catch (UnavailableException e) {
@@ -113,19 +120,19 @@ public class ARFragment extends Fragment {
             // IMPORTANT!!!  ArSceneView needs to use the non-blocking update mode.
             Config config = new Config(session);
             config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
-//            config.setPlaneFindingMode(Config.PlaneFindingMode.DISABLED);
-            config.setLightEstimationMode(Config.LightEstimationMode.AMBIENT_INTENSITY);
+            config.setLightEstimationMode(Config.LightEstimationMode.DISABLED);
             config.setPlaneFindingMode(Config.PlaneFindingMode.VERTICAL);
             config.setCloudAnchorMode(Config.CloudAnchorMode.DISABLED);
             config.setFocusMode(Config.FocusMode.AUTO);
             session.configure(config);
-//            session.setDisplayGeometry(activity.);
         }
         return session;
     }
 
     static String getNodeTypeString(Element nodeDetails) {
-        String type = nodeDetails.tags.historic != null ? nodeDetails.tags.historic : nodeDetails.tags.natural != null? nodeDetails.tags.natural : nodeDetails.tags.place;
+        String type = nodeDetails.tags.historic != null ? nodeDetails.tags.historic : nodeDetails.tags.natural != null?
+                nodeDetails.tags.natural : nodeDetails.tags.place != null ?
+                nodeDetails.tags.place : nodeDetails.tags.createdBy;
         type = type.replace("_", " ");
         return type.substring(0, 1).toUpperCase() + type.substring(1);
     }
@@ -153,7 +160,7 @@ public class ARFragment extends Fragment {
                 event);
     }
 
-    public void dispatchReady() {
+    public void dispatchReady(boolean value) {
         WritableMap event = Arguments.createMap();
         event.putBoolean("ready", true);
         reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
@@ -171,6 +178,15 @@ public class ARFragment extends Fragment {
                 event);
     }
 
+    public void dispatchUseLocal(String name) {
+        WritableMap event = Arguments.createMap();
+        event.putString("name", name);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "localUse",
+                event);
+    }
+
     public void dispatchObserverElevation(int elevation) {
         WritableMap event = Arguments.createMap();
         event.putInt("elevation", elevation);
@@ -180,41 +196,50 @@ public class ARFragment extends Fragment {
                 event);
     }
 
+    public void dispatchLocationCount(int size) {
+        WritableMap event = Arguments.createMap();
+        event.putInt("count", size);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "count",
+                event);
+    }
+
 
     @Override
     public void onResume() {
-        super.onResume();
-        sensors.resume();
-        startArSession();
-        try {
-            arSceneView.resume();
-            initializer.initializeLocationMarkers(getActivity());
-        } catch (CameraNotAvailableException ex) {
-            ErrorHandling.displayError(getActivity(), "Unable to get camera", ex);
+        if(!closed) {
+            sensors.resume();
+            startArSession();
+            try {
+                arSceneView.resume();
+            } catch (CameraNotAvailableException ex) {
+                ErrorHandling.displayError(getActivity(), "Unable to get camera", ex);
+            }
+            super.onResume();
         }
     }
 
     /**
-     * Make sure we call locationScene.pause();
+     * Make sure we call arSceneView.pause();
      */
     @Override
     public void onPause() {
-        super.onPause();
         arSceneView.pause();
-        Log.d("ARview", "paused");
         sensors.pause();
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        close();
         arSceneView.destroy();
+        super.onDestroy();
     }
 
     public void close() {
-        if(arSceneView.getSession() != null) {
-            arSceneView.getSession().close();
-        }
+        Log.d("CLOSE_SESSION", "close");
+        closed = true;
+        initializer.disposeRequests();
+        initializer.stopUpdateListener();
     }
 }
