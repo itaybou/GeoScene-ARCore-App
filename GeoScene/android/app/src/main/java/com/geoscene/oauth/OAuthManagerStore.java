@@ -43,12 +43,7 @@ public class OAuthManagerStore {
       this.context = ctx;
       this.prefs = ctx.getSharedPreferences(name, Context.MODE_PRIVATE);
       editor = this.prefs.edit();
-      listener = new OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-          Log.d(TAG, "Preferences changed: " + key);
-        }
-      };
+      listener = (prefs, key) -> Log.d(TAG, "Preferences changed: " + key);
       prefs.registerOnSharedPreferenceChangeListener(listener);
     }
 

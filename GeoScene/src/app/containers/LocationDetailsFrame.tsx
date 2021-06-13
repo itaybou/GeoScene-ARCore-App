@@ -7,11 +7,10 @@ import {
   getPageURL,
 } from '../api/mediawiki/MediaWikiAPI';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 
 import { Center } from '../components/layout/Center';
 import FastImage from 'react-native-fast-image';
-import RNBounceable from '@freakycoder/react-native-bounceable';
-import { ScrollView } from 'react-native-gesture-handler';
 import { ThemeButton } from '../components/input/ThemeButton';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
@@ -92,9 +91,9 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
 
   const closeButton = useMemo(
     () => (
-      <RNBounceable onPress={closeLocationDetails}>
+      <TouchableOpacity onPress={closeLocationDetails}>
         <ThemeIcon name="close" color={theme.colors.text} size={25} />
-      </RNBounceable>
+      </TouchableOpacity>
     ),
     [closeLocationDetails, theme.colors.text],
   );
@@ -141,13 +140,13 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
               flexDirection: 'row',
             }}>
             <View style={{ marginEnd: 16 }}>
-              <RNBounceable onPress={expandDetails}>
+              <TouchableOpacity onPress={expandDetails}>
                 <ThemeIcon
                   name="arrow-down"
                   color={theme.colors.text}
                   size={22}
                 />
-              </RNBounceable>
+              </TouchableOpacity>
             </View>
             {closeButton}
           </View>
@@ -159,15 +158,23 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
           />
         </View>
       ) : loading ? (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.colors.cards,
-          }}>
-          {/* <ThemeText>{loadingMessage}</ThemeText> */}
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flexDirection: 'column' }}>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <ThemeText style={{ fontWeight: 'bold', fontSize: 20 }}>
+              {name_en ?? name_heb ?? main_name}
+            </ThemeText>
+            {expanded && closeButton}
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.colors.cards,
+            }}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
         </View>
       ) : (
         <View

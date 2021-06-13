@@ -118,9 +118,10 @@ export const CompassScreen: React.FC<CompassViewProps> = ({}) => {
           flexDirection: 'row',
         }}>
         <NativeMapView
+          isShown={mapShown}
           useObserverLocation={true}
-          useTriangulation={true}
           enableZoom={false}
+          useTriangulation={true}
           useCompassOrientation={true}
           onOrientationChanged={(event) => {
             setAzimuth(event.nativeEvent.azimuth);

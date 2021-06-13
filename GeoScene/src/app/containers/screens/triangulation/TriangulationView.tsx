@@ -27,7 +27,7 @@ import React, {
 import { useGeolocation, useTheme } from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
-import { Compass } from '../../../components/assets/Compass';
+import IdleTimerManager from 'react-native-idle-timer';
 import { IntersectionModal } from './IntersectionModal';
 import { IntersectionRecordModal } from './IntersectionRecordModal';
 import Orientation from 'react-native-orientation';
@@ -154,10 +154,12 @@ export function TriangulationView({
 
   useEffect(() => {
     Orientation.lockToLandscapeLeft();
+    IdleTimerManager.setIdleTimerDisabled(true);
     StatusBar.setHidden(true);
 
     return () => {
       StatusBar.setHidden(false);
+      IdleTimerManager.setIdleTimerDisabled(false);
       Orientation.unlockAllOrientations();
     };
   }, []);
@@ -345,6 +347,7 @@ export function TriangulationView({
             </Center>
           )}
           <NativeMapView
+            isShown={true}
             enableLocationTap={false}
             useObserverLocation={true}
             showBoundingCircle={false}

@@ -147,9 +147,18 @@ function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
             width: '100%',
             paddingHorizontal: 14,
           }}>
-          <ThemeText style={{ fontSize: 18, fontWeight: 'bold' }}>
-            Nearby Locations
-          </ThemeText>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <ThemeIcon name="picture" size={18} color={theme.colors.text} />
+            <ThemeText
+              style={{ fontSize: 18, fontWeight: 'bold', marginStart: 8 }}>
+              Nearby Locations
+            </ThemeText>
+          </View>
         </View>
         <PlacesCardCarousel
           items={cardDetails?.data}

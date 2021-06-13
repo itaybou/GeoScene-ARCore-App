@@ -26,6 +26,7 @@ public class LocationScene {
     private String TAG = "LocationScene";
 
     private final float RENDER_DISTANCE = 10f;
+    private final int CALIBRATION_ITERATIONS = 3;
     public ArSceneView mArSceneView;
     public Activity context;
     public DeviceSensors sensors;
@@ -42,26 +43,42 @@ public class LocationScene {
     private int bearingAdjustment = 0;
     private boolean anchorsNeedRefresh = true;
     private boolean minimalRefreshing = false;
+    private boolean refreshing = false;
+    private boolean markersRefresh = true;
+    private int iteration;
+    private int currentDistanceGroup;
     private boolean refreshAnchorsAsLocationChanges = false;
     private Handler mHandler = new Handler();
     Runnable anchorRefreshTask = new Runnable() {
         @Override
         public void run() {
             anchorsNeedRefresh = true;
-            mHandler.postDelayed(anchorRefreshTask, anchorRefreshInterval);
+            if (markersRefresh || iteration != CALIBRATION_ITERATIONS) {
+                if (!markersRefresh) {
+                    iteration++;
+                }
+                mHandler.postDelayed(anchorRefreshTask, anchorRefreshInterval);
+            }
         }
     };
     private boolean debugEnabled = false;
     private Session mSession;
+
     private DeviceLocationChanged locationChangedEvent;
 
-    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors) {
+    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors, boolean markersRefresh) {
         this.context = context;
         this.mSession = mArSceneView.getSession();
         this.mArSceneView = mArSceneView;
-
-        startCalculationTask();
+        this.markersRefresh = markersRefresh;
+        this.currentDistanceGroup = 0;
+        this.iteration = 0;
         this.sensors = sensors;
+
+    }
+
+    public void start() {
+        startCalculationTask();
         this.sensors.setLocationEvent(() -> {
             if (locationChangedEvent != null) {
                 locationChangedEvent.onChange(sensors.getDeviceLocation());
@@ -120,7 +137,8 @@ public class LocationScene {
 
     /**
      * Set the interval at which anchors should be automatically re-calculated.
-     *locationChangedEvent
+     * locationChangedEvent
+     *
      * @param anchorRefreshInterval
      */
     public void setAnchorRefreshInterval(int anchorRefreshInterval) {
@@ -132,12 +150,11 @@ public class LocationScene {
     public void clearMarkers() {
         for (LocationMarker lm : mLocationMarkers) {
             if (lm.anchorNode != null) {
-                if(lm.anchorNode.getAnchor() != null)
+                if (lm.anchorNode.getAnchor() != null)
                     lm.anchorNode.getAnchor().detach();
                 lm.anchorNode.setEnabled(false);
                 lm.anchorNode = null;
             }
-
         }
         mLocationMarkers = new ArrayList<>();
     }
@@ -212,22 +229,39 @@ public class LocationScene {
     }
 
     private void refreshAnchorsIfRequired(Frame frame) {
-        if (sensors == null || !anchorsNeedRefresh) {
+        if (sensors == null || !anchorsNeedRefresh || refreshing) {
             return;
         }
+        refreshing = true;
         anchorsNeedRefresh = false;
-        Log.i(TAG, "Refreshing anchors...");
+        if (debugEnabled) {
+            Log.i(TAG, "Refreshing anchors...");
+        }
 
         Location deviceLocation = deviceLocation();
         float deviceOrientation = sensors.getOrientation();
         if (deviceLocation == null) {
-            Log.i(TAG, "Location not yet established.");
+            if (debugEnabled) {
+                Log.i(TAG, "Location not yet established.");
+            }
             return;
         }
 
         for (int i = 0; i < mLocationMarkers.size(); i++) {
             try {
                 final LocationMarker marker = mLocationMarkers.get(i);
+
+                if (marker.getDistanceGroup() != currentDistanceGroup) {
+                    if (marker.anchorNode != null) {
+                        marker.anchorNode.setEnabled(false);
+                    }
+//                    resetLocationMarker(marker);
+//                    Log.d("RESET MARKER", String.valueOf(marker.getDistanceGroup()));
+                    continue;
+                } else if (marker.anchorNode != null) {
+                    marker.anchorNode.setEnabled(true);
+                }
+
                 int markerDistance = (int) Math.round(
                         LocationUtils.distance(
                                 marker.latitude,
@@ -239,7 +273,7 @@ public class LocationScene {
                 );
                 if (markerDistance > marker.getOnlyRenderWhenWithin()) {
                     // Don't render if this has been set and we are too far away.
-                    if(debugEnabled) {
+                    if (debugEnabled) {
                         Log.i(TAG, "Not rendering. Marker distance: " + markerDistance
                                 + " Max render distance: " + marker.getOnlyRenderWhenWithin());
                     }
@@ -261,7 +295,7 @@ public class LocationScene {
 
                 double rotation = Math.floor(markerBearing);
 
-                if(debugEnabled) {
+                if (debugEnabled) {
                     Log.d(TAG, "currentDegree " + deviceOrientation
                             + " bearing " + bearing + " markerBearing " + markerBearing
                             + " rotation " + rotation + " distance " + markerDistance);
@@ -293,40 +327,23 @@ public class LocationScene {
 
                 float y = frame.getCamera().getDisplayOrientedPose().ty() + (float) heightAdjustment;
 
-                if (marker.anchorNode != null && marker.anchorNode.getAnchor() != null) {
-                    marker.anchorNode.getAnchor().detach();
-                    marker.anchorNode.setAnchor(null);
-                    marker.anchorNode.setEnabled(false);
-                    marker.anchorNode = null;
-                }
+                resetLocationMarker(marker);
 
                 // Don't immediately assign newly created anchor in-case of exceptions
                 Pose translation = Pose.makeTranslation(xRotated, y, zRotated);
-//                boolean obstructed = false;
-//
-//                for(Plane plane : planes) {
-//                    Log.d("PLANE", plane.getExtentX() +", " + plane.getExtentZ());
-//                    if(plane.isPoseInExtents(translation)) {
-//                        obstructed = true;
-//                        break;
-//                    }
-//                }
-//                if(obstructed) {
-//                    marker.anchorNode.setEnabled(false);
-//                    continue;
-//                }
                 Anchor newAnchor = mSession.createAnchor(
                         frame.getCamera()
                                 .getDisplayOrientedPose()
                                 .compose(translation)
                                 .extractTranslation()
                 );
-
-                marker.anchorNode = new LocationNode(newAnchor, marker, this);
+                if(marker.anchorNode == null) {
+                    marker.anchorNode = new LocationNode(newAnchor, marker, this);
+                    marker.anchorNode.setParent(mArSceneView.getScene());
+                    marker.anchorNode.addChild(marker.node);
+                } else marker.anchorNode.setAnchor(newAnchor);
                 marker.anchorNode.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
 
-                marker.anchorNode.setParent(mArSceneView.getScene());
-                marker.anchorNode.addChild(marker.node);
                 marker.node.setLocalPosition(Vector3.zero());
 
                 if (marker.getRenderEvent() != null) {
@@ -340,11 +357,6 @@ public class LocationScene {
 
                 // Locations further than RENDER_DISTANCE are remapped to be rendered closer.
                 // => height differential also has to ensure the remap is correct
-                if (shouldOffsetOverlapping()) {
-                    if (mArSceneView.getScene().overlapTestAll(marker.node).size() > 0) {
-                        marker.setHeight(marker.getHeight() + 50);
-                    }
-                }
                 if (markerDistance > RENDER_DISTANCE) {
                     float renderHeight = RENDER_DISTANCE * marker.getHeight() / markerDistance;
                     marker.anchorNode.setHeight(renderHeight);
@@ -352,17 +364,21 @@ public class LocationScene {
                     marker.anchorNode.setHeight(marker.anchorNode.getHeight());
                 }
 
-//                Log.d("Height", String.valueOf(marker.anchorNode.getHeight()));
-//                Log.d("Distance", String.valueOf(getDistanceLimit()));
-
                 if (minimalRefreshing)
                     marker.anchorNode.scaleAndRotate();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        refreshing = false;
         //this is bad, you should feel bad
 //        System.gc();
+    }
+
+    private void resetLocationMarker(LocationMarker marker) {
+        if (marker.anchorNode != null && marker.anchorNode.getAnchor() != null) {
+            marker.anchorNode.getAnchor().detach();
+        }
     }
 
     /**
@@ -374,6 +390,10 @@ public class LocationScene {
         return bearingAdjustment;
     }
 
+    public void setIteration(int iteration) {
+        this.iteration = iteration;
+    }
+
     /**
      * Adjustment for compass bearing.
      * You may use this for a custom method of improving precision.
@@ -383,6 +403,14 @@ public class LocationScene {
     public void setBearingAdjustment(int i) {
         bearingAdjustment = i;
         anchorsNeedRefresh = true;
+    }
+
+    public void setCurrentDistanceGroup(int currentDistanceGroup) {
+        this.currentDistanceGroup = currentDistanceGroup;
+    }
+
+    public int getCurrentDistanceGroup() {
+        return currentDistanceGroup;
     }
 
     void startCalculationTask() {

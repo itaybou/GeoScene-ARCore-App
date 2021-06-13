@@ -76,6 +76,8 @@ export interface SettingsType {
   visibleRadius: number;
   placeTypes: PlaceTypes;
   initialized: boolean;
+  markersRefresh: boolean;
+  realisticMarkers: boolean;
 }
 
 const initialSettings: SettingsType = {
@@ -86,6 +88,8 @@ const initialSettings: SettingsType = {
   visibleRadius: 30,
   placeTypes,
   initialized: false,
+  markersRefresh: true,
+  realisticMarkers: true,
 };
 
 export const SettingsContext = createContext<{

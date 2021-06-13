@@ -6,10 +6,12 @@ import {
   GestureResponderEvent,
   SafeAreaView,
   StatusBar,
+  StyleProp,
   StyleSheet,
   TouchableOpacity,
   UIManager,
   View,
+  ViewStyle,
   findNodeHandle,
 } from 'react-native';
 import {
@@ -28,11 +30,10 @@ import Orientation from 'react-native-orientation';
 import { SceneStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
-import { event } from 'react-native-reanimated';
 
 const ANIMATION_TIMING_CONFIG = {
   duration: 250,
-  easing: Easing.inOut(Easing.quad),
+  easing: Easing.inOut(Easing.ease),
   useNativeDriver: false,
 };
 
@@ -63,6 +64,47 @@ const MapButton: React.FC<MapButtonProps> = ({ onPress }) => {
   );
 };
 
+interface SideButtonProps {
+  onPress: ((event: GestureResponderEvent) => void) | undefined;
+  style?: StyleProp<ViewStyle>;
+  icon: string;
+  text?: string;
+  color?: string;
+  flex?: number;
+}
+
+const SideButton: React.FC<SideButtonProps> = ({
+  onPress,
+  style,
+  icon,
+  text,
+  color,
+  flex,
+}) => {
+  const theme = useTheme();
+
+  return (
+    <View style={[{ justifyContent: 'center', alignItems: 'center' }]}>
+      <TouchableOpacity
+        onPress={onPress}
+        style={[style, { backgroundColor: theme.colors.tabs }]}>
+        <View style={{ flexDirection: 'row' }}>
+          <ThemeIcon
+            name={icon}
+            color={color ?? theme.colors.accent}
+            size={12}
+          />
+          {text && (
+            <ThemeText style={{ marginLeft: 8, fontSize: 10 }}>
+              {text}
+            </ThemeText>
+          )}
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 export function ARSceneView({
   route,
   navigation,
@@ -87,9 +129,19 @@ export function ARSceneView({
     LocationNameProps | null | undefined
   >(null);
 
-  const [locationCount, setLocationCount] = useState<number | undefined>(
-    undefined,
-  );
+  const [visibleLocations, setVisibleLocations] = useState<
+    | {
+        maxDistance: number;
+        minDistance: number;
+        first: boolean;
+        last: boolean;
+      }
+    | undefined
+  >(undefined);
+
+  const [locationCount, setLocationCount] = useState<
+    { locationCount: number; currentCount: number } | undefined
+  >(undefined);
   const [cacheUse, setCacheUse] = useState<boolean>(false);
   const [localUse, setLocalUse] = useState<string | undefined>(undefined);
 
@@ -118,7 +170,6 @@ export function ARSceneView({
     Orientation.lockToLandscapeLeft();
     StatusBar.setHidden(true);
     IdleTimerManager.setIdleTimerDisabled(true);
-
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
@@ -147,6 +198,8 @@ export function ARSceneView({
           state.placeTypes,
           state.showPlacesApp,
           state.showLocationCenter,
+          state.markersRefresh,
+          state.realisticMarkers,
         ],
       );
       setARDisplayed(true);
@@ -192,6 +245,91 @@ export function ARSceneView({
   return (
     <SafeAreaView
       style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
+      {ready && (
+        <View
+          style={{
+            position: 'absolute',
+            left: 5,
+            bottom: '-11%',
+            zIndex: 100,
+            justifyContent: 'center',
+            alignItems: 'center',
+            // backgroundColor: theme.colors.tabs,
+            borderRadius: 10,
+          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+            }}>
+            {(!state.markersRefresh || !state.realisticMarkers) && (
+              <SideButton
+                icon="refresh"
+                color={theme.colors.text}
+                style={styles.bottomButtons}
+                onPress={() => {
+                  if (arRef.current && ARDisplayed) {
+                    UIManager.dispatchViewManagerCommand(
+                      arRef.current,
+                      ARManager.Commands.REFRESH.toString(),
+                      [],
+                    );
+                  }
+                }}
+              />
+            )}
+            {visibleLocations && (
+              <>
+                {!visibleLocations.first && (
+                  <SideButton
+                    icon="arrow-down"
+                    color={theme.colors.text}
+                    text={
+                      visibleLocations.minDistance < 1000
+                        ? `${visibleLocations.minDistance}m`
+                        : `${(visibleLocations.minDistance / 1000).toFixed(
+                            2,
+                          )}Km`
+                    }
+                    style={styles.bottomButtons}
+                    onPress={() => {
+                      if (arRef.current && ARDisplayed) {
+                        UIManager.dispatchViewManagerCommand(
+                          arRef.current,
+                          ARManager.Commands.SHOW_MARKERS.toString(),
+                          [false],
+                        );
+                      }
+                    }}
+                  />
+                )}
+                {!visibleLocations.last && (
+                  <SideButton
+                    icon="arrow-up"
+                    color={theme.colors.text}
+                    text={
+                      visibleLocations.maxDistance < 1000
+                        ? `${visibleLocations.maxDistance}m`
+                        : `${(visibleLocations.maxDistance / 1000).toFixed(
+                            2,
+                          )}Km`
+                    }
+                    style={styles.bottomButtons}
+                    onPress={() => {
+                      if (arRef.current && ARDisplayed) {
+                        UIManager.dispatchViewManagerCommand(
+                          arRef.current,
+                          ARManager.Commands.SHOW_MARKERS.toString(),
+                          [true],
+                        );
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </View>
+        </View>
+      )}
       {elevation && ready && (
         <View
           style={{
@@ -274,9 +412,10 @@ export function ARSceneView({
                         fontSize: 12,
                         marginStart: cacheUse ? 12 : 0,
                       }}>
-                      {locationCount === undefined || locationCount === 0
+                      {locationCount === undefined ||
+                      locationCount.locationCount === 0
                         ? `No locations visible`
-                        : `Showing ${locationCount} locations`}
+                        : `Showing ${locationCount.currentCount}/${locationCount.locationCount} locations`}
                     </ThemeText>
                   </View>
                 </View>
@@ -285,6 +424,7 @@ export function ARSceneView({
           </TouchableOpacity>
         </View>
       )}
+
       <View style={{ flex: 1, flexDirection: 'row' }}>
         {!ready && (
           <Center style={{ flex: 1, zIndex: 1 }}>
@@ -299,7 +439,7 @@ export function ARSceneView({
           }}>
           <NativeARView
             style={{
-              flex: 1,
+              flex: ready ? 1 : 0,
             }}
             ref={(nativeRef) => (arRef.current = findNodeHandle(nativeRef))}
             onUserElevation={(event: any) =>
@@ -307,8 +447,19 @@ export function ARSceneView({
             }
             onUseCache={(event: any) => setCacheUse(true)}
             onLocalUse={(event: any) => setLocalUse(event.nativeEvent.name)}
+            onChangedVisible={(event: any) =>
+              setVisibleLocations({
+                minDistance: event.nativeEvent.min_distance,
+                maxDistance: event.nativeEvent.max_distance,
+                first: event.nativeEvent.first,
+                last: event.nativeEvent.last,
+              })
+            }
             onLocationCount={(event) =>
-              setLocationCount(event.nativeEvent.count)
+              setLocationCount({
+                locationCount: event.nativeEvent.count,
+                currentCount: event.nativeEvent.current,
+              })
             }
             onLocationMarkerTouch={(event: any) => {
               const {
@@ -381,6 +532,7 @@ export function ARSceneView({
               </Center>
             )}
             <NativeMapView
+              isShown={mapShown}
               enableZoom={false}
               useObserverLocation={true}
               useCompassOrientation={true}
@@ -389,6 +541,7 @@ export function ARSceneView({
               }
               style={{
                 flex: loadingMap ? 0 : 1,
+                display: mapShown ? 'flex' : 'none',
               }}
               ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
             />
@@ -460,5 +613,13 @@ const styles = StyleSheet.create({
     elevation: 20,
     position: 'absolute',
     bottom: 0,
+  },
+  bottomButtons: {
+    height: 70,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    borderRadius: 20,
   },
 });

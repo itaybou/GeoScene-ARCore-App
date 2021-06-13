@@ -77,6 +77,16 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
           }),
       },
     },
+    area: {
+      visibleRadius: {
+        title: 'Visible Radius',
+        additionalText: `${state.visibleRadius}Km`,
+        switch: false,
+        switchActive: null,
+        bottomText: false,
+        onClick: () => setMapModalVisible(true),
+      },
+    },
     scene: {
       viewshed: {
         title: 'Determine Visible Places',
@@ -107,14 +117,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
             },
           }),
       },
-      visibleRadius: {
-        title: 'Visible Radius',
-        additionalText: `${state.visibleRadius}Km`,
-        switch: false,
-        switchActive: null,
-        bottomText: false,
-        onClick: () => setMapModalVisible(true),
-      },
+
       locationTypes: {
         title: 'Scene Location Types',
         bottomText: false,
@@ -136,6 +139,38 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
             type: SettingsActionTypes.CHANGE_SHOW_PLACES_APP,
             payload: {
               showPlacesApp: !state.showPlacesApp,
+            },
+          }),
+      },
+    },
+    ar_optimization: {
+      dynamic_markers: {
+        title: 'Dynamic Location Markers',
+        additionalText:
+          'Location markers will keep refreshing, more accurate (Slower).',
+        switch: true,
+        bottomText: true,
+        switchActive: state.markersRefresh,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_MARKERS_REFRESH,
+            payload: {
+              markersRefresh: !state.markersRefresh,
+            },
+          }),
+      },
+      realistic_markers: {
+        title: 'Realistic Location Markers',
+        additionalText:
+          'Location markers realistic positioning effect (Slower).',
+        switch: true,
+        bottomText: true,
+        switchActive: state.realisticMarkers,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_MARKERS_REALISTIC,
+            payload: {
+              markersRealistic: !state.realisticMarkers,
             },
           }),
       },
@@ -162,8 +197,17 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       data: [menuItems.theme.darkMode],
     },
     {
-      title: 'Scene',
+      title: 'Area',
       index: 1,
+      showHeader: true,
+      icon: (color: string) => (
+        <ThemeIcon name="cursor" size={18} color={color} />
+      ),
+      data: [menuItems.area.visibleRadius],
+    },
+    {
+      title: 'Scene',
+      index: 2,
       showHeader: true,
       icon: (color: string) => (
         <ThemeIcon name="compass" size={18} color={color} />
@@ -171,14 +215,25 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       data: [
         menuItems.scene.viewshed,
         menuItems.scene.center,
-        menuItems.scene.visibleRadius,
         menuItems.scene.locationTypes,
         menuItems.scene.showPlacesApp,
       ],
     },
     {
-      title: 'About',
+      title: 'AR Optimizations',
       index: 2,
+      showHeader: true,
+      icon: (color: string) => (
+        <ThemeIcon name="wrench" size={18} color={color} />
+      ),
+      data: [
+        menuItems.ar_optimization.dynamic_markers,
+        menuItems.ar_optimization.realistic_markers,
+      ],
+    },
+    {
+      title: 'About',
+      index: 3,
       showHeader: false,
       data: [menuItems.about.about],
     },

@@ -3,6 +3,7 @@ package com.geoscene.ar;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class ARFragment extends Fragment {
+    private final static String TAG = "ARFragment";
     private boolean installRequested;
 
     private ArSceneView arSceneView;
@@ -46,10 +48,12 @@ public class ARFragment extends Fragment {
     private int visibleRadiusKM;
     private boolean showPlacesApp;
     private boolean showLocationCenter;
+    private boolean markersRefresh;
+    private boolean realisticMarkers;
 
     private boolean closed;
 
-    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes, boolean showPlacesApp, boolean showLocationCenter) {
+    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes, boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers) {
         super();
         this.reactContext = reactContext;
         this.determineViewshed = determineViewshed;
@@ -57,6 +61,8 @@ public class ARFragment extends Fragment {
         this.placesTypes = placesTypes;
         this.showPlacesApp = showPlacesApp;
         this.showLocationCenter = showLocationCenter;
+        this.markersRefresh = markersRefresh;
+        this.realisticMarkers = realisticMarkers;
         closed = false;
     }
 
@@ -66,23 +72,23 @@ public class ARFragment extends Fragment {
         View view = inflater.inflate(R.layout.ar_scene_layout, container, false);
         arSceneView = view.findViewById(R.id.ar_scene_view);
 
-        Context context = getContext();
-        sensors = DeviceSensorsManager.getSensors(context);
+        dispatchLoadingProgress("Starting AR");
 
+        sensors = DeviceSensorsManager.getSensors(getContext());
         // Request CAMERA & fine location permission which is required by ARCore-Location.
         ARLocationPermissionHelper.requestPermission(getActivity());
-
-        dispatchLoadingProgress("Starting AR");
-        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, this);
-
+        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, markersRefresh, realisticMarkers, this);
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        startArSession();
-        initializer.initializeLocationMarkers(getActivity());
+        new Handler().post(() -> {
+            startArSession();
+            initializer.initializeLocationMarkers(getActivity());
+        });
+
     }
 
     public void startArSession() {
@@ -121,12 +127,25 @@ public class ARFragment extends Fragment {
             Config config = new Config(session);
             config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
             config.setLightEstimationMode(Config.LightEstimationMode.DISABLED);
-            config.setPlaneFindingMode(Config.PlaneFindingMode.VERTICAL);
+            config.setPlaneFindingMode(Config.PlaneFindingMode.DISABLED);
             config.setCloudAnchorMode(Config.CloudAnchorMode.DISABLED);
-            config.setFocusMode(Config.FocusMode.AUTO);
+            config.setFocusMode(Config.FocusMode.FIXED);
+            config.setDepthMode(Config.DepthMode.DISABLED);
+            config.setInstantPlacementMode(Config.InstantPlacementMode.DISABLED);
+            config.setAugmentedFaceMode(Config.AugmentedFaceMode.DISABLED);
             session.configure(config);
         }
         return session;
+    }
+
+    public void refreshAR() {
+        if(initializer != null) {
+            initializer.refreshAR();
+        }
+    }
+
+    public void showNextPrevMarkers(boolean next) {
+        initializer.showNextPrevMarkers(next);
     }
 
     static String getNodeTypeString(Element nodeDetails) {
@@ -196,12 +215,25 @@ public class ARFragment extends Fragment {
                 event);
     }
 
-    public void dispatchLocationCount(int size) {
+    public void dispatchLocationCount(int current, int size) {
         WritableMap event = Arguments.createMap();
         event.putInt("count", size);
+        event.putInt("current", current);
         reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
                 getId(),
                 "count",
+                event);
+    }
+
+    public void dispatchVisibleMarkers(int minDistance, int maxDistance, boolean first, boolean last) {
+        WritableMap event = Arguments.createMap();
+        event.putInt("max_distance", maxDistance);
+        event.putInt("min_distance", minDistance);
+        event.putBoolean("first", first);
+        event.putBoolean("last", last);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "visible",
                 event);
     }
 
@@ -237,9 +269,10 @@ public class ARFragment extends Fragment {
     }
 
     public void close() {
-        Log.d("CLOSE_SESSION", "close");
+        Log.d(TAG, "Close AR Session.");
         closed = true;
         initializer.disposeRequests();
         initializer.stopUpdateListener();
     }
+
 }

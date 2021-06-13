@@ -107,7 +107,10 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
                     }
                   : defaultProfilePicture
               }
-              style={styles.profileImageStyle}
+              style={[
+                styles.profileImageStyle,
+                { borderColor: theme.colors.tabs },
+              ]}
             />
 
             <ThemeText style={styles.profileNameText}>

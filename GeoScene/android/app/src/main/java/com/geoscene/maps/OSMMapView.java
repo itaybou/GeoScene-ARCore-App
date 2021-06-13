@@ -70,6 +70,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     private boolean enableLocationMarkerTap;
     private boolean enableDistanceCalculation;
     private boolean showBoundingCircle;
+    private boolean isShown;
 
     private List<TriangulationData> triangulationData;
 
@@ -98,6 +99,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     public OSMMapView(ReactContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.animateToIncludeTriangulationPoints = false;
 
         Configuration.getInstance().load(reactContext, PreferenceManager.getDefaultSharedPreferences(reactContext));
         inflate(reactContext, R.layout.map_layout, this);
@@ -140,6 +142,10 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
             if (lineOfSight != null)
                 map.getOverlays().remove(lineOfSight);
         }
+    }
+
+    public void setIsShown(boolean shown) {
+        this.isShown = shown;
     }
 
     public void setUseObserverLocation(boolean useObserverLocation) {
@@ -418,13 +424,17 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         t = (int) t;
         t = t * 2;
 
-        if(useTriangulation && map.getRepository() != null && Math.abs(previousAzimuth - azimuth) >= 1e-2) { // Reduce azimuth to include only 2 digits after point changes(EPSILON DIFF)
+        if((useTriangulation || useCompassOrientation) && map.getRepository() != null && Math.abs(previousAzimuth - azimuth) >= 1e-3) { // Reduce azimuth to include only 2 digits after point changes(EPSILON DIFF)
             dispatchAzimuth(azimuth);
-            calculateAndDrawTriangulations(azimuth, t);
+            if(useTriangulation) {
+                calculateAndDrawTriangulations(azimuth, t);
+            }
+
+            if(!animateToIncludeTriangulationPoints && isShown) {
+                mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, t);
+            }
         }
-        if(!animateToIncludeTriangulationPoints) {
-            mapController.animateTo(observer, map.getZoomLevelDouble(), ORIENTATION_CHANGE_ANIMATION_SPEED, t);
-        }
+
         previousAzimuth = azimuth;
     }
 
@@ -710,6 +720,5 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     @Override
     public void onHostDestroy() {
     }
-
 
 }

@@ -6,10 +6,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:translationZ="10dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        >
 
     <androidx.cardview.widget.CardView
-            android:id="@+id/card_viewspOffet"
+            android:id="@+id/card"
             android:elevation="9dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -72,7 +73,7 @@
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:layout_centerHorizontal="true"
-        android:layout_alignBottom="@id/card_viewspOffet"
+        android:layout_alignBottom="@id/card"
         android:background="@drawable/marker"
     />
 

@@ -31,11 +31,10 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
     public static final String REACT_TAG = "MapView";
     private ReactContext reactContext;
 
-    public final int COMMAND_CREATE = 0;
-    public final int COMMAND_ZOOM_BBOX = 1;
-    public final int COMMAND_ZOOM_SET_BBOX = 2;
-    public final int COMMAND_DIST_MY_LOCATION = 3;
-    public final int COMMAND_ZOOM_IN_OUT = 4;
+    public final int COMMAND_ZOOM_BBOX = 0;
+    public final int COMMAND_ZOOM_SET_BBOX = 1;
+    public final int COMMAND_DIST_MY_LOCATION = 2;
+    public final int COMMAND_ZOOM_IN_OUT = 3;
 
     public MapsViewManager(ReactApplicationContext reactContext) {
         super();
@@ -90,6 +89,10 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
         }
     }
 
+    @ReactProp(name = "isShown", defaultBoolean = false)
+    public void setIsShown(OSMMapView view, boolean shown) {
+        view.setIsShown(shown);
+    }
 
     @ReactProp(name = "enableLocationTap", defaultBoolean = false)
     public void setEnableLocationMarkerTap(OSMMapView view, boolean enableLocationTap) {

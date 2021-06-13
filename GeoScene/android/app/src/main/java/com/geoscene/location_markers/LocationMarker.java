@@ -1,6 +1,5 @@
 package com.geoscene.location_markers;
 
-import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
 
 public class LocationMarker {
@@ -23,6 +22,7 @@ public class LocationMarker {
     private ScalingMode scalingMode = ScalingMode.FIXED_SIZE_ON_SCREEN;
     private float gradualScalingMinScale = 0.2F;
     private float gradualScalingMaxScale = 0.65F;
+    private int distanceGroup;
 
     public LocationMarker(double longitude, double latitude, Node node) {
         this.longitude = longitude;
@@ -141,4 +141,11 @@ public class LocationMarker {
         GRADUAL_FIXED_SIZE
     }
 
+    public int getDistanceGroup() {
+        return distanceGroup;
+    }
+
+    public void setDistanceGroup(int distanceGroup) {
+        this.distanceGroup = distanceGroup;
+    }
 }

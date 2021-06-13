@@ -62,6 +62,15 @@ public class LocationUtils {
         return Math.sqrt(distance);
     }
 
+    /**
+     * Geodesic aerial distance in metres between two coordinates
+     *
+     * @param lat1
+     * @param lat2
+     * @param lon1
+     * @param lon2
+     * @return
+     */
     public static double aerialDistance(double lat1, double lat2, double lon1,
                                         double lon2) {
         return Geodesic.WGS84.Inverse(lat1, lon1, lat2, lon2, GeodesicMask.DISTANCE).s12;

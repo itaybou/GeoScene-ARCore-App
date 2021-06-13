@@ -115,12 +115,12 @@ public class LocationNode extends AnchorNode {
             double distanceInAR = Math.sqrt(dx * dx + dy * dy + dz * dz);
             setDistanceInAR(distanceInAR);
 
-//            if (locationScene.shouldOffsetOverlapping()) {
-//                if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
-//                    locationMarker.setHeight(locationMarker.getHeight() + 1.2F);
-//                    setHeight(locationMarker.getHeight());
-//                }
-//            }
+            if (locationScene.shouldOffsetOverlapping()) {
+                if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
+                    Log.d("overlap", String.valueOf(locationScene.mArSceneView.getScene().overlapTestAll(n).size()));
+                    locationMarker.setHeight(locationMarker.getHeight() + (15 * ((float)locationMarker.anchorNode.getDistance() / 1000)));
+                }
+            }
 
             if (locationScene.shouldRemoveOverlapping()) {
                 Ray ray = new Ray();

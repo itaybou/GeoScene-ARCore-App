@@ -32,6 +32,8 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
 
     public final int COMMAND_CREATE = 1;
     public final int COMMAND_CLOSE = 2;
+    public final int COMMAND_REFRESH = 3;
+    public final int COMMAND_SHOW_MARKERS = 4;
 
     public ARViewManager(ReactApplicationContext reactContext) {
         super();
@@ -58,7 +60,9 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
     public Map<String, Integer> getCommandsMap() {
         return MapBuilder.of(
                 "CREATE", COMMAND_CREATE,
-                "CLOSE", COMMAND_CLOSE
+                "CLOSE", COMMAND_CLOSE,
+                "REFRESH", COMMAND_REFRESH,
+                "SHOW_MARKERS", COMMAND_SHOW_MARKERS
         );
     }
 
@@ -69,13 +73,31 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
             case COMMAND_CREATE:
-                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3), args.getBoolean(4), args.getBoolean(5));
+                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3), args.getBoolean(4), args.getBoolean(5), args.getBoolean(6), args.getBoolean(7));
                 break;
             case COMMAND_CLOSE:
                 closeARFragment(root);
                 break;
+            case COMMAND_REFRESH:
+                refreshARFragment(root);
+                break;
+            case COMMAND_SHOW_MARKERS:
+                showNextPrevMarkers(root, args.getBoolean(0));
+                break;
             default:
                 Log.w(REACT_TAG, "Invalid command recieved from ReactNative");
+        }
+    }
+
+    private void showNextPrevMarkers(FrameLayout root, boolean next) {
+        if(arFragment != null) {
+            arFragment.showNextPrevMarkers(next);
+        }
+    }
+
+    private void refreshARFragment(FrameLayout root) {
+        if(arFragment != null) {
+            arFragment.refreshAR();
         }
     }
 
@@ -88,10 +110,9 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
         }
     }
 
-    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes, boolean showPlacesApp, boolean showLocationCenter) {
+    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes, boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers) {
         Map<String, HashSet<String>> placesTypes = parsePlaceTypes(placeTypes);
-        Log.d("PLACES", String.valueOf(placesTypes));
-        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter);
+        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, markersRefresh, realisticMarkers);
 
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
@@ -128,21 +149,23 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
     @Nullable
     @Override
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
-        return MapBuilder.of(
-                "locationMarkerTouch",
-                MapBuilder.of("registrationName", "onLocationMarkerTouch"),
-                "ready",
-                MapBuilder.of("registrationName", "onReady"),
-                "loadingProgress",
-                MapBuilder.of("registrationName", "onLoadingProgress"),
-                "cacheUse",
-                MapBuilder.of("registrationName", "onUseCache"),
-                "localUse",
-                MapBuilder.of("registrationName", "onLocalUse"),
-                "count",
-                MapBuilder.of("registrationName", "onLocationCount"),
-                "elevation",
-                MapBuilder.of("registrationName", "onUserElevation")
-        );
+        Map<String, Object> map = MapBuilder.of();
+        map.put("locationMarkerTouch",
+                MapBuilder.of("registrationName", "onLocationMarkerTouch"));
+        map.put( "ready",
+                MapBuilder.of("registrationName", "onReady"));
+        map.put("loadingProgress",
+                MapBuilder.of("registrationName", "onLoadingProgress"));
+        map.put("cacheUse",
+                MapBuilder.of("registrationName", "onUseCache"));
+        map.put("localUse",
+                MapBuilder.of("registrationName", "onLocalUse"));
+        map.put("count",
+                MapBuilder.of("registrationName", "onLocationCount"));
+        map.put("elevation",
+                MapBuilder.of("registrationName", "onUserElevation"));
+        map.put("visible",
+                MapBuilder.of("registrationName", "onChangedVisible"));
+        return map;
     }
 }

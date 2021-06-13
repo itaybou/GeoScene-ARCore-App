@@ -58,11 +58,12 @@ public class GeographyModule extends ReactContextBaseJavaModule {
 
         DeviceSensors sensorManager = DeviceSensorsManager.getSensors(reactContext);
         Location observer = sensorManager.getDeviceLocation();
-        double distance = LocationUtils.aerialDistance(observer.getLatitude(), latitude, observer.getLongitude(), longitude);
-
-        WritableMap event = Arguments.createMap();
-        event.putDouble("distance", distance);
-        promise.resolve(event);
+        if(observer != null) {
+            double distance = LocationUtils.aerialDistance(observer.getLatitude(), latitude, observer.getLongitude(), longitude);
+            WritableMap event = Arguments.createMap();
+            event.putDouble("distance", distance);
+            promise.resolve(event);
+        } else promise.resolve(null);
     }
 
     public Activity getActivity() {

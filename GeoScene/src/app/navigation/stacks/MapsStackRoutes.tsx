@@ -75,6 +75,7 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
     <>
       <TabScreen disablePadding={true}>
         <NativeMapView
+          isShown={true}
           enableLocationTap={false}
           useObserverLocation={followLocation}
           showBoundingCircle={showBoundingCircle}

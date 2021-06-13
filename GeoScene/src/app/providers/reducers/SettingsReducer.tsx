@@ -19,6 +19,8 @@ export enum SettingsActionTypes {
   CHANGE_VISIBLE_RADIUS,
   CHANGE_SHOW_PLACES_APP,
   CHANGE_PLACE_TYPES,
+  CHANGE_MARKERS_REFRESH,
+  CHANGE_MARKERS_REALISTIC,
 }
 
 type SettingsPayload = {
@@ -39,6 +41,12 @@ type SettingsPayload = {
   };
   [SettingsActionTypes.CHANGE_SHOW_PLACES_APP]: {
     showPlacesApp: boolean;
+  };
+  [SettingsActionTypes.CHANGE_MARKERS_REFRESH]: {
+    markersRefresh: boolean;
+  };
+  [SettingsActionTypes.CHANGE_MARKERS_REALISTIC]: {
+    markersRealistic: boolean;
   };
   [SettingsActionTypes.CHANGE_PLACE_TYPES]: {
     category: any;
@@ -72,6 +80,22 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       const newState = {
         ...state,
         showLocationCenter: action.payload.showLocationCenter,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_MARKERS_REFRESH: {
+      const newState = {
+        ...state,
+        markersRefresh: action.payload.markersRefresh,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_MARKERS_REALISTIC: {
+      const newState = {
+        ...state,
+        realisticMarkers: action.payload.markersRealistic,
       };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;

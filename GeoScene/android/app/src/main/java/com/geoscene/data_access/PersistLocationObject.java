@@ -26,7 +26,6 @@ public class PersistLocationObject extends RealmObject implements IRealmCascadeO
     public BoundingBoxDTO bbox;
     public RasterDTO raster;
     public PointsOfInterest pois;
-//    public RealmList<String> queryParams; [forest, city...]
 
     public PersistLocationObject() {
     }

@@ -1,4 +1,5 @@
 import { useAsyncStorage } from './useAsyncStorage';
+import useComponentWillMount from './useComponentWillMount';
 import useGeolocation from './useGeolocation';
 import useKeyboardPadding from './useKeyboardPadding';
 import useSettings from './useSettings';
@@ -12,4 +13,5 @@ export {
   useSettings,
   useUser,
   useKeyboardPadding,
+  useComponentWillMount,
 };
