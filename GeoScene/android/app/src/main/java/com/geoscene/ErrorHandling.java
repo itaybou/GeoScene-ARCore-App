@@ -10,10 +10,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.geoscene.permissions.ARLocationPermissionHelper;
-import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.Config;
-import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;

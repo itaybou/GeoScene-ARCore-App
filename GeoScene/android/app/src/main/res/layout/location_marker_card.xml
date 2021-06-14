@@ -11,14 +11,12 @@
 
     <androidx.cardview.widget.CardView
             android:id="@+id/card"
-            android:elevation="9dp"
+            android:elevation="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
             app:cardUseCompatPadding="true"
             app:cardCornerRadius="20dp"
-            app:cardElevation="5dp"
-            >
+            app:cardElevation="0dp">
         <!-- Media -->
         <!-- Title, secondary and supporting text -->
         <LinearLayout
@@ -26,13 +24,13 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:paddingVertical="8dp"
-                android:paddingHorizontal="12dp"
-                >
+                android:paddingHorizontal="12dp">
+
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    >
+                    android:orientation="vertical">
+
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -41,6 +39,7 @@
                         android:text="Loading"
                         android:textAppearance="?attr/textAppearanceBody2"
                         android:textColor="?android:attr/textColorSecondary" />
+
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -50,6 +49,7 @@
                         android:text="Loading"
                         android:textAppearance="?attr/textAppearanceBody2"
                         android:textColor="?android:attr/textColorSecondary" />
+
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -64,12 +64,13 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
     <ImageView
         android:id="@+id/image"
         android:elevation="9dp"
-        android:layout_width="17dp"
+        android:layout_width="13dp"
         android:layout_height="match_parent"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="83dp"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:layout_centerHorizontal="true"

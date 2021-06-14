@@ -17,9 +17,9 @@ export interface UserType {
 }
 
 export interface User {
-  name: string;
-  img: string;
-  unreadMessages: number;
+  name: string | undefined;
+  img: string | undefined;
+  unreadMessages: number | undefined;
 }
 
 const initialUser: UserType = {

@@ -114,9 +114,9 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
             UIManager.dispatchViewManagerCommand(
               mapRef.current,
               MapsManager.Commands.ZOOM_SET_BBOX.toString(),
-              [location.latitude, location.longitude, 5, false], // map referece, use compass orientation, use observe location
+              [location.latitude, location.longitude, 1, false], // map referece, use compass orientation, use observe location
             );
-            setRadius(5);
+            setRadius(1);
           }}
           icon={'location-pin'}
         />
@@ -202,7 +202,7 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
           <View
             style={{
               position: 'absolute',
-              top: 38,
+              bottom: 5,
               left: 5,
             }}>
             <Compass azimuth={azimuth} />

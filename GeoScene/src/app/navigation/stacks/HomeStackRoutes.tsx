@@ -70,7 +70,7 @@ function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
       // or that the distance interval is more than REFRESH_LOCATIONS_DISTANCE_M meter
       if (
         time > locationData.timestamp + REFRESH_LOCATIONS_SEC_INTERVAL ||
-        distance > REFRESH_LOCATIONS_DISTANCE_M ||
+        (distance && distance > REFRESH_LOCATIONS_DISTANCE_M) ||
         Math.abs(locationData.radius - radius) >= REFRESH_LOCATIONS_RADIUS_DIFF
       ) {
         fetchLocationImages(time, radius);

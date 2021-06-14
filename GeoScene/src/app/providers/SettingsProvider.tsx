@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useReducer, useState } from 'react';
 
+import { Permissions } from '../../native/NativeModulesBridge';
 import { SettingsActionTypes } from './reducers/SettingsReducer';
 import SettingsReducer from './reducers/SettingsReducer';
 import { SettingsStateType } from './reducers/SettingsReducer';
@@ -78,6 +79,8 @@ export interface SettingsType {
   initialized: boolean;
   markersRefresh: boolean;
   realisticMarkers: boolean;
+  offsetOverlapMarkers: boolean;
+  showVisiblePlacesOnMap: boolean;
 }
 
 const initialSettings: SettingsType = {
@@ -90,6 +93,8 @@ const initialSettings: SettingsType = {
   initialized: false,
   markersRefresh: true,
   realisticMarkers: true,
+  offsetOverlapMarkers: false,
+  showVisiblePlacesOnMap: true,
 };
 
 export const SettingsContext = createContext<{
@@ -120,6 +125,7 @@ export const SettingsProvider: React.FC<SettingsProvider> = ({ children }) => {
     } else {
       updateStorage({ ...initialSettings, initialized: true });
     }
+
     SplashScreen.hide();
   };
 

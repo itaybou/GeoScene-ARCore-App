@@ -35,9 +35,9 @@ export const getActiveUser = async () => {
     );
 
     return {
-      name: details.data.osm.user['-display_name'],
-      img: details.data.osm.user.img['-href'],
-      unreadMessages: details.data.osm.user.messages.received['-unread'],
+      name: details?.data?.osm?.user?.['-display_name'],
+      img: details?.data?.osm?.user?.img?.['-href'],
+      unreadMessages: details?.data?.osm?.user?.messages?.received['-unread'],
     };
   } catch (err) {
     console.error(err);

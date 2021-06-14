@@ -97,95 +97,102 @@ export function DownloadPlace({
           display: 'flex',
           flexDirection: 'column',
         }}>
-        <ScrollView style={{ flex: 1 }}>
-          <ThemeTextInput label="Name" value={name} onChangeText={setName} />
-          <ThemeTextInput
-            label="Description"
-            value={description}
-            onChangeText={setDescription}
-          />
+        <View style={{ flex: 0.38 }}>
+          <ScrollView style={{ flex: 0.5 }}>
+            <ThemeTextInput label="Name" value={name} onChangeText={setName} />
+            <ThemeTextInput
+              label="Description"
+              value={description}
+              onChangeText={setDescription}
+            />
 
-          <ThemeTextInput
-            label="Radius KM"
-            numeric={true}
-            onChangeText={onChangeNumericTextInput}
-            value={String(radius) ?? 15}
-            maxLength={3}
-          />
-          <LocationSearchBar
-            onItemSelected={(place) => {
-              setLocationMarker({
-                latitude: place.lat,
-                longitude: place.lon,
-              });
-              UIManager.dispatchViewManagerCommand(
-                mapRef.current,
-                MapsManager.Commands.ZOOM_SET_BBOX.toString(),
-                [
+            <ThemeTextInput
+              label="Radius KM"
+              numeric={true}
+              onChangeText={onChangeNumericTextInput}
+              value={String(radius) ?? 15}
+              maxLength={3}
+            />
+          </ScrollView>
+        </View>
+
+        <View style={{ flex: 0.62 }}>
+          <View style={{ marginBottom: 5 }}>
+            <LocationSearchBar
+              onItemSelected={(place) => {
+                setLocationMarker({
+                  latitude: place.lat,
+                  longitude: place.lon,
+                });
+                UIManager.dispatchViewManagerCommand(
                   mapRef.current,
-                  place.lat as number,
-                  place.lon as number,
-                  parseInt(radius, 10),
-                  true,
-                ], // map referece, use compass orientation, use observe location
+                  MapsManager.Commands.ZOOM_SET_BBOX.toString(),
+                  [
+                    place.lat as number,
+                    place.lon as number,
+                    parseInt(radius, 10),
+                    true,
+                  ], // map referece, use compass orientation, use observe location
+                );
+              }}
+            />
+          </View>
+          <View
+            style={{
+              flex: 1,
+              borderColor: theme.colors.inactiveTint,
+              borderWidth: 2,
+              zIndex: -1,
+            }}>
+            <NativeMapView
+              enableLocationTap={true}
+              useObserverLocation={false}
+              showBoundingCircle={true}
+              enableZoom={true}
+              style={{ width: '100%', height: '100%', flex: 1 }}
+              onMapSingleTap={(event) => {
+                const locationMarker = event.nativeEvent;
+                setLocationMarker({
+                  longitude: locationMarker.longitude,
+                  latitude: locationMarker.latitude,
+                });
+
+                UIManager.dispatchViewManagerCommand(
+                  mapRef.current,
+                  MapsManager.Commands.ZOOM_SET_BBOX.toString(),
+                  [
+                    locationMarker.latitude,
+                    locationMarker.longitude,
+                    parseInt(radius, 10),
+                    false,
+                  ], // map referece, use compass orientation, use observe location
+                );
+              }}
+              ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
+            />
+          </View>
+          <ThemeButton
+            disabled={
+              !name ||
+              !description ||
+              locationMarker === null ||
+              locationMarker.latitude === null ||
+              locationMarker.longitude === null
+            }
+            icon="cloud-download"
+            text="Download"
+            onPress={async () => {
+              setShowDownloadModalVisible(true);
+              await ARModule.downloadAndStoreLocationData(
+                name,
+                description,
+                locationMarker.latitude,
+                locationMarker.longitude,
+                parseInt(radius, 10),
               );
             }}
-          />
-        </ScrollView>
-        <View
-          style={{
-            flex: 1,
-            borderColor: theme.colors.inactiveTint,
-            borderWidth: 2,
-            zIndex: -1,
-          }}>
-          <NativeMapView
-            enableLocationTap={true}
-            useObserverLocation={false}
-            showBoundingCircle={true}
-            enableZoom={true}
-            style={{ width: '100%', height: '100%', flex: 1 }}
-            onMapSingleTap={(event) => {
-              const locationMarker = event.nativeEvent;
-              setLocationMarker({
-                longitude: locationMarker.longitude,
-                latitude: locationMarker.latitude,
-              });
-              UIManager.dispatchViewManagerCommand(
-                mapRef.current,
-                MapsManager.Commands.ZOOM_SET_BBOX.toString(),
-                [
-                  locationMarker.latitude,
-                  locationMarker.longitude,
-                  parseInt(radius, 10),
-                  false,
-                ], // map referece, use compass orientation, use observe location
-              );
-            }}
-            ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
           />
         </View>
-        <ThemeButton
-          disabled={
-            !name ||
-            !description ||
-            locationMarker === null ||
-            locationMarker.latitude === null ||
-            locationMarker.longitude === null
-          }
-          icon="cloud-download"
-          text="Download"
-          onPress={async () => {
-            setShowDownloadModalVisible(true);
-            await ARModule.downloadAndStoreLocationData(
-              name,
-              description,
-              locationMarker.latitude,
-              locationMarker.longitude,
-              parseInt(radius, 10),
-            );
-          }}
-        />
       </TabScreen>
       <LoadingModal
         isVisible={downloadModalVisible}

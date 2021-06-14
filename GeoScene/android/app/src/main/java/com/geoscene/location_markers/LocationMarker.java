@@ -4,6 +4,8 @@ import com.google.ar.sceneform.Node;
 
 public class LocationMarker {
 
+    public String name;
+
     // Location in real-world terms
     public double longitude;
     public double latitude;
@@ -147,5 +149,13 @@ public class LocationMarker {
 
     public void setDistanceGroup(int distanceGroup) {
         this.distanceGroup = distanceGroup;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -26,6 +26,7 @@ import com.geoscene.geography.LocationUtils;
 import com.geoscene.geography.mercator.BoundingBoxCenter;
 import com.geoscene.triangulation.TriangulationIntersection;
 
+import org.javatuples.Pair;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -41,6 +42,7 @@ import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
+import org.osmdroid.views.overlay.SpeechBalloonOverlay;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.IOrientationConsumer;
 import org.osmdroid.views.overlay.compass.IOrientationProvider;
@@ -90,6 +92,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
 
     private ArrayList<OverlayItem> distanceMarkers;
     private ItemizedIconOverlay<OverlayItem> locationMarkers = null;
+
     private double previousAzimuth;
 
     private static final long ORIENTATION_CHANGE_ANIMATION_SPEED = 200L;
@@ -111,7 +114,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         sensors = DeviceSensorsManager.getSensors(reactContext);
         mapController = map.getController();
         reactContext.addLifecycleEventListener(this);
-        zoomToBoundingBox();
+        zoomToBoundingBox(null);
 
         centerOverlay = new Overlay() {
             @Override
@@ -194,7 +197,7 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     public void setAnimateToIncludeTriangulationPoints(boolean animateToIncludeTriangulationPoints) {
         this.animateToIncludeTriangulationPoints = animateToIncludeTriangulationPoints;
         if(!animateToIncludeTriangulationPoints) {
-            zoomToBoundingBox();
+            zoomToBoundingBox(null);
         }
     }
 
@@ -285,6 +288,32 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         triangulationData.forEach(t -> t.setTriangulationArc(Triangulation.getGeodesicArc(1000, Triangulation.MAX_TRIANGULATION_DISTANCE * 1.5, t.getLat(), t.getLon(), t.getAzimuth())));
         if(mLocationOverlay != null) {
             mLocationOverlay.disableFollowLocation();
+        }
+    }
+
+    public void setVisibleLocations(List<Pair<String, Coordinate>> data) {
+        if(data != null) {
+            map.getOverlays().remove(locationMarkers);
+            ArrayList<OverlayItem> markers = new ArrayList<>();
+            for(Pair<String, Coordinate> location : data) {
+                OverlayItem item = new OverlayItem(location.getValue0(), "", new GeoPoint(location.getValue1().getLat(), location.getValue1().getLon()));
+                item.setMarker(ContextCompat.getDrawable(reactContext, R.drawable.map_pin));
+                markers.add(item);
+
+            }
+            locationMarkers = new ItemizedIconOverlay<>(getContext(), markers, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                @Override
+                public boolean onItemSingleTapUp(int index, OverlayItem item) {
+                    dispatchLocationName(item.getTitle());
+                    return false;
+                }
+
+                @Override
+                public boolean onItemLongPress(int index, OverlayItem item) {
+                    return false;
+                }
+            });
+            map.getOverlays().add(locationMarkers);
         }
     }
 
@@ -520,13 +549,13 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         } catch (Exception ignored) {}
     }
 
-    public void zoomToBoundingBox() {
+    public void zoomToBoundingBox(Double radiusKm) {
         map.post(() -> {
             if (map.getMeasuredHeight() > 0 && map.getMeasuredWidth() > 0) {
                 observer = new GeoPoint(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
                 mapController.setCenter(observer);
                 Coordinate observer = new Coordinate(sensors.getDeviceLocation().getLatitude(), sensors.getDeviceLocation().getLongitude());
-                BoundingBoxCenter bbox = new BoundingBoxCenter(observer, LocationConstants.OBSERVER_BBOX); // CHANGE TP GLOBAL SETTINGS
+                BoundingBoxCenter bbox = new BoundingBoxCenter(observer, radiusKm == null || radiusKm < LocationConstants.OBSERVER_BBOX ? LocationConstants.OBSERVER_BBOX : radiusKm);
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), false, 5);
                 map.zoomToBoundingBox(new BoundingBox(bbox.getNorth(), bbox.getEast(), bbox.getSouth(), bbox.getWest()), true, 5);
                 if(getCenter) {
@@ -686,6 +715,15 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
                 event);
     }
 
+    private void dispatchLocationName(String name) {
+        WritableMap event = Arguments.createMap();
+        event.putString("name", name);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "locationTap",
+                event);
+    }
+
     private void dispatchTriangulationIntersection(List<TriangulationIntersection> intersections) {
         WritableMap event = Arguments.createMap();
         WritableArray data = Arguments.createArray();
@@ -720,5 +758,4 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
     @Override
     public void onHostDestroy() {
     }
-
 }

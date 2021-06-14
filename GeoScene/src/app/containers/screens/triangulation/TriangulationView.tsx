@@ -24,7 +24,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useGeolocation, useTheme } from '../../../utils/hooks/Hooks';
+import {
+  useComponentWillMount,
+  useGeolocation,
+  useTheme,
+} from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
 import IdleTimerManager from 'react-native-idle-timer';
@@ -152,8 +156,9 @@ export function TriangulationView({
     fetchTriangulationData();
   }, [fetchTriangulationData]);
 
+  useComponentWillMount(() => Orientation.lockToLandscapeLeft());
+
   useEffect(() => {
-    Orientation.lockToLandscapeLeft();
     IdleTimerManager.setIdleTimerDisabled(true);
     StatusBar.setHidden(true);
 

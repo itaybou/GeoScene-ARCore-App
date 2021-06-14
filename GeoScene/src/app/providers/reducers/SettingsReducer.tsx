@@ -2,12 +2,10 @@
 
 import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
-import { PlaceTypes } from '../SettingsProvider';
 import { SettingsType } from '../SettingsProvider';
 import { ThemesType } from '../../themes/Themes';
 import { name as appName } from '../../../../app.json';
 import { cloneObject } from '../../utils/object/ObjectUtils';
-import { useAsyncStorage } from '../../utils/hooks/useAsyncStorage';
 
 export const SETTINGS_KEY = `${appName}::settings`;
 
@@ -21,6 +19,8 @@ export enum SettingsActionTypes {
   CHANGE_PLACE_TYPES,
   CHANGE_MARKERS_REFRESH,
   CHANGE_MARKERS_REALISTIC,
+  CHANGE_OFFSET_OVERLAP_MARKERS,
+  CHANGE_SHOW_MAP_VISIBLE_MARKERS,
 }
 
 type SettingsPayload = {
@@ -48,10 +48,16 @@ type SettingsPayload = {
   [SettingsActionTypes.CHANGE_MARKERS_REALISTIC]: {
     markersRealistic: boolean;
   };
+  [SettingsActionTypes.CHANGE_OFFSET_OVERLAP_MARKERS]: {
+    offsetOverlapMarkers: boolean;
+  };
   [SettingsActionTypes.CHANGE_PLACE_TYPES]: {
     category: any;
     placeType: any;
     value: boolean;
+  };
+  [SettingsActionTypes.CHANGE_SHOW_MAP_VISIBLE_MARKERS]: {
+    showVisiblePlacesOnMap: boolean;
   };
 };
 
@@ -112,6 +118,22 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       const newState = {
         ...state,
         showPlacesApp: action.payload.showPlacesApp,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_OFFSET_OVERLAP_MARKERS: {
+      const newState = {
+        ...state,
+        offsetOverlapMarkers: action.payload.offsetOverlapMarkers,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_SHOW_MAP_VISIBLE_MARKERS: {
+      const newState = {
+        ...state,
+        showVisiblePlacesOnMap: action.payload.showVisiblePlacesOnMap,
       };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;

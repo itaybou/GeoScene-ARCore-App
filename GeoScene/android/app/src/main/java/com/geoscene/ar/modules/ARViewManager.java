@@ -73,7 +73,8 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
         int commandNo = Integer.parseInt(commandId);
         switch(commandNo) {
             case COMMAND_CREATE:
-                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3), args.getBoolean(4), args.getBoolean(5), args.getBoolean(6), args.getBoolean(7));
+                createARFragment(root, args.getInt(0), args.getBoolean(1), args.getInt(2), args.getMap(3), args.getBoolean(4),
+                        args.getBoolean(5), args.getBoolean(6), args.getBoolean(7), args.getBoolean(8), args.getBoolean(9));
                 break;
             case COMMAND_CLOSE:
                 closeARFragment(root);
@@ -110,9 +111,11 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
         }
     }
 
-    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes, boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers) {
+    private void createARFragment(FrameLayout parentLayout, int reactNativeARViewId, boolean determineViewshed, int visibleRadiusKM, ReadableMap placeTypes, boolean showPlacesApp,
+                                  boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers, boolean showVisibleMapMarkers, boolean offsetOverlapping) {
         Map<String, HashSet<String>> placesTypes = parsePlaceTypes(placeTypes);
-        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, markersRefresh, realisticMarkers);
+        arFragment = new ARFragment(reactContext, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp,
+                showLocationCenter, markersRefresh, realisticMarkers, showVisibleMapMarkers, offsetOverlapping);
 
         ((FragmentActivity) Objects.requireNonNull(reactContext.getCurrentActivity())).getSupportFragmentManager()
                 .beginTransaction()
@@ -166,6 +169,8 @@ public class ARViewManager extends ViewGroupManager<FrameLayout> {
                 MapBuilder.of("registrationName", "onUserElevation"));
         map.put("visible",
                 MapBuilder.of("registrationName", "onChangedVisible"));
+        map.put("mapLocations",
+                MapBuilder.of("registrationName", "onMapLocations"));
         return map;
     }
 }

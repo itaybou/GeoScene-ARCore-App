@@ -12,6 +12,8 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.sceneform.ArSceneView;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.math.Vector3;
 
 import java.util.ArrayList;
@@ -23,9 +25,11 @@ import com.geoscene.geography.LocationUtils;
 
 public class LocationScene {
 
+    private final int distanceGroupSize;
     private String TAG = "LocationScene";
 
     private final float RENDER_DISTANCE = 10f;
+    private final int DEFAULT_DISTANCE_LIMIT = 5000;
     private final int CALIBRATION_ITERATIONS = 3;
     public ArSceneView mArSceneView;
     public Activity context;
@@ -66,7 +70,7 @@ public class LocationScene {
 
     private DeviceLocationChanged locationChangedEvent;
 
-    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors, boolean markersRefresh) {
+    public LocationScene(Activity context, ArSceneView mArSceneView, DeviceSensors sensors, boolean markersRefresh, int distanceGroupSize) {
         this.context = context;
         this.mSession = mArSceneView.getSession();
         this.mArSceneView = mArSceneView;
@@ -74,6 +78,7 @@ public class LocationScene {
         this.currentDistanceGroup = 0;
         this.iteration = 0;
         this.sensors = sensors;
+        this.distanceGroupSize = distanceGroupSize;
 
     }
 
@@ -252,13 +257,11 @@ public class LocationScene {
                 final LocationMarker marker = mLocationMarkers.get(i);
 
                 if (marker.getDistanceGroup() != currentDistanceGroup) {
-                    if (marker.anchorNode != null) {
+                    if (marker.anchorNode != null && marker.anchorNode.isEnabled()) {
                         marker.anchorNode.setEnabled(false);
                     }
-//                    resetLocationMarker(marker);
-//                    Log.d("RESET MARKER", String.valueOf(marker.getDistanceGroup()));
                     continue;
-                } else if (marker.anchorNode != null) {
+                } else if (marker.anchorNode != null && !marker.anchorNode.isEnabled()) {
                     marker.anchorNode.setEnabled(true);
                 }
 
@@ -341,6 +344,10 @@ public class LocationScene {
                     marker.anchorNode = new LocationNode(newAnchor, marker, this);
                     marker.anchorNode.setParent(mArSceneView.getScene());
                     marker.anchorNode.addChild(marker.node);
+
+                    if(shouldOffsetOverlapping()) {
+                        calculateMarkerHeight(marker, markerDistance);
+                    }
                 } else marker.anchorNode.setAnchor(newAnchor);
                 marker.anchorNode.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
 
@@ -354,14 +361,8 @@ public class LocationScene {
                 marker.anchorNode.setScalingMode(marker.getScalingMode());
                 marker.anchorNode.setGradualScalingMaxScale(marker.getGradualScalingMaxScale());
                 marker.anchorNode.setGradualScalingMinScale(marker.getGradualScalingMinScale());
-
-                // Locations further than RENDER_DISTANCE are remapped to be rendered closer.
-                // => height differential also has to ensure the remap is correct
-                if (markerDistance > RENDER_DISTANCE) {
-                    float renderHeight = RENDER_DISTANCE * marker.getHeight() / markerDistance;
-                    marker.anchorNode.setHeight(renderHeight);
-                } else {
-                    marker.anchorNode.setHeight(marker.anchorNode.getHeight());
+                if(!shouldOffsetOverlapping()) {
+                    calculateMarkerHeight(marker, markerDistance);
                 }
 
                 if (minimalRefreshing)
@@ -373,6 +374,18 @@ public class LocationScene {
         refreshing = false;
         //this is bad, you should feel bad
 //        System.gc();
+    }
+
+    private void calculateMarkerHeight(LocationMarker marker, int markerDistance) {
+
+        // Locations further than RENDER_DISTANCE are remapped to be rendered closer.
+        // => height differential also has to ensure the remap is correct
+        if (markerDistance > RENDER_DISTANCE) {
+            float renderHeight = RENDER_DISTANCE * marker.getHeight() / markerDistance;
+            marker.anchorNode.setHeight(renderHeight);
+        } else {
+            marker.anchorNode.setHeight(marker.anchorNode.getHeight());
+        }
     }
 
     private void resetLocationMarker(LocationMarker marker) {
@@ -413,11 +426,20 @@ public class LocationScene {
         return currentDistanceGroup;
     }
 
+    public int getDistanceGroupSize() {
+        return distanceGroupSize;
+    }
+
+
     void startCalculationTask() {
         anchorRefreshTask.run();
     }
 
     public void stopCalculationTask() {
         mHandler.removeCallbacks(anchorRefreshTask);
+    }
+
+    public void resetDistanceLimit() {
+        this.distanceLimit = DEFAULT_DISTANCE_LIMIT;
     }
 }

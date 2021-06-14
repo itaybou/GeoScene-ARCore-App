@@ -43,6 +43,7 @@ import com.google.ar.sceneform.collision.CollisionShape;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,9 @@ public class ARNodesInitializer {
     private boolean showPlacesApp;
     private boolean showLocationCenter;
     private boolean markersRefresh;
+    private boolean showPlacesOnMap;
     private boolean realisticMarkers;
+    private boolean offsetOverlapping;
     private int radiusKM;
 
     private Scene.OnUpdateListener updateListener;
@@ -79,7 +82,8 @@ public class ARNodesInitializer {
 
     private boolean active;
 
-    public ARNodesInitializer(ReactContext context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, Map<String, HashSet<String>> placesTypes, boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers, ARFragment arFragment) {
+    public ARNodesInitializer(ReactContext context, DeviceSensors sensors, ArSceneView arSceneView, boolean determineViewshed, int radiusKM, Map<String, HashSet<String>> placesTypes,
+                              boolean showPlacesApp, boolean showPlacesOnMap, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers, boolean offsetOverlapping, ARFragment arFragment) {
         this.arSceneView = arSceneView;
         this.sensors = sensors;
         this.context = context;
@@ -91,6 +95,8 @@ public class ARNodesInitializer {
         this.showLocationCenter = showLocationCenter;
         this.markersRefresh = markersRefresh;
         this.realisticMarkers = realisticMarkers;
+        this.showPlacesOnMap = showPlacesOnMap;
+        this.offsetOverlapping = offsetOverlapping;
 
         hasFinishedLoading = false;
         disposable = new CompositeDisposable();
@@ -190,9 +196,10 @@ public class ARNodesInitializer {
                 if (locationScene == null) {
                     // If our locationScene object hasn't been setup yet, this is a good time to do it
                     // We know that here, the AR components have been initiated.
-                    locationScene = new LocationScene(activity, arSceneView, sensors, markersRefresh);
+                    locationScene = new LocationScene(activity, arSceneView, sensors, markersRefresh, DISTANCE_GROUP_SIZE);
                     locationScene.setMinimalRefreshing(!realisticMarkers);
-                    locationScene.setOffsetOverlapping(false);
+                    locationScene.setOffsetOverlapping(offsetOverlapping);
+                    locationScene.setRemoveOverlapping(false);
                     getAndRenderMarkerInformation();
                 }
                 if (hasFinishedLoading && active) {
@@ -272,6 +279,7 @@ public class ARNodesInitializer {
                     .thenAccept(renderable -> {
                         Node locationNode = getLocationMarkerNode(renderable, visibleLocation.getValue0(), elevation, visibleLocation.getValue1());
                         LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, locationNode);
+                        layoutLocationMarker.setName(visibleLocation.getValue0().tags.nameEng != null ? visibleLocation.getValue0().tags.nameEng : visibleLocation.getValue0().tags.name);
                         layoutLocationMarker.setHeight(elevation * 10);
                         layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
                         View eView = renderable.getView();
@@ -280,7 +288,7 @@ public class ARNodesInitializer {
                         TextView distanceTextView = eView.findViewById(R.id.distance);
 
                         typeTextView.setText(ARFragment.getNodeTypeString(visibleLocation.getValue0()));
-                        nameTextView.setText(visibleLocation.getValue0().tags.nameEng != null ? visibleLocation.getValue0().tags.nameEng : visibleLocation.getValue0().tags.name);
+                        nameTextView.setText(layoutLocationMarker.getName());
                         // "onRender" event, called every frame
                         // Updates the layout with the markers distance
                         layoutLocationMarker.setRenderEvent(node -> {
@@ -318,6 +326,15 @@ public class ARNodesInitializer {
                     (int) Math.ceil(LocationUtils.distance(observer.getLat(), maxMarker.latitude, observer.getLon(), maxMarker.longitude, 0, 0)),
                     true,
                     locationCount - 1 < DISTANCE_GROUP_SIZE);
+            if(showPlacesOnMap) {
+                if(locationScene.mLocationMarkers.isEmpty()) {
+                    arFragment.dispatchMapLocations(new ArrayList<>());
+                } else {
+                    arFragment.dispatchMapLocations(locationScene.mLocationMarkers
+                            .subList(0, Math.min(DISTANCE_GROUP_SIZE, locationScene.mLocationMarkers.size()))
+                            .stream().map(m -> new Pair<>(m.getName(), new Coordinate(m.latitude, m.longitude))).collect(Collectors.toList()));
+                }
+            }
         }
         locationScene.start();
         arFragment.dispatchLocationCount(Math.min(locationCount, DISTANCE_GROUP_SIZE), locationCount);
@@ -345,6 +362,17 @@ public class ARNodesInitializer {
                         nextDistanceGroup == 0,
                         nextDistanceGroup == locationScene.mLocationMarkers.size() / DISTANCE_GROUP_SIZE);
                 arFragment.dispatchLocationCount(Math.min(locationScene.mLocationMarkers.size() - startIndex, DISTANCE_GROUP_SIZE), locationScene.mLocationMarkers.size());
+
+                if(showPlacesOnMap) {
+                    if(locationScene.mLocationMarkers.isEmpty()) {
+                        arFragment.dispatchMapLocations(new ArrayList<>());
+                    } else {
+                        arFragment.dispatchMapLocations(locationScene.mLocationMarkers
+                                .subList(startIndex, Math.min(startIndex + DISTANCE_GROUP_SIZE, locationScene.mLocationMarkers.size()))
+                                .stream().map(m -> new Pair<>(m.getName(), new Coordinate(m.latitude, m.longitude))).collect(Collectors.toList()));
+                    }
+                }
+                locationScene.resetDistanceLimit();
                 locationScene.setCurrentDistanceGroup(nextDistanceGroup);
                 locationScene.setIteration(0);
                 locationScene.refreshAnchors();

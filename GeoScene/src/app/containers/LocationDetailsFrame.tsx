@@ -150,12 +150,14 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
             </View>
             {closeButton}
           </View>
-          <WebViewScreen
-            uri={pageURL}
-            style={{ flex: 1 }}
-            name={name_en ?? name_heb ?? main_name ?? 'Wikipedia'}
-            showWebControls={true}
-          />
+          {pageURL && (
+            <WebViewScreen
+              uri={pageURL}
+              style={{ flex: 1 }}
+              name={name_en ?? name_heb ?? main_name ?? 'Wikipedia'}
+              showWebControls={true}
+            />
+          )}
         </View>
       ) : loading ? (
         <View style={{ flexDirection: 'column' }}>
@@ -164,7 +166,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
             <ThemeText style={{ fontWeight: 'bold', fontSize: 20 }}>
               {name_en ?? name_heb ?? main_name}
             </ThemeText>
-            {expanded && closeButton}
+            {closeButton}
           </View>
           <View
             style={{

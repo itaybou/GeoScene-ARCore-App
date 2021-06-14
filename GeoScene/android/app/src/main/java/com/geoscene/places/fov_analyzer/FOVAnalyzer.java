@@ -113,12 +113,12 @@ public class FOVAnalyzer {
                             (element.bounds.minlat + element.bounds.maxlat) / 2,
                             (element.bounds.minlon + element.bounds.maxlon) / 2) : visibleCoordinate);
                     visibleLocations.add(location);
-                    locationsSet.add(element.tags.name);
+                    locationsSet.add(element.tags.nameEng != null ? element.tags.nameEng : element.tags.name);
                 }
             }
         }
         for (Element element : nodeNaturalElements) {
-            if(!natural.contains(element.tags.natural) || locationsSet.contains(element.tags.name))
+            if(!natural.contains(element.tags.natural) || locationsSet.contains(element.tags.nameEng != null ? element.tags.nameEng : element.tags.name))
                 continue;
             Coordinate nodeCoordinates = new Coordinate(element.lat, element.lon);
             Pair<Integer, Integer> node = raster.getRowColByCoordinates(nodeCoordinates);
@@ -140,13 +140,13 @@ public class FOVAnalyzer {
                             (element.bounds.minlat + element.bounds.maxlat) / 2,
                             (element.bounds.minlon + element.bounds.maxlon) / 2) : visibleCoordinate);
                     visibleLocations.add(location);
-                    locationsSet.add(element.tags.name);
+                    locationsSet.add(element.tags.nameEng != null ? element.tags.nameEng : element.tags.name);
                 }
             }
         }
 
         for (Element element : nodeHistoricElements){
-            if(!historic.contains(element.tags.historic) || locationsSet.contains(element.tags.name))
+            if(!historic.contains(element.tags.historic) || locationsSet.contains(element.tags.nameEng != null ? element.tags.nameEng : element.tags.name))
                 continue;
             Coordinate nodeCoordinates = new Coordinate(element.lat, element.lon);
             Pair<Integer, Integer> node = raster.getRowColByCoordinates(nodeCoordinates);

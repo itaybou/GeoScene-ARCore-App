@@ -17,10 +17,14 @@ import com.google.ar.sceneform.rendering.Color;
 import com.google.ar.sceneform.rendering.Light;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LocationNode extends AnchorNode {
 
     private String TAG = "LocationNode";
+    private final int COLLISION_THRESHOLD = 10;
 
     private LocationMarker locationMarker;
     private LocationNodeRender renderEvent;
@@ -30,6 +34,7 @@ public class LocationNode extends AnchorNode {
     private float height = 0F;
     private float gradualScalingMinScale = 0.2F;
     private float gradualScalingMaxScale = 0.65F;
+    private int collisionDetection = 0;
 
     private LocationMarker.ScalingMode scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN;
     private LocationScene locationScene;
@@ -115,11 +120,26 @@ public class LocationNode extends AnchorNode {
             double distanceInAR = Math.sqrt(dx * dx + dy * dy + dz * dz);
             setDistanceInAR(distanceInAR);
 
-            if (locationScene.shouldOffsetOverlapping()) {
-                if (locationScene.mArSceneView.getScene().overlapTestAll(n).size() > 0) {
-                    Log.d("overlap", String.valueOf(locationScene.mArSceneView.getScene().overlapTestAll(n).size()));
-                    locationMarker.setHeight(locationMarker.getHeight() + (15 * ((float)locationMarker.anchorNode.getDistance() / 1000)));
-                }
+            if (locationScene.shouldOffsetOverlapping() && locationMarker.anchorNode.getHeight() < 8.0F && collisionDetection <= COLLISION_THRESHOLD) {
+                List<Node> overlaps = locationScene.mArSceneView.getScene().overlapTestAll(n);
+                if(overlaps.size() > 0) {
+                    boolean offsetHeight = true;
+                    double maxHeight = nodePosition.y;
+                    for(Node overlap : overlaps) {
+                        Vector3 overlapPosition = overlap.getWorldPosition();
+                        double overlapHeight = overlapPosition.y;
+                        if (overlapHeight > maxHeight) {
+                            offsetHeight = false;
+                            break;
+                        } else if (overlapHeight == maxHeight) {
+                            locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.05F);
+                            break;
+                        }
+                    }
+                    if(offsetHeight && locationMarker.anchorNode != null) {
+                        locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.05F);
+                    }
+                } else collisionDetection++;
             }
 
             if (locationScene.shouldRemoveOverlapping()) {
@@ -171,6 +191,30 @@ public class LocationNode extends AnchorNode {
             return closestHit != null && closestHit.getNode() != n;
         }
         return false;
+    }
+
+    private List<HitTestResult> getOverlapping(Vector3 cameraPosition, Vector3 nodePosition) {
+        Ray ray = new Ray();
+        ray.setOrigin(cameraPosition);
+
+        float xDelta = (float) (distanceInAR * Math.sin(Math.PI / 15)); //12 degrees
+        Vector3 cameraLeft = getScene().getCamera().getLeft().normalized();
+
+        Vector3 left = Vector3.add(nodePosition, cameraLeft.scaled(xDelta));
+        Vector3 center = nodePosition;
+        Vector3 right = Vector3.add(nodePosition, cameraLeft.scaled(-xDelta));
+
+        List<HitTestResult> hitTests = new ArrayList<>(getOverlappingRay(ray, center, cameraPosition));
+        hitTests.addAll(getOverlappingRay(ray, left, cameraPosition));
+        hitTests.addAll(getOverlappingRay(ray, right, cameraPosition));
+
+        return hitTests;
+    }
+
+    private List<HitTestResult> getOverlappingRay(Ray ray, Vector3 target, Vector3 cameraPosition) {
+        Vector3 nodeDirection = Vector3.subtract(target, cameraPosition);
+        ray.setDirection(nodeDirection);
+        return locationScene.mArSceneView.getScene().hitTestAll(ray);
     }
 
     public void scaleAndRotate() {

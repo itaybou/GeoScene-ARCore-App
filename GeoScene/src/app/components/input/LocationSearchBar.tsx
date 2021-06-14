@@ -1,13 +1,10 @@
 import { ActivityIndicator, Searchbar } from 'react-native-paper';
 import {
-  Button,
   FlatList,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
   StyleSheet,
   Text,
-  TouchableHighlight,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,9 +12,10 @@ import {
   LocationSearchResult,
   searchPlacesByName,
 } from '../../api/nomination/OSMNominationAPI';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import { ThemeIcon } from '../assets/ThemeIcon';
+import { ThemeText } from '../text/ThemeText';
 import useTheme from '../../utils/hooks/useTheme';
 
 interface LocationSearchBarProps {
@@ -56,8 +54,18 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
         }}>
         <Searchbar
           textAlign="left"
-          style={{ flex: 0.85, backgroundColor: theme.colors.tabs }}
-          placeholder="Search Location..."
+          style={{
+            flex: 0.85,
+            backgroundColor: theme.colors.background,
+            borderWidth: 1,
+            borderColor: theme.colors.inactiveTint,
+            color: theme.colors.text,
+          }}
+          inputStyle={{
+            color: theme.colors.text,
+          }}
+          iconColor={theme.colors.text}
+          placeholder=""
           onChangeText={(text) => {
             setPreviousQuery(query);
             setQuery(text);
@@ -67,7 +75,7 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
         <TouchableOpacity
           style={[
             styles.searchButton,
-            { backgroundColor: theme.colors.accent },
+            { backgroundColor: theme.colors.accent_secondary },
           ]}
           onPress={searchResults}>
           {loading ? (
@@ -102,7 +110,8 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                   flex: 1,
                   alignItems: 'flex-start',
                   borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.accent,
+                  paddingHorizontal: 8,
+                  borderBottomColor: theme.colors.inactiveTint,
                   justifyContent: 'center',
                 }}>
                 <View
@@ -118,7 +127,9 @@ export const LocationSearchBar: React.FC<LocationSearchBarProps> = ({
                   />
                 </View>
                 <View style={{ flex: 0.9 }}>
-                  <Text style={[styles.flatListItem]}>{item.display_name}</Text>
+                  <ThemeText style={[styles.flatListItem]}>
+                    {item.display_name}
+                  </ThemeText>
                 </View>
               </View>
             </TouchableOpacity>
@@ -138,7 +149,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingBottom: 15,
     fontSize: 12,
-    zIndex: 999,
+    zIndex: 100,
   },
 
   searchButton: {

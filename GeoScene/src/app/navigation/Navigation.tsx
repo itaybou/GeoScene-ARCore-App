@@ -1,16 +1,9 @@
-import {
-  AppRoutesParamList,
-  AppStackRouteNavProps,
-} from './params/RoutesParamList';
-
+import { AppRoutesParamList } from './params/RoutesParamList';
 import { ExternalStackRoutes } from './stacks/ExternalStackRoutes';
-import { Header } from '../containers/Header';
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { TabRoutes } from './TabRoutes';
-import { createBottomTabNavigator } from '@react-navigation/';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useRoute } from '@react-navigation/native';
 
 const Stack = createStackNavigator<AppRoutesParamList>();
 

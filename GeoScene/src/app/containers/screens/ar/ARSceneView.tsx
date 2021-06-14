@@ -19,7 +19,11 @@ import {
   NativeMapView,
 } from '../../../../native/NativeViewsBridge';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSettings, useTheme } from '../../../utils/hooks/Hooks';
+import {
+  useComponentWillMount,
+  useSettings,
+  useTheme,
+} from '../../../utils/hooks/Hooks';
 
 import { Center } from '../../../components/layout/Center';
 import { ErrorModal } from '../../../components/modals/ErrorModal';
@@ -27,7 +31,9 @@ import IdleTimerManager from 'react-native-idle-timer';
 import { LocationDetailsFrame } from '../../LocationDetailsFrame';
 import { OptionModal } from '../../../components/modals/OptionModal';
 import Orientation from 'react-native-orientation';
+import { Permissions } from '../../../../native/NativeModulesBridge';
 import { SceneStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
+import { Theme } from 'react-native-paper/lib/typescript/types';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
 
@@ -128,6 +134,15 @@ export function ARSceneView({
   const [locationName, setLocationName] = useState<
     LocationNameProps | null | undefined
   >(null);
+  const [mapLocations, setMapLocations] = useState<any[] | undefined>(
+    undefined,
+  );
+
+  const [errorMessage, setErrorMessage] = useState<string>(
+    'External error occurred while fetching data, please try again later.',
+  );
+
+  const [tapLocation, setTapLocation] = useState<string | undefined>(undefined);
 
   const [visibleLocations, setVisibleLocations] = useState<
     | {
@@ -166,8 +181,14 @@ export function ARSceneView({
     }
   }, [ARManager.Commands.CLOSE]);
 
+  useComponentWillMount(async () => {
+    if (!(await Permissions.checkIfDeviceSupportAR())) {
+      setErrorMessage('Your device does not support AR.');
+      setErrorModalShown(true);
+    } else Orientation.lockToLandscapeLeft();
+  });
+
   useEffect(() => {
-    Orientation.lockToLandscapeLeft();
     StatusBar.setHidden(true);
     IdleTimerManager.setIdleTimerDisabled(true);
     const backHandler = BackHandler.addEventListener(
@@ -200,6 +221,8 @@ export function ARSceneView({
           state.showLocationCenter,
           state.markersRefresh,
           state.realisticMarkers,
+          state.showVisiblePlacesOnMap,
+          state.offsetOverlapMarkers,
         ],
       );
       setARDisplayed(true);
@@ -250,7 +273,7 @@ export function ARSceneView({
           style={{
             position: 'absolute',
             left: 5,
-            bottom: '-11%',
+            bottom: '-10%',
             zIndex: 100,
             justifyContent: 'center',
             alignItems: 'center',
@@ -299,6 +322,17 @@ export function ARSceneView({
                           [false],
                         );
                       }
+                      if (mapShown) {
+                        UIManager.dispatchViewManagerCommand(
+                          mapRef.current,
+                          MapsManager.Commands.ZOOM_BBOX.toString(),
+                          [
+                            visibleLocations
+                              ? visibleLocations.maxDistance / 1000 + 5
+                              : 10,
+                          ],
+                        );
+                      }
                     }}
                   />
                 )}
@@ -320,6 +354,17 @@ export function ARSceneView({
                           arRef.current,
                           ARManager.Commands.SHOW_MARKERS.toString(),
                           [true],
+                        );
+                      }
+                      if (mapShown) {
+                        UIManager.dispatchViewManagerCommand(
+                          mapRef.current,
+                          MapsManager.Commands.ZOOM_BBOX.toString(),
+                          [
+                            visibleLocations
+                              ? visibleLocations.maxDistance / 1000 + 5
+                              : 10,
+                          ],
                         );
                       }
                     }}
@@ -353,7 +398,7 @@ export function ARSceneView({
               }}>
               <View
                 style={{
-                  marginEnd: infoOpen ? 10 : 5,
+                  marginEnd: infoOpen ? 10 : 8,
                   paddingVertical: infoOpen ? 0 : 12,
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -425,16 +470,23 @@ export function ARSceneView({
         </View>
       )}
 
-      <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View
+        style={{
+          flex: 1,
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+        }}>
         {!ready && (
-          <Center style={{ flex: 1, zIndex: 1 }}>
+          <Center
+            style={{ flex: 1, width: '100%', height: '100%', zIndex: 1000 }}>
             <ThemeText>{loadingMessage}</ThemeText>
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </Center>
         )}
         <Animated.View
           style={{
-            flex: mapReverseAnimation,
+            flex: ready ? mapReverseAnimation : 0,
             display: ready ? 'flex' : 'none',
           }}>
           <NativeARView
@@ -447,14 +499,15 @@ export function ARSceneView({
             }
             onUseCache={(event: any) => setCacheUse(true)}
             onLocalUse={(event: any) => setLocalUse(event.nativeEvent.name)}
-            onChangedVisible={(event: any) =>
+            onChangedVisible={(event: any) => {
               setVisibleLocations({
                 minDistance: event.nativeEvent.min_distance,
                 maxDistance: event.nativeEvent.max_distance,
                 first: event.nativeEvent.first,
                 last: event.nativeEvent.last,
-              })
-            }
+              });
+            }}
+            onMapLocations={(event) => setMapLocations(event.nativeEvent.data)}
             onLocationCount={(event) =>
               setLocationCount({
                 locationCount: event.nativeEvent.count,
@@ -513,7 +566,11 @@ export function ARSceneView({
                     UIManager.dispatchViewManagerCommand(
                       mapRef.current,
                       MapsManager.Commands.ZOOM_BBOX.toString(),
-                      [],
+                      [
+                        visibleLocations
+                          ? visibleLocations.maxDistance / 1000 + 5
+                          : 10,
+                      ],
                     );
                     setLoadingMap(false);
                   }
@@ -531,20 +588,56 @@ export function ARSceneView({
                 )}
               </Center>
             )}
-            <NativeMapView
-              isShown={mapShown}
-              enableZoom={false}
-              useObserverLocation={true}
-              useCompassOrientation={true}
-              onOrientationChanged={(event) =>
-                setAzimuth(event.nativeEvent.azimuth)
-              }
-              style={{
-                flex: loadingMap ? 0 : 1,
-                display: mapShown ? 'flex' : 'none',
-              }}
-              ref={(nativeRef) => (mapRef.current = findNodeHandle(nativeRef))}
-            />
+            <View style={{ flexDirection: 'column', flex: 1 }}>
+              {tapLocation && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    zIndex: 100,
+                    display: mapShown ? 'flex' : 'none',
+                    backgroundColor: theme.colors.tabs,
+                    borderBottomLeftRadius: 25,
+                    borderBottomRightRadius: 25,
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    paddingVertical: 4,
+                    paddingHorizontal: 8,
+                  }}>
+                  <ThemeText style={{ fontSize: 18 }}>{tapLocation}</ThemeText>
+                  <TouchableOpacity onPress={() => setTapLocation(undefined)}>
+                    <ThemeIcon
+                      size={25}
+                      name="close"
+                      color={theme.colors.text}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <NativeMapView
+                isShown={mapShown}
+                enableZoom={true}
+                visibleLocations={mapLocations}
+                onLocationTap={(event) =>
+                  setTapLocation(event.nativeEvent.name)
+                }
+                useObserverLocation={true}
+                useCompassOrientation={true}
+                onOrientationChanged={(event) =>
+                  setAzimuth(event.nativeEvent.azimuth)
+                }
+                style={{
+                  flex: loadingMap ? 0 : 1,
+                  display: mapShown ? 'flex' : 'none',
+                }}
+                ref={(nativeRef) =>
+                  (mapRef.current = findNodeHandle(nativeRef))
+                }
+              />
+            </View>
           </Animated.View>
         )}
       </View>
@@ -578,7 +671,7 @@ export function ARSceneView({
         onOK={closeSession}
       />
       <ErrorModal
-        text="External error occurred while fetching data, please try again later."
+        text={errorMessage}
         isVisible={errorModalShown}
         hide={() => {
           closeSession();

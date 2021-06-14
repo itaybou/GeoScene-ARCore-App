@@ -1,32 +1,15 @@
-import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Text,
-  UIManager,
-  View,
-  findNodeHandle,
-} from 'react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 
 import { ARModule } from '../../../../native/NativeModulesBridge';
 import { Center } from '../../../components/layout/Center';
-import { LoadingModal } from '../../../components/modals/LoadingModal';
-import { LocationSearchBar } from '../../../components/input/LocationSearchBar';
 import { MapModal } from '../../../components/modals/MapModal';
-import { NativeEventEmitter } from 'react-native';
-import { NativeMapView } from '../../../../native/NativeViewsBridge';
 import { OptionModal } from '../../../components/modals/OptionModal';
 import { PlacesStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
-import { ScrollView } from 'react-native-gesture-handler';
 import { TabScreen } from '../../../components/layout/TabScreen';
-import { TextInput } from 'react-native-paper';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
-import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
 import { timeConverter } from '../../../utils/time/time';
-import useGeolocation from '../../../utils/hooks/useGeolocation';
-import { useNavigation } from '@react-navigation/native';
 import useTheme from '../../../utils/hooks/useTheme';
 
 interface LocationProps {}
@@ -47,15 +30,6 @@ export function DownloadedPlace({
     false,
   );
   const [toDelete, setToDelete] = useState<any>(undefined);
-
-  const navigation = useNavigation();
-
-  // const
-  const mapRef = useRef<number | null>(null);
-  const MapsManager = useMemo(
-    () => UIManager.getViewManagerConfig('MapView'),
-    [],
-  );
 
   const getDownloadedPlacesData = async () => {
     const data = await ARModule.fetchStoredLocationData();
@@ -130,8 +104,6 @@ export function DownloadedPlace({
     );
   };
 
-  console.log(toDelete);
-
   return !data ? (
     <Center>
       <ActivityIndicator color={theme.colors.accent} size="large" />
@@ -180,7 +152,7 @@ export function DownloadedPlace({
           setToDelete(undefined);
         }}
         onOK={async () => {
-          await ARModule.deleteStoredLocationData(toDelete.id);
+          await ARModule.deleteStoredLocationData(toDelete?.id);
           getDownloadedPlacesData();
           setToDelete(undefined);
         }}

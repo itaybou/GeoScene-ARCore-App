@@ -13,11 +13,13 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.geoscene.geography.Coordinate;
 import com.geoscene.maps.OSMMapView;
 import com.geoscene.triangulation.TriangulationData;
 import com.geoscene.react.ArrayUtil;
 import com.geoscene.triangulation.TriangulationIntersection;
 
+import org.javatuples.Pair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,7 +75,7 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
         int commandNo = Integer.parseInt(commandId);
         switch (commandNo) {
             case COMMAND_ZOOM_BBOX:
-                root.zoomToBoundingBox();
+                root.zoomToBoundingBox(args != null && args.size() > 0 ? args.getDouble(0) : null);
                 break;
             case COMMAND_ZOOM_SET_BBOX:
                 root.zoomToBoundingBox(args.getDouble(0), args.getDouble(1), args.getInt(2), args.getBoolean(3), true);
@@ -139,6 +141,19 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
         view.setAnimateToIncludeTriangulationPoints(animateToIncludeTriangulationPoints);
     }
 
+    @ReactProp(name = "visibleLocations")
+    public void setVisibleLocations(OSMMapView view, ReadableArray visibleLocations) throws JSONException {
+        if (visibleLocations != null) {
+            List<Pair<String, Coordinate>> data = new ArrayList<>();
+            JSONArray j = ArrayUtil.toJSONArray(visibleLocations);
+            for (int i = 0; i < j.length(); i++) {
+                JSONObject o = j.getJSONObject(i);
+                data.add(new Pair<>(o.getString("name"), new Coordinate(o.getDouble("latitude"), o.getDouble("longitude"))));
+            }
+            view.setVisibleLocations(data);
+        }
+    }
+
     @ReactProp(name = "triangulationData")
     public void setTriangulationData(OSMMapView view, ReadableArray triangulationData) throws JSONException {
         if (triangulationData != null) {
@@ -191,7 +206,9 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
                 "distance",
                 MapBuilder.of("registrationName", "onDistanceCalculation"),
                 "triangulationIntersections",
-                MapBuilder.of("registrationName", "onTriangulationIntersection")
+                MapBuilder.of("registrationName", "onTriangulationIntersection"),
+                "locationTap",
+                MapBuilder.of("registrationName", "onLocationTap")
         );
     }
 }

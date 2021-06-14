@@ -63,24 +63,26 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
   const renderHeaderIcon = (screen: string, icon: string, size?: number) => {
     return (
       <View style={styles.iconButtonContainer}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('External', { screen: screen })}>
-          {state.user &&
-          icon === 'envelope' &&
-          state.user?.unreadMessages > 0 ? (
-            <ThemeIcon
-              name="envelope-letter"
-              size={20}
-              color={theme.colors.text}
-            />
-          ) : (
-            <ThemeIcon
-              name={icon}
-              size={size ?? 20}
-              color={theme.colors.text}
-            />
-          )}
-        </TouchableOpacity>
+        {state.user?.unreadMessages && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('External', { screen: screen })}>
+            {state.user &&
+            icon === 'envelope' &&
+            state.user?.unreadMessages > 0 ? (
+              <ThemeIcon
+                name="envelope-letter"
+                size={20}
+                color={theme.colors.text}
+              />
+            ) : (
+              <ThemeIcon
+                name={icon}
+                size={size ?? 20}
+                color={theme.colors.text}
+              />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -113,9 +115,11 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
               ]}
             />
 
-            <ThemeText style={styles.profileNameText}>
-              {state.user?.name}
-            </ThemeText>
+            {state.user?.name && (
+              <ThemeText style={styles.profileNameText}>
+                {state.user?.name}
+              </ThemeText>
+            )}
           </View>
         </MenuTrigger>
         <MenuOptions
@@ -156,13 +160,13 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
     );
   };
 
-  const renderRightAlignedComponent = () => {
+  const renderRightAlignedComponent = useCallback(() => {
     const { Popover } = renderers;
 
     return state.user ? (
       <View style={styles.rightAlignedContainer}>
         {renderHeaderIcon('ProfileSettings', 'user', 18)}
-        {renderHeaderIcon('Messages', 'envelope')}
+        {state.user?.unreadMessages && renderHeaderIcon('Messages', 'envelope')}
         {renderProfilePicture()}
       </View>
     ) : (
@@ -217,7 +221,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuOptions>
       </Menu>
     );
-  };
+  }, [state.user]);
 
   return (
     <View style={{ backgroundColor: theme.colors.background }}>

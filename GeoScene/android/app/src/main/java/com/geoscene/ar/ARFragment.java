@@ -1,7 +1,6 @@
 package com.geoscene.ar;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -15,23 +14,27 @@ import androidx.fragment.app.Fragment;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.geoscene.ErrorHandling;
 import com.geoscene.R;
-import com.geoscene.permissions.ARLocationPermissionHelper;
+import com.geoscene.geography.Coordinate;
+import com.geoscene.permissions.PermissionHelper;
 import com.geoscene.places.overpass.poi.Element;
 import com.geoscene.sensors.DeviceSensors;
 import com.geoscene.sensors.DeviceSensorsManager;
 import com.google.ar.core.ArCoreApk;
-import com.google.ar.core.CameraConfig;
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 
+import org.javatuples.Pair;
+
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class ARFragment extends Fragment {
@@ -50,10 +53,13 @@ public class ARFragment extends Fragment {
     private boolean showLocationCenter;
     private boolean markersRefresh;
     private boolean realisticMarkers;
+    private boolean showVisiblePlacesOnMap;
+    private boolean offsetOverlapping;
 
     private boolean closed;
 
-    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes, boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers) {
+    public ARFragment(ReactContext reactContext, boolean determineViewshed, int visibleRadiusKM, Map<String, HashSet<String>> placesTypes,
+                      boolean showPlacesApp, boolean showLocationCenter, boolean markersRefresh, boolean realisticMarkers, boolean showVisiblePlacesOnMap, boolean offsetOverlapping) {
         super();
         this.reactContext = reactContext;
         this.determineViewshed = determineViewshed;
@@ -63,6 +69,8 @@ public class ARFragment extends Fragment {
         this.showLocationCenter = showLocationCenter;
         this.markersRefresh = markersRefresh;
         this.realisticMarkers = realisticMarkers;
+        this.showVisiblePlacesOnMap = showVisiblePlacesOnMap;
+        this.offsetOverlapping = offsetOverlapping;
         closed = false;
     }
 
@@ -76,8 +84,9 @@ public class ARFragment extends Fragment {
 
         sensors = DeviceSensorsManager.getSensors(getContext());
         // Request CAMERA & fine location permission which is required by ARCore-Location.
-        ARLocationPermissionHelper.requestPermission(getActivity());
-        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes, showPlacesApp, showLocationCenter, markersRefresh, realisticMarkers, this);
+        PermissionHelper.requestPermission(getActivity());
+        initializer = new ARNodesInitializer(reactContext, sensors, arSceneView, determineViewshed, visibleRadiusKM, placesTypes,
+                showPlacesApp, showVisiblePlacesOnMap, showLocationCenter, markersRefresh, realisticMarkers, offsetOverlapping, this);
         return view;
     }
 
@@ -98,7 +107,7 @@ public class ARFragment extends Fragment {
             try {
                 Session session = createArSession(getActivity(), installRequested);
                 if (session == null) {
-                    installRequested = ARLocationPermissionHelper.hasPermission(getActivity());
+                    installRequested = PermissionHelper.hasPermission(getActivity());
                     return;
                 } else {
                     arSceneView.getPlaneRenderer().setVisible(false);
@@ -115,7 +124,7 @@ public class ARFragment extends Fragment {
             throws UnavailableException {
         Session session = null;
         // if we have the camera permission, create the session
-        if (ARLocationPermissionHelper.hasPermission(activity)) {
+        if (PermissionHelper.hasPermission(activity)) {
             switch (ArCoreApk.getInstance().requestInstall(activity, !installRequested)) {
                 case INSTALL_REQUESTED:
                     return null;
@@ -225,6 +234,23 @@ public class ARFragment extends Fragment {
                 event);
     }
 
+    public void dispatchMapLocations(List<Pair<String, Coordinate>> mapLocations) {
+        WritableArray locations = Arguments.createArray();
+        for(Pair<String, Coordinate> location : mapLocations) {
+            WritableMap map = Arguments.createMap();
+            map.putDouble("latitude", location.getValue1().getLat());
+            map.putDouble("longitude", location.getValue1().getLon());
+            map.putString("name", location.getValue0());
+            locations.pushMap(map);
+        }
+        WritableMap event = Arguments.createMap();
+        event.putArray("data", locations);
+        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+                getId(),
+                "mapLocations",
+                event);
+    }
+
     public void dispatchVisibleMarkers(int minDistance, int maxDistance, boolean first, boolean last) {
         WritableMap event = Arguments.createMap();
         event.putInt("max_distance", maxDistance);
@@ -271,8 +297,10 @@ public class ARFragment extends Fragment {
     public void close() {
         Log.d(TAG, "Close AR Session.");
         closed = true;
-        initializer.disposeRequests();
-        initializer.stopUpdateListener();
+        if(initializer != null) {
+            initializer.disposeRequests();
+            initializer.stopUpdateListener();
+        }
     }
 
 }

@@ -142,8 +142,36 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
             },
           }),
       },
+      showMapMarkers: {
+        title: 'Show Visible Map Markers',
+        switch: true,
+        bottomText: false,
+        switchActive: state.showVisiblePlacesOnMap,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_SHOW_MAP_VISIBLE_MARKERS,
+            payload: {
+              showVisiblePlacesOnMap: !state.showVisiblePlacesOnMap,
+            },
+          }),
+      },
     },
     ar_optimization: {
+      offset_overlap: {
+        title: 'Offset Overlaping Markers',
+        additionalText:
+          'Offset overlapping markers vertically (Slower, Expiremental).',
+        switch: true,
+        bottomText: true,
+        switchActive: state.offsetOverlapMarkers,
+        onClick: () =>
+          dispatch({
+            type: SettingsActionTypes.CHANGE_OFFSET_OVERLAP_MARKERS,
+            payload: {
+              offsetOverlapMarkers: !state.offsetOverlapMarkers,
+            },
+          }),
+      },
       dynamic_markers: {
         title: 'Dynamic Location Markers',
         additionalText:
@@ -217,6 +245,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
         menuItems.scene.center,
         menuItems.scene.locationTypes,
         menuItems.scene.showPlacesApp,
+        menuItems.scene.showMapMarkers,
       ],
     },
     {
@@ -227,6 +256,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
         <ThemeIcon name="wrench" size={18} color={color} />
       ),
       data: [
+        menuItems.ar_optimization.offset_overlap,
         menuItems.ar_optimization.dynamic_markers,
         menuItems.ar_optimization.realistic_markers,
       ],

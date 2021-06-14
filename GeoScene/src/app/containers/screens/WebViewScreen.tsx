@@ -153,6 +153,7 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: {
+    flex: 1,
     position: 'absolute',
     height: '100%',
     width: '100%',

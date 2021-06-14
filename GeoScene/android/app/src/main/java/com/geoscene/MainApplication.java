@@ -5,9 +5,14 @@ import android.content.Context;
 
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.geoscene.data_access.CacheManager;
 import com.geoscene.geography.modules.GeographyPackage;
 import com.geoscene.oauth.OAuthManagerPackage;
+import com.geoscene.permissions.PermissionHelper;
+import com.geoscene.permissions.PermissionPackage;
 import com.geoscene.places.overpass.modules.OverpassPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
@@ -42,6 +47,7 @@ public class MainApplication extends Application implements ReactApplication {
                     packages.add(new OAuthManagerPackage());
                     packages.add(new OverpassPackage());
                     packages.add(new GeographyPackage());
+                    packages.add(new PermissionPackage());
                     return packages;
                 }
 
