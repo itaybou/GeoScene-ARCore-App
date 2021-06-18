@@ -71,7 +71,7 @@ export const IntersectionModal: React.FC<IntersectionModalProps> = ({
   return (
     <BottomModal
       title={intersectionText}
-      enableSwipeDown={true}
+      enableSwipeDown={false}
       screenPercent={0.65}
       buttonIcon={'close'}
       backdropOpacity={0}
@@ -87,7 +87,9 @@ export const IntersectionModal: React.FC<IntersectionModalProps> = ({
       showButtonIcon={true}>
       {intersectionModalVisible && (
         <View style={{ flex: 1, flexDirection: 'row' }}>
-          <View style={{ flex: viewedIntersection === null ? 1 : 0.3 }}>
+          <View
+            style={{ flex: viewedIntersection === null ? 1 : 0.3 }}
+            onStartShouldSetResponder={(): boolean => true}>
             {viewedIntersection === null ? (
               <FlatList
                 data={triangulationIntersections}

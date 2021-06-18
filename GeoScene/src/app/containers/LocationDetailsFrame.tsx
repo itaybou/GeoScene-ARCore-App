@@ -51,26 +51,17 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
   );
 
   const getLocationDetails = useCallback(async () => {
-    if (name_en) {
+    if (name_en || name_heb) {
       const detailsHeader:
         | PageHeaderContentType
-        | undefined = await getPageHeaderContent(name_en);
+        | undefined = await getPageHeaderContent(name_en ?? name_heb, !name_en);
       detailsHeader ? setDetails(detailsHeader.content) : setDetails('');
       detailsHeader ? setPageId(detailsHeader.page_id) : setPageId(null);
       if (detailsHeader) {
-        const thumbnail_uri = await getPageThumbnail(name_en);
-        thumbnail_uri
-          ? setThumbnailUri(thumbnail_uri)
-          : setThumbnailUri(undefined);
-      } else setThumbnailUri(undefined);
-    } else if (name_heb) {
-      const detailsHeader:
-        | PageHeaderContentType
-        | undefined = await getPageHeaderContent(name_heb, true);
-      detailsHeader ? setDetails(detailsHeader.content) : setDetails('');
-      detailsHeader ? setPageId(detailsHeader.page_id) : setPageId(null);
-      if (detailsHeader) {
-        const thumbnail_uri = await getPageThumbnail(name_heb, true);
+        const thumbnail_uri = await getPageThumbnail(
+          detailsHeader.page_id,
+          !name_en,
+        );
         thumbnail_uri
           ? setThumbnailUri(thumbnail_uri)
           : setThumbnailUri(undefined);
@@ -139,7 +130,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
               justifyContent: 'flex-end',
               flexDirection: 'row',
             }}>
-            <View style={{ marginEnd: 16 }}>
+            <View style={{ marginEnd: 20 }}>
               <TouchableOpacity onPress={expandDetails}>
                 <ThemeIcon
                   name="arrow-down"
@@ -219,6 +210,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                       text="Google"
                       icon={'social-google'}
                       lean={true}
+                      supportRTL={false}
                     />
 
                     <ThemeButton
@@ -229,7 +221,6 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                     />
                   </View>
                 )}
-
                 {closeButton}
               </View>
             </View>
@@ -257,6 +248,7 @@ export const LocationDetailsFrame: React.FC<LocationDetailsFrameProps> = ({
                     onPress={searchGoogle}
                     text="Search Google"
                     icon={'social-google'}
+                    supportRTL={false}
                   />
                 </View>
               )}

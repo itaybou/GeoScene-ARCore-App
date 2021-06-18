@@ -53,7 +53,7 @@ export const SettingsListItem = ({
       activeOpacity={0.6}
       disabled={item.switch}
       onPress={item.onClick}>
-      <View style={{ flexDirection: 'column' }}>
+      <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
         <ThemeText style={styles.title}>{item.title}</ThemeText>
         {bottomText && (
           <ThemeText style={styles.bottomText}>{item.additionalText}</ThemeText>

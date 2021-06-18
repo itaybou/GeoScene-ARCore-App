@@ -120,7 +120,7 @@ export const CompassScreen: React.FC<CompassViewProps> = ({}) => {
         <NativeMapView
           isShown={mapShown}
           useObserverLocation={true}
-          enableZoom={false}
+          enableZoom={true}
           useTriangulation={true}
           useCompassOrientation={true}
           onOrientationChanged={(event) => {

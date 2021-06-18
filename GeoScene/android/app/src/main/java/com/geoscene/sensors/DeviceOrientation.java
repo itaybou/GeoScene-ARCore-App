@@ -48,6 +48,7 @@ public class DeviceOrientation implements SensorEventListener {
         return orientation;
     }
 
+
     @Override
     public void onSensorChanged(SensorEvent event) {
 

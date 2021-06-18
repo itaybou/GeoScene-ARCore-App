@@ -5,6 +5,7 @@ import com.google.ar.sceneform.Node;
 public class LocationMarker {
 
     public String name;
+    public final static int MAX_LOCATION_TITLE_LENGTH = 22;
 
     // Location in real-world terms
     public double longitude;
@@ -156,6 +157,6 @@ public class LocationMarker {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.length() > MAX_LOCATION_TITLE_LENGTH ? name.substring(0, MAX_LOCATION_TITLE_LENGTH).trim() + "..." : name;
     }
 }

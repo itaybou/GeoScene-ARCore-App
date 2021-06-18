@@ -1,43 +1,40 @@
 import {
-  Button,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  Text,
-  UIManager,
-  View,
-  findNodeHandle,
-} from 'react-native';
-import {
   PlacesRoutesParamList,
   PlacesStackRouteNavProps,
 } from '../params/RoutesParamList';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { AddPlace } from '../../containers/screens/places/AddPlace';
 import { Center } from '../../components/layout/Center';
 import { DownloadPlace } from '../../containers/screens/places/DownloadPlace';
 import { DownloadedPlace } from '../../containers/screens/places/DownloadedPlace';
 import Header from '../../containers/Header';
-import { LocationSearchBar } from '../../components/input/LocationSearchBar';
-import { NativeMapView } from '../../../native/NativeViewsBridge';
-import { TabScreen } from '../../components/layout/TabScreen';
-import { TextInput } from 'react-native-paper';
-import { ThemeButton } from '../../components/input/ThemeButton';
+import { OptionModal } from '../../components/modals/OptionModal';
 import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { UserPlaces } from '../../containers/screens/places/UserPlaces';
 import { createStackNavigator } from '@react-navigation/stack';
-import { requireNativeComponent } from 'react-native';
-import { searchPlacesByName } from '../../api/nomination/OSMNominationAPI';
-import useGeolocation from '../../utils/hooks/useGeolocation';
-import useTheme from '../../utils/hooks/useTheme';
+import { useEffect } from 'react';
 import useUser from '../../utils/hooks/useUser';
 
 interface StackProps {}
+export interface PlacesProps {
+  showAddMessage: boolean;
+}
 
 const Stack = createStackNavigator<PlacesRoutesParamList>();
 
 function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
   const { state } = useUser();
+  const [addApprovalMessageVisible, setAddApprovalMessageVisible] = useState<
+    boolean
+  >(false);
+
+  useEffect(() => {
+    if (route?.params?.showAddMessage) {
+      setAddApprovalMessageVisible(true);
+    }
+  }, [route]);
+
   return (
     <Center>
       {state.user && (
@@ -66,7 +63,15 @@ function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
         text="My Downloaded Areas"
         description="View Downloaded information stored on device for offline use."
         icon={'drawer'}
-        onPress={() => navigation.navigate('DownloadedPlace')}
+        onPress={() => navigation.navigate('DownloadedPlaces')}
+      />
+      <OptionModal
+        big={false}
+        isVisible={addApprovalMessageVisible}
+        showOnlyOk={true}
+        text={'Location add request sent, it will be visible in a short while.'}
+        onOK={() => {}}
+        hide={() => setAddApprovalMessageVisible(false)}
       />
     </Center>
   );
@@ -83,7 +88,7 @@ export const PlacesStackRoutes: React.FC<StackProps> = ({}) => {
       <Stack.Screen name="Places" component={Places} />
       <Stack.Screen name="AddPlace" component={AddPlace} />
       <Stack.Screen name="DownloadPlace" component={DownloadPlace} />
-      <Stack.Screen name="DownloadedPlace" component={DownloadedPlace} />
+      <Stack.Screen name="DownloadedPlaces" component={DownloadedPlace} />
       <Stack.Screen name="UserPlaces" component={UserPlaces} />
     </Stack.Navigator>
   );

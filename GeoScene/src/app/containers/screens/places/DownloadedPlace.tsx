@@ -8,6 +8,7 @@ import { OptionModal } from '../../../components/modals/OptionModal';
 import { PlacesStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
+import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
 import { timeConverter } from '../../../utils/time/time';
 import useTheme from '../../../utils/hooks/useTheme';
@@ -16,7 +17,7 @@ interface LocationProps {}
 
 export function DownloadedPlace({
   route,
-}: PlacesStackRouteNavProps<'DownloadedPlace'>) {
+}: PlacesStackRouteNavProps<'DownloadedPlaces'>) {
   const theme = useTheme();
 
   const [data, setData] = useState<any>(undefined);
@@ -67,13 +68,46 @@ export function DownloadedPlace({
               {item.name}
             </ThemeText>
           </View>
-          <ThemeText style={{ fontSize: 12 }}>
-            Radius: {item.radiusKM} KM
-          </ThemeText>
           <ThemeText style={{ fontSize: 12 }}>{item.description}</ThemeText>
-          <ThemeText style={{ fontSize: 12 }}>
-            {timeConverter(item.timestamp)}
-          </ThemeText>
+          <View
+            style={{
+              marginTop: 5,
+              alignItems: 'flex-start',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ThemeIcon name="location-pin" size={10} />
+              <ThemeText style={{ fontSize: 12, marginStart: 5 }}>
+                {item.latitude.toFixed(6)}, {item.longitude.toFixed(6)}
+              </ThemeText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+              }}>
+              <ThemeIcon name="globe" size={10} />
+              <ThemeText style={{ fontSize: 12, marginStart: 5 }}>
+                Radius: {item.radiusKM} KM
+              </ThemeText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+              }}>
+              <ThemeIcon name="location-pin" size={10} />
+              <ThemeText style={{ fontSize: 12, marginStart: 5 }}>
+                {timeConverter(item.timestamp)}
+              </ThemeText>
+            </View>
+          </View>
         </View>
         <View
           style={{
@@ -135,7 +169,8 @@ export function DownloadedPlace({
           title={placeMap?.name}
           customComponent={
             <ThemeText>
-              Latitude: {placeMap?.latitude}, Longitude: {placeMap?.longitude}
+              Latitude: {placeMap?.latitude.toFixed(6)}, Longitude:{' '}
+              {placeMap?.longitude.toFixed(6)}
             </ThemeText>
           }
           isVisible={placeMap !== null}

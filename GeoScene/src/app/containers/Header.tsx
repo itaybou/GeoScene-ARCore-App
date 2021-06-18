@@ -15,14 +15,9 @@ import {
   renderers,
 } from 'react-native-popup-menu';
 import React, { useCallback, useMemo } from 'react';
-import {
-  RouteProp,
-  getFocusedRouteNameFromRoute,
-} from '@react-navigation/native';
 import { auth, deauth } from '../auth/Authentication';
 import { useTheme, useUser } from '../utils/hooks/Hooks';
 
-import { Badge } from 'react-native-elements/dist/badge/Badge';
 import { StackHeaderProps } from '@react-navigation/stack';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
@@ -40,9 +35,17 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
   const theme = useTheme();
   const { state, dispatch } = useUser();
 
+  const camelCaseToTitle = useCallback((text: string | undefined) => {
+    if (!text) return undefined;
+    var result = text.replace(/([A-Z])/g, ' $1');
+    return result.charAt(0).toUpperCase() + result.slice(1);
+  }, []);
+
   const routeTitle = useMemo(
-    () => scene.descriptor.options.title ?? scene.route.name,
-    [scene.descriptor.options.title, scene.route.name],
+    () =>
+      camelCaseToTitle(scene.descriptor.options.title) ??
+      camelCaseToTitle(scene.route.name),
+    [scene.descriptor.options.title, scene.route.name, camelCaseToTitle],
   );
 
   const renderLeftAlignedComponent = useCallback(() => {
@@ -60,34 +63,31 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
     );
   }, [navigation, theme.colors.text, routeTitle]);
 
-  const renderHeaderIcon = (screen: string, icon: string, size?: number) => {
-    return (
-      <View style={styles.iconButtonContainer}>
-        {state.user?.unreadMessages && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('External', { screen: screen })}>
-            {state.user &&
-            icon === 'envelope' &&
-            state.user?.unreadMessages > 0 ? (
-              <ThemeIcon
-                name="envelope-letter"
-                size={20}
-                color={theme.colors.text}
-              />
-            ) : (
-              <ThemeIcon
-                name={icon}
-                size={size ?? 20}
-                color={theme.colors.text}
-              />
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+  const renderHeaderIcon = useCallback(
+    (screen: string, icon: string, size?: number) => {
+      return (
+        <View style={styles.iconButtonContainer}>
+          {state.user?.unreadMessages && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('External', { screen: screen })
+              }>
+              {state.user &&
+              icon === 'envelope' &&
+              state.user?.unreadMessages > 0 ? (
+                <ThemeIcon name="envelope-letter" size={20} />
+              ) : (
+                <ThemeIcon name={icon} size={size ?? 20} />
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    },
+    [state.user, navigation],
+  );
 
-  const renderProfilePicture = () => {
+  const renderProfilePicture = useCallback(() => {
     const userImage = state.user?.img;
     const { Popover } = renderers;
 
@@ -124,7 +124,11 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuTrigger>
         <MenuOptions
           customStyles={{
-            optionsWrapper: { width: 200, backgroundColor: theme.colors.cards },
+            optionsWrapper: {
+              width: 200,
+              backgroundColor: theme.colors.cards,
+              alignItems: 'flex-start',
+            },
           }}>
           <MenuOption
             onSelect={() =>
@@ -158,7 +162,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuOptions>
       </Menu>
     );
-  };
+  }, [state.user, theme.colors, dispatch, navigation]);
 
   const renderRightAlignedComponent = useCallback(() => {
     const { Popover } = renderers;
@@ -175,7 +179,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         rendererProps={{
           placement: 'bottom',
           preferredPlacement: 'bottom',
-          anchorStyle: { backgroundColor: theme.colors.cards },
+          anchorStyle: { backgroundColor: theme.colors },
         }}>
         <MenuTrigger>
           <View
@@ -185,7 +189,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
               alignItems: 'center',
             }}>
             <ThemeText style={{ fontSize: 12 }}>Login</ThemeText>
-            <ThemeIcon name={'login'} size={20} color={theme.colors.text} />
+            <ThemeIcon name={'login'} size={20} />
           </View>
         </MenuTrigger>
         <MenuOptions
@@ -198,7 +202,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
             }}>
             <View style={{ flexDirection: 'row', padding: 4 }}>
               <View style={{ marginRight: 8 }}>
-                <ThemeIcon name={'login'} size={15} color={theme.colors.text} />
+                <ThemeIcon name={'login'} size={15} />
               </View>
               <ThemeText>Sign In</ThemeText>
             </View>
@@ -209,11 +213,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
             }>
             <View style={{ flexDirection: 'row', padding: 4 }}>
               <View style={{ marginRight: 8 }}>
-                <ThemeIcon
-                  name={'people'}
-                  size={15}
-                  color={theme.colors.text}
-                />
+                <ThemeIcon name={'people'} size={15} />
               </View>
               <ThemeText>Sign Up</ThemeText>
             </View>
@@ -221,7 +221,14 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuOptions>
       </Menu>
     );
-  }, [state.user]);
+  }, [
+    state.user,
+    theme.colors,
+    renderHeaderIcon,
+    renderProfilePicture,
+    navigation,
+    dispatch,
+  ]);
 
   return (
     <View style={{ backgroundColor: theme.colors.background }}>

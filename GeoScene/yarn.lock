@@ -5685,10 +5685,10 @@ react-native-size-matters@^0.3.1:
   resolved "https://registry.npmjs.org/react-native-size-matters/-/react-native-size-matters-0.3.1.tgz"
   integrity sha512-mKOfBLIBFBcs9br1rlZDvxD5+mAl8Gfr5CounwJtxI6Z82rGrMO+Kgl9EIg3RMVf3G855a85YVqHJL2f5EDRlw==
 
-react-native-slider@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.npmjs.org/react-native-slider/-/react-native-slider-0.11.0.tgz"
-  integrity sha512-jV9K87eu9uWr0uJIyrSpBLnCKvVlOySC2wynq9TFCdV9oGgjt7Niq8Q1A8R8v+5GHsuBw/s8vEj1AAkkUi+u+w==
+react-native-slider3@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-slider3/-/react-native-slider3-1.0.2.tgz#8c85ce4663441bef8a4c747dfa6e2e0817238a5c"
+  integrity sha512-ZNmJ6/zVwpQsMbisyYW5IQpUOYr9eRhdAwsphBtLUBwpTH9oYsA+1ZTmsAcORGzDM4aWzCf4nc3de7n1L9SguA==
   dependencies:
     prop-types "^15.5.6"
 

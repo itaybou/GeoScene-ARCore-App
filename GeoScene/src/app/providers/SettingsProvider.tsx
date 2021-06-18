@@ -86,7 +86,7 @@ export interface SettingsType {
 const initialSettings: SettingsType = {
   theme: 'light' as ThemesType,
   determineViewshed: true,
-  showLocationCenter: true,
+  showLocationCenter: false,
   showPlacesApp: true,
   visibleRadius: 30,
   placeTypes,

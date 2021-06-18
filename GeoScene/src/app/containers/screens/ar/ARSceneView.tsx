@@ -328,7 +328,7 @@ export function ARSceneView({
                           MapsManager.Commands.ZOOM_BBOX.toString(),
                           [
                             visibleLocations
-                              ? visibleLocations.maxDistance / 1000 + 5
+                              ? visibleLocations.maxDistance / 1000 + 15
                               : 10,
                           ],
                         );
@@ -362,7 +362,7 @@ export function ARSceneView({
                           MapsManager.Commands.ZOOM_BBOX.toString(),
                           [
                             visibleLocations
-                              ? visibleLocations.maxDistance / 1000 + 5
+                              ? visibleLocations.maxDistance / 1000 + 15
                               : 10,
                           ],
                         );
@@ -557,6 +557,8 @@ export function ARSceneView({
                 setMapShown(!mapShown);
                 if (!mapShown) {
                   setLoadingMap(true);
+                } else {
+                  setTapLocation(undefined);
                 }
                 Animated.timing(mapAnimation, {
                   toValue: mapShown ? 0 : 0.4,
@@ -568,7 +570,7 @@ export function ARSceneView({
                       MapsManager.Commands.ZOOM_BBOX.toString(),
                       [
                         visibleLocations
-                          ? visibleLocations.maxDistance / 1000 + 5
+                          ? visibleLocations.maxDistance / 1000 + 15
                           : 10,
                       ],
                     );
@@ -588,7 +590,12 @@ export function ARSceneView({
                 )}
               </Center>
             )}
-            <View style={{ flexDirection: 'column', flex: 1 }}>
+            <View
+              style={{
+                flexDirection: 'column',
+                flex: loadingMap ? 0 : 1,
+                display: mapShown ? 'flex' : 'none',
+              }}>
               {tapLocation && (
                 <View
                   style={{

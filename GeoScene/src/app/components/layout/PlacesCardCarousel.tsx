@@ -1,11 +1,4 @@
-import {
-  ActivityIndicator,
-  Animated,
-  FlatList,
-  Image,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Animated, FlatList, View } from 'react-native';
 import React, { useRef, useState } from 'react';
 
 import FastImage from 'react-native-fast-image';
@@ -139,7 +132,7 @@ export const PlacesCardCarousel: React.FC<PlacesCardCarouselProps> = ({
   };
 
   return items && items.length !== 0 ? (
-    <View style={{ flex: 0.95, width: '100%', height: '100%' }}>
+    <View style={[{ flex: 0.95, width: '100%', height: '100%' }]}>
       <FlatList
         horizontal
         data={items}

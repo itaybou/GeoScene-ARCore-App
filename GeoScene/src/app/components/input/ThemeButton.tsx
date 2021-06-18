@@ -19,6 +19,7 @@ interface ThemeButtonProps {
   disabled?: boolean;
   lean?: boolean;
   style?: StyleProp<ViewStyle>;
+  supportRTL?: boolean;
 }
 
 export const ThemeButton: React.FC<ThemeButtonProps> = ({
@@ -28,6 +29,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
   onPress,
   lean = false,
   disabled = false,
+  supportRTL = true,
 }) => {
   const theme = useTheme();
   return (
@@ -54,7 +56,14 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
               : theme.colors.accent_secondary_bright,
           },
         ]}>
-        {icon && <ThemeIcon name={icon} size={18} color={'black'} />}
+        {icon && (
+          <ThemeIcon
+            name={icon}
+            size={18}
+            color={'black'}
+            supportRTL={supportRTL}
+          />
+        )}
         {text && (
           <Text style={icon && [styles.textMargin, lean && styles.textLean]}>
             {text}

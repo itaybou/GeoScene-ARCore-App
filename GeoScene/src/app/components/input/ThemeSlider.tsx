@@ -1,5 +1,6 @@
+import { I18nManager } from 'react-native';
 import React from 'react';
-import Slider from 'react-native-slider';
+import Slider from 'react-native-slider3';
 import { useTheme } from '../../utils/hooks/Hooks';
 
 interface ThemeSliderProps {
@@ -20,6 +21,7 @@ export const ThemeSlider: React.FC<ThemeSliderProps> = ({
   const theme = useTheme();
   return (
     <Slider
+      inverted={I18nManager.isRTL}
       value={value}
       disabled={disabled}
       step={step}

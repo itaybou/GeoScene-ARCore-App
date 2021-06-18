@@ -1,9 +1,9 @@
 import { AddPlaceProps } from '../../containers/screens/places/AddPlace';
 import { AddTriangulationProps } from '../../containers/screens/triangulation/AddTriangulation';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { PlacesProps } from '../stacks/PlacesStackRoutes';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { TabRoutes } from './../TabRoutes';
 
 export type AppRoutesParamList = {
   Internal: InternalRoutesParamList;
@@ -63,10 +63,10 @@ export type HomeStackRouteNavProps<T extends keyof HomeRoutesParamList> = {
 };
 
 export type PlacesRoutesParamList = {
-  Places: undefined;
+  Places: PlacesProps;
   AddPlace?: AddPlaceProps;
   DownloadPlace: undefined;
-  DownloadedPlace: undefined;
+  DownloadedPlaces: undefined;
   UserPlaces: undefined;
 };
 

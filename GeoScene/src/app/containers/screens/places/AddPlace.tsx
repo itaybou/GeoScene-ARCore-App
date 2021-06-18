@@ -27,7 +27,7 @@ export interface AddPlaceProps {
 }
 
 export const AddPlace = ({ navigation, route }) => {
-  const MAX_DESCRIPTION_LENGTH = 10;
+  const MAX_DESCRIPTION_LENGTH = 250;
   const [name, setName] = useState<string>(route?.params?.name ?? '');
   const [description, setDescription] = useState<string>(
     route?.params?.description ?? '',
@@ -53,7 +53,7 @@ export const AddPlace = ({ navigation, route }) => {
     [coordinate],
   );
 
-  const approveLocation = useCallback(() => {
+  const approveLocation = useCallback(async () => {
     if (coordinate && coordinate.latitude && coordinate.longitude) {
       setLoadingModalVisible(true);
       let response;
@@ -72,9 +72,11 @@ export const AddPlace = ({ navigation, route }) => {
             name,
             description,
           ));
-      if (response) {
+      if (await response) {
         setLoadingModalVisible(false);
-        navigation.replace('Places');
+        navigation.replace('Places', {
+          showAddMessage: true,
+        });
       } else {
         setErrorMessage('Error while trying to approve location.');
         setErrorModalVisible(true);
@@ -163,7 +165,9 @@ export const AddPlace = ({ navigation, route }) => {
           isVisible={mapModalVisible}
           hide={() => setMapModalVisible(false)}
           customComponent={
-            coordinate && <ThemeText>{getCoordinateString}</ThemeText>
+            coordinate &&
+            coordinate?.latitude &&
+            coordinate.longitude && <ThemeText>{getCoordinateString}</ThemeText>
           }
           onMapSingleTap={(event) => {
             const coordinate = event.nativeEvent;

@@ -9,12 +9,15 @@ import {
 import { Center } from '../../../components/layout/Center';
 import { ErrorModal } from '../../../components/modals/ErrorModal';
 import { MapModal } from '../../../components/modals/MapModal';
+import { OptionModal } from '../../../components/modals/OptionModal';
 import { Overpass } from '../../../../native/NativeModulesBridge';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
+import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
 import Toast from 'react-native-toast-message';
 import promisify from '../../../api/promisify';
+import { timeConverter } from '../../../utils/time/time';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
 import { useNavigation } from '@react-navigation/core';
 import { useState } from 'react';
@@ -24,10 +27,14 @@ import useUser from '../../../utils/hooks/useUser';
 interface UserPlacesProps {}
 
 export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
+  const [deleteApprovalModalVisible, setDeleteApprovalModalVisible] = useState<
+    boolean
+  >(false);
   const [errorModalVisible, setErrorModalVisible] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [places, setPlaces] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentItem, setCurrentItem] = useState<any>(undefined);
   const [placeMap, setPlaceMap] = useState<{
     name: string;
     latitude: number;
@@ -77,24 +84,54 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
         }}>
         <View
           style={{
+            flex: 0.45,
             flexDirection: 'column',
+            alignItems: 'flex-start',
           }}>
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-            <ThemeText style={{ fontSize: 10 }}>{item.id} </ThemeText>
             <ThemeText style={{ fontSize: 20, fontWeight: 'bold' }}>
               {item.tags.name}
             </ThemeText>
           </View>
           <ThemeText style={{ fontSize: 12 }}>
-            {item.lat}, {item.lon}
+            {item.tags.description}
           </ThemeText>
+          <View
+            style={{
+              marginTop: 5,
+              alignItems: 'flex-start',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ThemeIcon name="clock" size={10} />
+              <ThemeText style={{ fontSize: 12, marginStart: 5 }}>
+                {timeConverter(item.tags.timestamp)}
+              </ThemeText>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <ThemeIcon name="location-pin" size={10} />
+              <ThemeText style={{ fontSize: 10, marginStart: 5 }}>
+                {item.lat.toFixed(6)}, {item.lon.toFixed(6)}
+              </ThemeText>
+            </View>
+          </View>
         </View>
         <View
           style={{
+            flex: 0.55,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -126,18 +163,8 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
           <ThemeButton
             icon="trash"
             onPress={() => {
-              setLoading(true);
-              deleteLocation(item.id, item.version, item.lat, item.lon).then(
-                (res) => {
-                  if (!res) {
-                    setErrorMessage(res);
-                    setErrorModalVisible(true);
-                  } else {
-                    setPlaces(places.filter((p: any) => p.id !== item.id));
-                  }
-                  setLoading(false);
-                },
-              );
+              setCurrentItem(item);
+              setDeleteApprovalModalVisible(true);
             }}
           />
         </View>
@@ -190,9 +217,45 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
           />
         </TabScreen>
       )}
+      {currentItem && (
+        <OptionModal
+          big={false}
+          onOK={() => {
+            setLoading(true);
+            deleteLocation(
+              currentItem.id,
+              currentItem.version,
+              currentItem.lat,
+              currentItem.lon,
+            )
+              .then((res) => {
+                if (!res) {
+                  setErrorMessage(
+                    'Place delete request already sent, will soon be deleted.',
+                  );
+                  setErrorModalVisible(true);
+                }
+                setPlaces(places.filter((p: any) => p.id !== currentItem.id));
+                setLoading(false);
+              })
+              .catch((err) => setErrorMessage(err));
+            setCurrentItem(undefined);
+            setDeleteApprovalModalVisible(false);
+          }}
+          isVisible={deleteApprovalModalVisible}
+          hide={() => {
+            setCurrentItem(undefined);
+            setDeleteApprovalModalVisible(false);
+          }}
+          text={`Are you sure you want to delete ${currentItem?.tags?.name}`}
+        />
+      )}
       <ErrorModal
         isVisible={errorModalVisible}
-        hide={() => setErrorModalVisible(false)}
+        hide={() => {
+          setErrorModalVisible(false);
+          setErrorMessage(null);
+        }}
         text={errorMessage}
       />
     </>

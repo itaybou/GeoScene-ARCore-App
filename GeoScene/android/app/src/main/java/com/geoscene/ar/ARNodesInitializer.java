@@ -24,6 +24,7 @@ import com.geoscene.data_access.StorageAccess;
 import com.geoscene.elevation.Elevation;
 import com.geoscene.elevation.Raster;
 import com.geoscene.geography.LocationUtils;
+import com.geoscene.location_markers.LocationElevationNode;
 import com.geoscene.location_markers.LocationMarker;
 import com.geoscene.location_markers.LocationScene;
 import com.geoscene.places.Places;
@@ -59,6 +60,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class ARNodesInitializer {
 
     private final int DISTANCE_GROUP_SIZE = 10;
+    private final int LOCATION_MARKER_HEIGHT = 200;
 
     public boolean hasFinishedLoading;
     private ArSceneView arSceneView;
@@ -268,19 +270,23 @@ public class ARNodesInitializer {
             });
         }
 
+        int index = 0;
         for (Pair<Element, Coordinate> visibleLocation : visibleLocations) {
             double locationLat = visibleLocation.getValue1().getLat();
             double locationLon = visibleLocation.getValue1().getLon();
             int elevation = raster.getElevationByCoordinate(new Coordinate(locationLat, locationLon));
+            int elevationDiff = elevation - observerElevation;
+            float distanceKm = (float) LocationUtils.distance(observer.getLat(), locationLat, observer.getLon(), locationLon, 0, 0) / 1000;
 
+            int finalIndex = index;
             ViewRenderable.builder()
                     .setView(context, R.layout.location_marker_card)
                     .build()
                     .thenAccept(renderable -> {
-                        Node locationNode = getLocationMarkerNode(renderable, visibleLocation.getValue0(), elevation, visibleLocation.getValue1());
+                        LocationElevationNode locationNode = getLocationMarkerNode(renderable, visibleLocation.getValue0(), elevation, visibleLocation.getValue1(), finalIndex);
                         LocationMarker layoutLocationMarker = new LocationMarker(locationLon, locationLat, locationNode);
                         layoutLocationMarker.setName(visibleLocation.getValue0().tags.nameEng != null ? visibleLocation.getValue0().tags.nameEng : visibleLocation.getValue0().tags.name);
-                        layoutLocationMarker.setHeight(elevation * 10);
+                        layoutLocationMarker.setHeight(elevationDiff * 10 + (distanceKm < 1 ? LOCATION_MARKER_HEIGHT * distanceKm: LOCATION_MARKER_HEIGHT)); // Place marker in relative height distance from the observer
                         layoutLocationMarker.setScalingMode(LocationMarker.ScalingMode.GRADUAL_TO_MAX_RENDER_DISTANCE);
                         View eView = renderable.getView();
                         TextView nameTextView = eView.findViewById(R.id.name);
@@ -295,7 +301,7 @@ public class ARNodesInitializer {
                             if (node.isEnabled() && locationScene.getDistanceLimit() < node.getDistance()) {
                                 locationScene.setDistanceLimit(node.getDistance());
                             }
-                            distanceTextView.setText(node.getDistance() >= 1000 ? String.format("%.3f", ((float) node.getDistance() / (float) 1000)) + "KM" : node.getDistance() + "m");
+                            distanceTextView.setText(node.getDistance() >= 1000 ? String.format("%.3f", ((float) node.getDistance() / (float) 1000)) + "Km" : node.getDistance() + "m");
                         });
                         // Adding the marker
                         locationScene.mLocationMarkers.add(layoutLocationMarker);
@@ -305,6 +311,7 @@ public class ARNodesInitializer {
                             startLocationScene(observer, locationScene.mLocationMarkers.size());
                         }
                     });
+            index++;
         }
 
         dispatchObserverElevation(observerElevation);
@@ -387,8 +394,8 @@ public class ARNodesInitializer {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private Node getLocationMarkerNode(ViewRenderable renderable, Element location, int elevation, Coordinate coord) {
-        Node base = new Node();
+    private LocationElevationNode getLocationMarkerNode(ViewRenderable renderable, Element location, int elevation, Coordinate coord, int index) {
+        LocationElevationNode base = new LocationElevationNode(elevation, index);
         base.setRenderable(renderable);
         // Add marker touch listeners here
         View eView = renderable.getView();

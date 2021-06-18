@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 public class LocationNode extends AnchorNode {
 
     private String TAG = "LocationNode";
-    private final int COLLISION_THRESHOLD = 10;
+    private final static int COLLISION_THRESHOLD = 150;
 
     private LocationMarker locationMarker;
     private LocationNodeRender renderEvent;
@@ -34,7 +34,7 @@ public class LocationNode extends AnchorNode {
     private float height = 0F;
     private float gradualScalingMinScale = 0.2F;
     private float gradualScalingMaxScale = 0.65F;
-    private int collisionDetection = 0;
+    private int noCollisionDetection;
 
     private LocationMarker.ScalingMode scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN;
     private LocationScene locationScene;
@@ -43,6 +43,7 @@ public class LocationNode extends AnchorNode {
         super(anchor);
         this.locationMarker = locationMarker;
         this.locationScene = locationScene;
+        this.noCollisionDetection = 0;
     }
 
     public float getHeight() {
@@ -104,7 +105,7 @@ public class LocationNode extends AnchorNode {
         // However, if onUpdate is called explicitly or if the node is removed from the scene on a
         // different thread during onUpdate, then getScene may be null.
         for (Node n : getChildren()) {
-            if (getScene() == null) {
+            if (getScene() == null || !n.isEnabled()) {
                 return;
             }
 
@@ -120,26 +121,29 @@ public class LocationNode extends AnchorNode {
             double distanceInAR = Math.sqrt(dx * dx + dy * dy + dz * dz);
             setDistanceInAR(distanceInAR);
 
-            if (locationScene.shouldOffsetOverlapping() && locationMarker.anchorNode.getHeight() < 8.0F && collisionDetection <= COLLISION_THRESHOLD) {
+            if (locationScene.shouldOffsetOverlapping() && locationMarker.anchorNode.getHeight() < 7.0F && noCollisionDetection <= COLLISION_THRESHOLD && n instanceof LocationElevationNode) {
+                LocationElevationNode node = (LocationElevationNode)n;
                 List<Node> overlaps = locationScene.mArSceneView.getScene().overlapTestAll(n);
                 if(overlaps.size() > 0) {
                     boolean offsetHeight = true;
-                    double maxHeight = nodePosition.y;
+                    double maxHeight = node.getElevation();
                     for(Node overlap : overlaps) {
-                        Vector3 overlapPosition = overlap.getWorldPosition();
-                        double overlapHeight = overlapPosition.y;
-                        if (overlapHeight > maxHeight) {
-                            offsetHeight = false;
-                            break;
-                        } else if (overlapHeight == maxHeight) {
-                            locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.05F);
-                            break;
+                        if(overlap.isEnabled() && overlap instanceof LocationElevationNode) {
+                            LocationElevationNode overlapNode = (LocationElevationNode)overlap;
+                            double overlapHeight = overlapNode.getElevation();
+                            if (overlapHeight > maxHeight) {
+                                offsetHeight = false;
+                                break;
+                            } else if (overlapHeight == maxHeight && node.getIndex() > overlapNode.getIndex()) {
+                                locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.1F);  //0.05
+                                break;
+                            }
                         }
                     }
                     if(offsetHeight && locationMarker.anchorNode != null) {
-                        locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.05F);
+                        locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.1F);  // 0.05
                     }
-                } else collisionDetection++;
+                } else noCollisionDetection++;
             }
 
             if (locationScene.shouldRemoveOverlapping()) {
@@ -263,7 +267,6 @@ public class LocationNode extends AnchorNode {
 
             scale *= scaleModifier;
 
-            //Log.d("LocationScene", "scale " + scale);
             Vector3 worldPosition = n.getWorldPosition();
             n.setWorldPosition(new Vector3(worldPosition.x, getHeight(), worldPosition.z));
             Quaternion lookRotation = Quaternion.lookRotation(direction, Vector3.up());

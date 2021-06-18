@@ -15,6 +15,10 @@ public class BoundingBoxCenter {
 
     public BoundingBoxCenter() { }
 
+    public BoundingBoxCenter(Pair<Coordinate, Coordinate> bbox) {
+        this.bbox = bbox;
+    }
+
     public BoundingBoxCenter(Coordinate center, double halfSideInKm) {
         bbox = getBoundingBox(center, halfSideInKm);
         radiusKM = halfSideInKm;
@@ -103,6 +107,14 @@ public class BoundingBoxCenter {
 
     public boolean isBoundingBoxContains(double latitude, double longitude) {
         return latitude >= getSouth() && latitude <= getNorth() && longitude >= getWest() && longitude <= getEast();
+    }
+
+    // Returns <upper-left corner, lower-right corner>
+    public Pair<Coordinate, Coordinate> getSecondaryCorners() {
+        return new Pair<>(
+                new Coordinate(getNorth(), getWest()),
+                new Coordinate(getSouth(), getEast())
+        );
     }
 
     public String toString() {

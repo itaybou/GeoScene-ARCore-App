@@ -28,9 +28,9 @@ public class LocationScene {
     private final int distanceGroupSize;
     private String TAG = "LocationScene";
 
+    private final int CALIBRATION_ITERATIONS = 3;
     private final float RENDER_DISTANCE = 10f;
     private final int DEFAULT_DISTANCE_LIMIT = 5000;
-    private final int CALIBRATION_ITERATIONS = 3;
     public ArSceneView mArSceneView;
     public Activity context;
     public DeviceSensors sensors;
@@ -57,12 +57,12 @@ public class LocationScene {
         @Override
         public void run() {
             anchorsNeedRefresh = true;
-            if (markersRefresh || iteration != CALIBRATION_ITERATIONS) {
-                if (!markersRefresh) {
+            if (!markersRefresh) {
+                if(iteration < CALIBRATION_ITERATIONS)
                     iteration++;
-                }
-                mHandler.postDelayed(anchorRefreshTask, anchorRefreshInterval);
+                setAnchorRefreshInterval(iteration >= CALIBRATION_ITERATIONS ? anchorRefreshInterval * 10 : anchorRefreshInterval);
             }
+            mHandler.postDelayed(anchorRefreshTask, anchorRefreshInterval);
         }
     };
     private boolean debugEnabled = false;
@@ -403,10 +403,6 @@ public class LocationScene {
         return bearingAdjustment;
     }
 
-    public void setIteration(int iteration) {
-        this.iteration = iteration;
-    }
-
     /**
      * Adjustment for compass bearing.
      * You may use this for a custom method of improving precision.
@@ -441,5 +437,13 @@ public class LocationScene {
 
     public void resetDistanceLimit() {
         this.distanceLimit = DEFAULT_DISTANCE_LIMIT;
+    }
+
+    public int getIteration() {
+        return iteration;
+    }
+
+    public void setIteration(int iteration) {
+        this.iteration = iteration;
     }
 }

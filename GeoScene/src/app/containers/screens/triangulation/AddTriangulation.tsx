@@ -23,7 +23,7 @@ export interface AddTriangulationProps {
 }
 
 export const AddTriangulation = ({ navigation, route }) => {
-  const MAX_DESCRIPTION_LENGTH = 10;
+  const MAX_DESCRIPTION_LENGTH = 250;
 
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');

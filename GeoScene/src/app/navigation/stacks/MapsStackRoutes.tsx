@@ -308,7 +308,12 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-            <View style={{ flex: 1, flexDirection: 'column' }}>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+              }}>
               <ThemeText style={{ fontSize: 15 }}>Zoom KM</ThemeText>
               <ThemeText style={{ fontSize: 10 }}>
                 Map breadth zoom level in KM.
