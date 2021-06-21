@@ -37,13 +37,9 @@ export const CompassScreen: React.FC<CompassViewProps> = ({}) => {
   const MapsManager = UIManager.getViewManagerConfig('MapView');
 
   useEffect(() => {
-    Orientation.lockToPortrait();
     IdleTimerManager.setIdleTimerDisabled(true);
 
-    return () => {
-      Orientation.unlockAllOrientations();
-      IdleTimerManager.setIdleTimerDisabled(false);
-    };
+    return () => IdleTimerManager.setIdleTimerDisabled(false);
   }, []);
 
   const direction = useCallback(() => {

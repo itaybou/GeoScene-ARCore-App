@@ -7,6 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 export type AppRoutesParamList = {
   Internal: InternalRoutesParamList;
+  Permissions: PermissionsRoutesParamList;
   External: ExternalRoutesParamList;
 };
 
@@ -26,9 +27,22 @@ export type InternalStackRouteNavProps<
   route: RouteProp<InternalRoutesParamList, T>;
 };
 
+export type PermissionsRoutesParamList = {
+  Permissions: undefined;
+  ManagePermissions: undefined;
+};
+
+export type PermissionStackRouteNavProps<
+  T extends keyof PermissionsRoutesParamList
+> = {
+  navigation: StackNavigationProp<PermissionsRoutesParamList, T>;
+  route: RouteProp<PermissionsRoutesParamList, T>;
+};
+
 export type ExternalRoutesParamList = {
   Profile: undefined;
   Messages: undefined;
+  SendMessage: { username: string };
   SignUp: undefined;
   ProfileSettings: undefined;
 };

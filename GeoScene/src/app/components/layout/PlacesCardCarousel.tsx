@@ -1,5 +1,5 @@
 import { ActivityIndicator, Animated, FlatList, View } from 'react-native';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import FastImage from 'react-native-fast-image';
 import { MapModal } from '../modals/MapModal';
@@ -37,9 +37,12 @@ export const PlacesCardCarousel: React.FC<PlacesCardCarouselProps> = ({
     { name: string; latitude: number; longitude: number } | undefined
   >();
 
-  const boxWidth = scrollViewWidth * 0.8;
-  const boxDistance = scrollViewWidth - boxWidth;
-  const halfBoxDistance = boxDistance / 2;
+  const boxWidth = useMemo(() => scrollViewWidth * 0.8, [scrollViewWidth]);
+  const boxDistance = useMemo(() => scrollViewWidth - boxWidth, [
+    scrollViewWidth,
+    boxWidth,
+  ]);
+  const halfBoxDistance = useMemo(() => boxDistance / 2, [boxDistance]);
 
   const renderItem = ({ item, index }) => {
     return (

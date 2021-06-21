@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import React from 'react';
 import { TabScreen } from './TabScreen';

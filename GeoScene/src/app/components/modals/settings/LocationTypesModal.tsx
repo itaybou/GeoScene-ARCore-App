@@ -59,14 +59,17 @@ export const LocationTypesModal: React.FC<LocationTypesModalProps> = ({
             justifyContent: 'space-between',
           }}>
           <ThemeButton
+            selected={currentCategory === 'place'}
             text={placeTypes['place']}
             onPress={() => setCurrentCategory('place')}
           />
           <ThemeButton
+            selected={currentCategory === 'natural'}
             text={placeTypes['natural']}
             onPress={() => setCurrentCategory('natural')}
           />
           <ThemeButton
+            selected={currentCategory === 'historic'}
             text={placeTypes['historic']}
             onPress={() => setCurrentCategory('historic')}
           />

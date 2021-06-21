@@ -2,6 +2,7 @@ export interface Theme {
   colors: {
     primary: string;
     accent: string;
+    accent_dark: string;
     error: string;
     accent_bright: string;
     background: string;
@@ -36,6 +37,7 @@ export const Themes: Readonly<{ dark: Theme; light: Theme }> = Object.freeze({
       error: '#C04F64',
       background: '#121212',
       accent: '#94CF51',
+      accent_dark: '#6ca32e',
       accent_bright: '#c2e49b',
       accent_secondary: '#2CA59C',
       accent_secondary_bright: '#30aba3',
@@ -54,6 +56,7 @@ export const Themes: Readonly<{ dark: Theme; light: Theme }> = Object.freeze({
       error: '#A60422',
       background: '#f1f1f1',
       accent: '#94CF51',
+      accent_dark: '#6ca32e',
       accent_bright: '#c2e49b',
       accent_secondary: '#2CA59C',
       accent_secondary_bright: '#30aba3',

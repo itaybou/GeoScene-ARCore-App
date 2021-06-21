@@ -1,4 +1,3 @@
-import { Button, View } from 'react-native';
 import React, { useState } from 'react';
 import {
   SceneRoutesParamList,
@@ -12,10 +11,11 @@ import { CompassScreen } from '../../containers/screens/compass/CompassScreen';
 import Header from '../../containers/Header';
 import { LoadingModal } from '../../components/modals/LoadingModal';
 import { OptionModal } from '../../components/modals/OptionModal';
-import { Text } from 'react-native';
 import { ThemeButton } from '../../components/input/ThemeButton';
 import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { TriangulateStackRoutes } from './triangulation/TriangulationStackRoutes';
+import { View } from 'react-native';
+import { checkPermissions } from '../../providers/UserProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useRoute } from '@react-navigation/core';
 import useUser from '../../utils/hooks/useUser';
@@ -39,7 +39,7 @@ const Scenes: React.FC<SceneStackRouteNavProps<'Scene'>> = ({ navigation }) => {
         icon={'directions'}
         onPress={() => navigation.navigate('AR')}
       />
-      {state.user && (
+      {checkPermissions(state, 'triangulate') && (
         <ThemeCardButton
           text="Triangulate"
           description="Perform triangulation in order to tag locations visible to you."

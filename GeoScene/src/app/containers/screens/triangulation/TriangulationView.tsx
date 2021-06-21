@@ -165,7 +165,7 @@ export function TriangulationView({
     return () => {
       StatusBar.setHidden(false);
       IdleTimerManager.setIdleTimerDisabled(false);
-      Orientation.unlockAllOrientations();
+      Orientation.lockToPortrait();
     };
   }, []);
 

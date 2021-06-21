@@ -12,6 +12,7 @@ import Header from '../../containers/Header';
 import { OptionModal } from '../../components/modals/OptionModal';
 import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { UserPlaces } from '../../containers/screens/places/UserPlaces';
+import { checkPermissions } from '../../providers/UserProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useEffect } from 'react';
 import useUser from '../../utils/hooks/useUser';
@@ -45,7 +46,7 @@ function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
           onPress={() => navigation.navigate('UserPlaces')}
         />
       )}
-      {state.user && (
+      {checkPermissions(state, 'add_places') && (
         <ThemeCardButton
           text="Add Place"
           description="Add a place to the map provider by current location or map choice."
@@ -55,7 +56,7 @@ function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
       )}
       <ThemeCardButton
         text="Download Area"
-        description="Download information in chossen area to later use while offline."
+        description="Download information in chosen area to later use while offline."
         icon={'cloud-download'}
         onPress={() => navigation.navigate('DownloadPlace')}
       />

@@ -14,6 +14,7 @@ interface ThemeTextInputProps {
   multiline?: boolean;
   maxLength?: number;
   numeric?: boolean;
+  dense?: boolean;
 }
 
 export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
@@ -25,12 +26,14 @@ export const ThemeTextInput: React.FC<ThemeTextInputProps> = ({
   numeric,
   errorMessage,
   multiline = false,
+  dense = false,
 }) => {
   const theme = useTheme();
 
   return (
     <View style={styles.container}>
       <TextInput
+        dense={dense}
         maxLength={maxLength}
         mode="outlined"
         label={label}
@@ -85,8 +88,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   errorNotificationContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 2,
     paddingHorizontal: 4,
   },
-  errorMessageContainer: { paddingVertical: 2, paddingHorizontal: 4 },
+  errorMessageContainer: { flex: 1, paddingVertical: 2, paddingHorizontal: 4 },
 });

@@ -33,7 +33,6 @@ import { OptionModal } from '../../../components/modals/OptionModal';
 import Orientation from 'react-native-orientation';
 import { Permissions } from '../../../../native/NativeModulesBridge';
 import { SceneStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
-import { Theme } from 'react-native-paper/lib/typescript/types';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
 import { ThemeText } from '../../../components/text/ThemeText';
 
@@ -85,7 +84,6 @@ const SideButton: React.FC<SideButtonProps> = ({
   icon,
   text,
   color,
-  flex,
 }) => {
   const theme = useTheme();
 
@@ -202,7 +200,7 @@ export function ARSceneView({
     return () => {
       backHandler.remove();
       StatusBar.setHidden(false);
-      Orientation.unlockAllOrientations();
+      Orientation.lockToPortrait();
       IdleTimerManager.setIdleTimerDisabled(false);
     };
   }, []);

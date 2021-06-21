@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 public class LocationNode extends AnchorNode {
 
     private String TAG = "LocationNode";
-    private final static int COLLISION_THRESHOLD = 150;
+    private final static int COLLISION_THRESHOLD = 500;
 
     private LocationMarker locationMarker;
     private LocationNodeRender renderEvent;
@@ -121,27 +121,28 @@ public class LocationNode extends AnchorNode {
             double distanceInAR = Math.sqrt(dx * dx + dy * dy + dz * dz);
             setDistanceInAR(distanceInAR);
 
-            if (locationScene.shouldOffsetOverlapping() && locationMarker.anchorNode.getHeight() < 7.0F && noCollisionDetection <= COLLISION_THRESHOLD && n instanceof LocationElevationNode) {
+            if (locationScene.shouldOffsetOverlapping() && getHeight() < 5.0F && noCollisionDetection <= COLLISION_THRESHOLD && n instanceof LocationElevationNode) {
                 LocationElevationNode node = (LocationElevationNode)n;
                 List<Node> overlaps = locationScene.mArSceneView.getScene().overlapTestAll(n);
                 if(overlaps.size() > 0) {
+                    Log.d("height_col", String.valueOf(getHeight()) + "," + noCollisionDetection);
                     boolean offsetHeight = true;
                     double maxHeight = node.getElevation();
                     for(Node overlap : overlaps) {
                         if(overlap.isEnabled() && overlap instanceof LocationElevationNode) {
                             LocationElevationNode overlapNode = (LocationElevationNode)overlap;
                             double overlapHeight = overlapNode.getElevation();
-                            if (overlapHeight > maxHeight) {
-                                offsetHeight = false;
+                            if (overlapHeight == maxHeight && node.getIndex() > overlapNode.getIndex()) {
+                                setHeight(getHeight() + 0.05F);
                                 break;
-                            } else if (overlapHeight == maxHeight && node.getIndex() > overlapNode.getIndex()) {
-                                locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.1F);  //0.05
+                            } else if (overlapHeight >= maxHeight) {
+                                offsetHeight = false;
                                 break;
                             }
                         }
                     }
                     if(offsetHeight && locationMarker.anchorNode != null) {
-                        locationMarker.anchorNode.setHeight(locationMarker.anchorNode.getHeight() + 0.1F);  // 0.05
+                        setHeight(getHeight() + 0.05F);
                     }
                 } else noCollisionDetection++;
             }

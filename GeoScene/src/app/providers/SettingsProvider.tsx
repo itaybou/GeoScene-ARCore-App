@@ -1,10 +1,9 @@
 import React, { createContext, useEffect, useReducer, useState } from 'react';
 
-import { Permissions } from '../../native/NativeModulesBridge';
+import Orientation from 'react-native-orientation';
 import { SettingsActionTypes } from './reducers/SettingsReducer';
 import SettingsReducer from './reducers/SettingsReducer';
 import { SettingsStateType } from './reducers/SettingsReducer';
-import SplashScreen from 'react-native-splash-screen';
 import { ThemesType } from '../themes/Themes';
 import { createSelectorProvider } from 'react-use-context-selector';
 import { useAsyncStorage } from '../utils/hooks/useAsyncStorage';
@@ -126,7 +125,7 @@ export const SettingsProvider: React.FC<SettingsProvider> = ({ children }) => {
       updateStorage({ ...initialSettings, initialized: true });
     }
 
-    SplashScreen.hide();
+    Orientation.lockToPortrait();
   };
 
   useEffect(() => {

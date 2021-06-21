@@ -1,12 +1,5 @@
-import {
-  Dimensions,
-  Image,
-  ImageStyle,
-  StyleSheet,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Badge, Icon } from 'react-native-elements';
+import { Image, StyleSheet, ToastAndroid, View } from 'react-native';
 import {
   Menu,
   MenuOption,
@@ -18,6 +11,7 @@ import React, { useCallback, useMemo } from 'react';
 import { auth, deauth } from '../auth/Authentication';
 import { useTheme, useUser } from '../utils/hooks/Hooks';
 
+import Clipboard from '@react-native-community/clipboard';
 import { StackHeaderProps } from '@react-navigation/stack';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { ThemeText } from '../components/text/ThemeText';
@@ -37,8 +31,9 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
 
   const camelCaseToTitle = useCallback((text: string | undefined) => {
     if (!text) return undefined;
-    var result = text.replace(/([A-Z])/g, ' $1');
-    return result.charAt(0).toUpperCase() + result.slice(1);
+    if (text.includes(' ')) return text;
+    const result = text.replace(/([A-Z])/g, ' $1');
+    return (result.charAt(0).toUpperCase() + result.slice(1)).trim();
   }, []);
 
   const routeTitle = useMemo(
@@ -63,6 +58,22 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
     );
   }, [navigation, theme.colors.text, routeTitle]);
 
+  const renderAdminIndicator = useCallback(() => {
+    return (
+      state?.permissions &&
+      state?.permissions.admin && (
+        <View style={{ position: 'absolute', bottom: 2, left: 0 }}>
+          <Icon
+            type="font-awesome"
+            name={'star'}
+            color={theme.colors.accent_secondary}
+            size={15}
+          />
+        </View>
+      )
+    );
+  }, [theme.colors, state]);
+
   const renderHeaderIcon = useCallback(
     (screen: string, icon: string, size?: number) => {
       return (
@@ -81,10 +92,34 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
               )}
             </TouchableOpacity>
           )}
+          {state.user &&
+            icon === 'envelope' &&
+            state.user?.unreadMessages &&
+            state.user?.unreadMessages > 0 && (
+              <Badge
+                status="success"
+                onPress={() =>
+                  navigation.navigate('External', { screen: screen })
+                }
+                value={state.user?.unreadMessages}
+                textStyle={{ fontSize: 9 }}
+                badgeStyle={{
+                  width: 15,
+                  height: 15,
+                  backgroundColor: theme.colors.accent_secondary,
+                  borderWidth: 0,
+                }}
+                containerStyle={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -6,
+                }}
+              />
+            )}
         </View>
       );
     },
-    [state.user, navigation],
+    [state.user, navigation, theme.colors],
   );
 
   const renderProfilePicture = useCallback(() => {
@@ -99,22 +134,25 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
           preferredPlacement: 'bottom',
           anchorStyle: { backgroundColor: theme.colors.cards },
         }}>
-        <MenuTrigger>
+        <MenuTrigger
+          customStyles={{ TriggerTouchableComponent: TouchableOpacity }}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={
-                userImage
-                  ? {
-                      uri: userImage,
-                    }
-                  : defaultProfilePicture
-              }
-              style={[
-                styles.profileImageStyle,
-                { borderColor: theme.colors.tabs },
-              ]}
-            />
-
+            <View>
+              <Image
+                source={
+                  userImage
+                    ? {
+                        uri: userImage,
+                      }
+                    : defaultProfilePicture
+                }
+                style={[
+                  styles.profileImageStyle,
+                  { borderColor: theme.colors.tabs },
+                ]}
+              />
+              {renderAdminIndicator()}
+            </View>
             {state.user?.name && (
               <ThemeText style={styles.profileNameText}>
                 {state.user?.name}
@@ -125,11 +163,49 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         <MenuOptions
           customStyles={{
             optionsWrapper: {
-              width: 200,
+              width: 180,
               backgroundColor: theme.colors.cards,
-              alignItems: 'flex-start',
             },
           }}>
+          {state?.user?.id && (
+            <MenuOption
+              onSelect={() => {
+                Clipboard.setString(state.user?.id as any);
+                ToastAndroid.showWithGravity(
+                  'OSM ID copied to clipboard',
+                  ToastAndroid.SHORT,
+                  ToastAndroid.CENTER,
+                );
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  padding: 4,
+                  justifyContent: 'space-between',
+                }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <View style={{ marginEnd: 8 }}>
+                    <ThemeIcon
+                      name={'tag'}
+                      size={10}
+                      color={theme.colors.text}
+                    />
+                  </View>
+                  <ThemeText style={{ fontSize: 10, fontWeight: 'bold' }}>
+                    OpenStreetMap ID
+                  </ThemeText>
+                </View>
+                <ThemeText style={{ fontSize: 10 }}>
+                  {state?.user?.id}
+                </ThemeText>
+              </View>
+            </MenuOption>
+          )}
           <MenuOption
             onSelect={() =>
               navigation.navigate('External', { screen: 'Profile' })
@@ -139,6 +215,14 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
                 <ThemeIcon name={'user'} size={15} color={theme.colors.text} />
               </View>
               <ThemeText>Profile</ThemeText>
+            </View>
+          </MenuOption>
+          <MenuOption onSelect={() => navigation.navigate('Permissions')}>
+            <View style={{ flexDirection: 'row', padding: 4 }}>
+              <View style={{ marginRight: 8 }}>
+                <ThemeIcon name={'key'} size={15} color={theme.colors.text} />
+              </View>
+              <ThemeText>Permissions</ThemeText>
             </View>
           </MenuOption>
           <MenuOption
@@ -162,7 +246,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuOptions>
       </Menu>
     );
-  }, [state.user, theme.colors, dispatch, navigation]);
+  }, [state, theme.colors, dispatch, navigation, renderAdminIndicator]);
 
   const renderRightAlignedComponent = useCallback(() => {
     const { Popover } = renderers;
@@ -179,7 +263,7 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         rendererProps={{
           placement: 'bottom',
           preferredPlacement: 'bottom',
-          anchorStyle: { backgroundColor: theme.colors },
+          anchorStyle: { backgroundColor: theme.colors.cards },
         }}>
         <MenuTrigger>
           <View
@@ -194,7 +278,10 @@ export const Header: React.FC<StackHeaderProps> = ({ scene, navigation }) => {
         </MenuTrigger>
         <MenuOptions
           customStyles={{
-            optionsWrapper: { width: 200, backgroundColor: theme.colors.cards },
+            optionsWrapper: {
+              width: 180,
+              backgroundColor: theme.colors.cards,
+            },
           }}>
           <MenuOption
             onSelect={() => {
@@ -257,14 +344,16 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    flex: 0.5,
   },
   leftAlignedButtonImageStyle: {
     height: 25,
     width: 25,
   },
   titleContainer: {
-    marginLeft: 16,
+    marginStart: 16,
+    justifyContent: 'flex-start',
   },
   titleTextStyle: {
     fontSize: 18,
@@ -274,10 +363,11 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    flex: 0.5,
   },
   iconButtonContainer: {
-    marginRight: 24,
+    marginEnd: 29,
   },
   iconImageStyle: {
     width: 18,

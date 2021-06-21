@@ -20,6 +20,7 @@ interface ThemeButtonProps {
   lean?: boolean;
   style?: StyleProp<ViewStyle>;
   supportRTL?: boolean;
+  selected?: boolean;
 }
 
 export const ThemeButton: React.FC<ThemeButtonProps> = ({
@@ -27,6 +28,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
   icon,
   style,
   onPress,
+  selected = false,
   lean = false,
   disabled = false,
   supportRTL = true,
@@ -40,6 +42,8 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
         {
           backgroundColor: disabled
             ? theme.colors.inactiveTint
+            : selected
+            ? theme.colors.accent_bright
             : theme.colors.accent_secondary,
         },
       ]}
@@ -53,6 +57,8 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
           {
             backgroundColor: disabled
               ? theme.colors.inactiveTint
+              : selected
+              ? theme.colors.accent
               : theme.colors.accent_secondary_bright,
           },
         ]}>

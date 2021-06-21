@@ -21,14 +21,18 @@ interface Props {
   isLastElement?: boolean;
   border?: boolean;
   bottomText?: boolean;
+  textColor?: string;
+  chevron?: boolean;
 }
 
 export const SettingsListItem = ({
   item,
   isFirstElement,
   isLastElement,
+  textColor,
   border = false,
   bottomText = false,
+  chevron = true,
 }: Props) => {
   const theme = useTheme();
 
@@ -51,7 +55,7 @@ export const SettingsListItem = ({
           : {},
       ]}
       activeOpacity={0.6}
-      disabled={item.switch}
+      disabled={item.switch || !item.onClick}
       onPress={item.onClick}>
       <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
         <ThemeText style={styles.title}>{item.title}</ThemeText>
@@ -75,15 +79,22 @@ export const SettingsListItem = ({
               }}>
               {item.sideComponent}
               {item.additionalText && (
-                <ThemeText style={{ marginEnd: 10, fontSize: 12 }}>
+                <ThemeText
+                  style={{
+                    marginEnd: 10,
+                    fontSize: 12,
+                    color: textColor ?? theme.colors.text,
+                  }}>
                   {item.additionalText}
                 </ThemeText>
               )}
-              <ThemeIcon
-                name="arrow-right"
-                color={theme.colors.inactiveTint}
-                size={15}
-              />
+              {chevron && (
+                <ThemeIcon
+                  name="arrow-right"
+                  color={theme.colors.inactiveTint}
+                  size={15}
+                />
+              )}
             </View>
           )}
           {item.switch && (

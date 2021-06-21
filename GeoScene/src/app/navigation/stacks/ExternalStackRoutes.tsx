@@ -1,29 +1,23 @@
-import { Button, Text } from 'react-native';
 import {
   ExternalRoutesParamList,
   ExternalStackRouteNavProps,
 } from '../params/RoutesParamList';
-import { User, UserActionTypes } from '../../providers/reducers/UserReducer';
+import React, { useState } from 'react';
 import { getActiveUser, isAuthorized } from '../../auth/Authentication';
-import {
-  useGeolocation,
-  useSettings,
-  useTheme,
-  useUser,
-} from '../../utils/hooks/Hooks';
+import { useKeyboardPadding, useTheme, useUser } from '../../utils/hooks/Hooks';
 
-import { Card } from 'react-native-elements';
-import { Center } from '../../components/layout/Center';
 import Header from '../../containers/Header';
-import { PageCard } from '../../components/layout/PageCard';
-import React from 'react';
-import { SettingsActionTypes } from '../../providers/reducers/SettingsReducer';
+import { Keyboard } from 'react-native';
+import { ThemeButton } from '../../components/input/ThemeButton';
+import { ThemeIcon } from '../../components/assets/ThemeIcon';
 import { ThemeText } from '../../components/text/ThemeText';
+import { ThemeTextInput } from '../../components/input/ThemeTextInput';
+import { User } from '../../providers/UserProvider';
+import { UserActionTypes } from '../../providers/reducers/UserReducer';
+import { View } from 'react-native';
 import { WebViewScreen } from '../../containers/screens/WebViewScreen';
-import { accurateOptions } from '../../utils/hooks/useGeolocation';
-import { color } from 'react-native-reanimated';
 import { createStackNavigator } from '@react-navigation/stack';
-import { signIn } from '../../providers/UserProvider';
+import { useEffect } from 'react';
 
 interface StackProps {}
 
@@ -43,12 +37,101 @@ function Profile({}: ExternalStackRouteNavProps<'Profile'>) {
   );
 }
 
-function Messages({}: ExternalStackRouteNavProps<'Messages'>) {
+function Messages({ navigation }: ExternalStackRouteNavProps<'Messages'>) {
+  const { dispatch } = useUser();
+  const theme = useTheme();
+
+  const [username, setUsername] = useState<string>('');
+
+  const injectedCode = `
+  var parentDOM = document.getElementById("content");
+  parentDOM.addEventListener("submit", function(evt) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({type: "submit", message : "ok"}));
+  });
+  true;`;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View
+        style={{
+          padding: 8,
+          flex: 0.15,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: theme.colors.cards,
+        }}>
+        <View style={{ padding: 4, width: '100%' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+            }}>
+            <ThemeIcon name="paper-plane" size={18} color={theme.colors.text} />
+            <ThemeText
+              style={{ fontSize: 18, fontWeight: 'bold', marginStart: 8 }}>
+              Send Message
+            </ThemeText>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+              }}>
+              <ThemeTextInput
+                dense={true}
+                label="Username"
+                value={username}
+                onChangeText={setUsername}
+              />
+            </View>
+            <ThemeButton
+              onPress={() => navigation.navigate('SendMessage', { username })}
+              icon={'paper-plane'}
+            />
+          </View>
+        </View>
+      </View>
+      <View style={{ flex: 0.85 }}>
+        <WebViewScreen
+          showWebControls={true}
+          name="Messages"
+          uri={PREFIX + 'messages/inbox'}
+          injectedCode={injectedCode}
+          onMessage={(event) => {
+            const data = JSON.parse(event.nativeEvent.data);
+            if (data && data?.message === 'ok') {
+              let userDetails: User | null = null;
+              isAuthorized().then(async (response) => {
+                if (response) {
+                  userDetails = await getActiveUser();
+                }
+                dispatch({
+                  type: UserActionTypes.SIGN_IN,
+                  payload: { user: userDetails ?? null },
+                });
+              });
+            }
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
+function SendMessage({ route }: ExternalStackRouteNavProps<'SendMessage'>) {
+  useEffect(() => Keyboard.dismiss(), []);
   return (
     <WebViewScreen
       showWebControls={true}
-      name="Messages"
-      uri={PREFIX + 'messages/inbox'}
+      name="Profile"
+      uri={PREFIX + `message/new/${route?.params?.username}`}
     />
   );
 }
@@ -71,7 +154,8 @@ function PorfileSettings({}: ExternalStackRouteNavProps<'ProfileSettings'>) {
   var form = document.getElementById("accountForm");
   form.addEventListener("submit", function(evt) {
     window.ReactNativeWebView.postMessage(JSON.stringify({type: "submit", message : "ok"}));
-  }); `;
+  });
+  true; `;
 
   return (
     <WebViewScreen
@@ -101,7 +185,6 @@ function PorfileSettings({}: ExternalStackRouteNavProps<'ProfileSettings'>) {
 }
 
 export const ExternalStackRoutes: React.FC<StackProps> = ({}) => {
-  const theme = useTheme();
   return (
     <Stack.Navigator
       initialRouteName="Profile"
@@ -111,6 +194,7 @@ export const ExternalStackRoutes: React.FC<StackProps> = ({}) => {
       }}>
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="Messages" component={Messages} />
+      <Stack.Screen name="SendMessage" component={SendMessage} />
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen
         name="ProfileSettings"

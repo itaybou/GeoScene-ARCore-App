@@ -28,7 +28,7 @@ export type MenuItem = {
   sideComponent?: JSX.Element;
   switch: boolean;
   switchActive: boolean | null;
-  onClick: () => void;
+  onClick: (() => void) | undefined;
   bottomText: boolean;
 };
 

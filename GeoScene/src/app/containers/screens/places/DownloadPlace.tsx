@@ -13,12 +13,13 @@ import { LoadingModal } from '../../../components/modals/LoadingModal';
 import { LocationSearchBar } from '../../../components/input/LocationSearchBar';
 import { NativeEventEmitter } from 'react-native';
 import { NativeMapView } from '../../../../native/NativeViewsBridge';
+import Orientation from 'react-native-orientation';
 import { PlacesStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TabScreen } from '../../../components/layout/TabScreen';
-import { TextInput } from 'react-native-paper';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
+import { useComponentWillMount } from '../../../utils/hooks/Hooks';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
 import useTheme from '../../../utils/hooks/useTheme';
 

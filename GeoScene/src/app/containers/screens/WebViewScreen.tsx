@@ -100,6 +100,7 @@ export const WebViewScreen: React.FC<WebViewScreenProps> = ({
         originWhitelist={['https://*']}
         startInLoadingState={true}
         androidHardwareAccelerationDisabled={false}
+        domStorageEnabled={injectedCode !== undefined}
         javaScriptEnabledAndroid={injectedCode !== undefined}
         injectedJavaScript={injectedCode}
         onMessage={onMessage}

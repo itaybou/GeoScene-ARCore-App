@@ -3,6 +3,7 @@ import {
   Route,
   getFocusedRouteNameFromRoute,
 } from '@react-navigation/native';
+import React, { useState } from 'react';
 import {
   SceneRoutesParamList,
   TabRoutesParamList,
@@ -11,8 +12,8 @@ import {
 
 import { HomeStackRoutes } from './stacks/HomeStackRoutes';
 import { MapsStackRoutes } from './stacks/MapsStackRoutes';
+import Orientation from 'react-native-orientation';
 import { PlacesStackRoutes } from './stacks/PlacesStackRoutes';
-import React from 'react';
 import { SceneStackRoutes } from './stacks/SceneStackRoutes';
 import { SettingsStackRoutes } from './stacks/SettingsStackRoutes';
 import { StyleSheet } from 'react-native';
@@ -20,6 +21,7 @@ import { TabBarButton } from '../components/tabs/TabBarButton';
 import { TabBarCenterButton } from '../components/tabs/TabBarCenterButton';
 import { ThemeIcon } from '../components/assets/ThemeIcon';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useEffect } from 'react';
 import useTheme from '../utils/hooks/useTheme';
 
 interface TabRoutesProps {}
@@ -41,12 +43,35 @@ const containsNavigationTab = (
 
 export const TabRoutes: React.FC<TabRoutesProps> = ({}) => {
   const theme = useTheme();
+  const [tabLabelPosition, setTabLabelPosition] = useState<
+    'below-icon' | 'beside-icon'
+  >('below-icon');
+
+  const orientationListener = (orientation: string) => {
+    switch (orientation) {
+      case 'LANDSCAPE':
+        setTabLabelPosition('beside-icon');
+        break;
+      case 'PORTRAITUPSIDEDOWN':
+      case 'PORTRAIT':
+      case 'UNKNOWN':
+        setTabLabelPosition('below-icon');
+        break;
+    }
+  };
+
+  useEffect(() => {
+    Orientation.addOrientationListener(orientationListener);
+
+    return () => Orientation.removeOrientationListener(orientationListener);
+  }, []);
 
   return (
     <Tabs.Navigator
       initialRouteName="Home"
       tabBarOptions={{
         keyboardHidesTabBar: true,
+        labelPosition: tabLabelPosition,
         ...{
           alignItems: 'center',
           justifyContent: 'center',
