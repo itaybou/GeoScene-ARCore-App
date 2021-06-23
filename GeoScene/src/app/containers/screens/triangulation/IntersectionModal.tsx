@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSettings, useTheme } from '../../../utils/hooks/Hooks';
 
 import { BottomModal } from '../../../components/modals/BottomModal';
 import { FlatList } from 'react-native-gesture-handler';
@@ -7,7 +8,6 @@ import { NativeMapView } from '../../../../native/NativeViewsBridge';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../utils/hooks/Hooks';
 
 interface IntersectionModalProps {
   intersectionText: string;
@@ -27,6 +27,7 @@ export const IntersectionModal: React.FC<IntersectionModalProps> = ({
   azimuth,
 }) => {
   const theme = useTheme();
+  const { state } = useSettings();
   const [viewedIntersection, setViewedIntersection] = useState<any>(null);
 
   const navigation = useNavigation();
@@ -166,6 +167,7 @@ export const IntersectionModal: React.FC<IntersectionModalProps> = ({
             )}
           </View>
           <NativeMapView
+            mapType={state.mapType}
             enableLocationTap={false}
             useObserverLocation={true}
             showBoundingCircle={false}

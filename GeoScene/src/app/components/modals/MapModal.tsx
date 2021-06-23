@@ -139,6 +139,7 @@ export const MapModal: React.FC<MapModalProps> = ({
         ]}>
         <NativeMapView
           isShown={isVisible}
+          mapType={state.mapType}
           enableZoom={enableZoom}
           showBoundingCircle={showBoundingCircle}
           useTriangulation={useTriangulation}

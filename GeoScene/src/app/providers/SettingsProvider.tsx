@@ -1,9 +1,8 @@
-import React, { createContext, useEffect, useReducer, useState } from 'react';
+import React, { createContext, useEffect, useReducer } from 'react';
 
 import Orientation from 'react-native-orientation';
 import { SettingsActionTypes } from './reducers/SettingsReducer';
 import SettingsReducer from './reducers/SettingsReducer';
-import { SettingsStateType } from './reducers/SettingsReducer';
 import { ThemesType } from '../themes/Themes';
 import { createSelectorProvider } from 'react-use-context-selector';
 import { useAsyncStorage } from '../utils/hooks/useAsyncStorage';
@@ -68,8 +67,11 @@ export const placeTypes = {
   },
 };
 
+export const mapTypes = ['default', 'topographic', 'hike'] as const;
+export type MapType = typeof mapTypes[number];
 export interface SettingsType {
   theme: ThemesType;
+  mapType: MapType;
   determineViewshed: boolean;
   showLocationCenter: boolean;
   showPlacesApp: boolean;
@@ -84,6 +86,7 @@ export interface SettingsType {
 
 const initialSettings: SettingsType = {
   theme: 'light' as ThemesType,
+  mapType: 'default' as MapType,
   determineViewshed: true,
   showLocationCenter: false,
   showPlacesApp: true,
@@ -97,7 +100,7 @@ const initialSettings: SettingsType = {
 };
 
 export const SettingsContext = createContext<{
-  state: SettingsStateType;
+  state: SettingsType;
   dispatch: React.Dispatch<any>;
 }>({
   state: initialSettings,
@@ -122,7 +125,7 @@ export const SettingsProvider: React.FC<SettingsProvider> = ({ children }) => {
         payload: { settings: { ...data, initialized: true } },
       });
     } else {
-      updateStorage({ ...initialSettings, initialized: true });
+      await updateStorage({ ...initialSettings, initialized: true });
     }
 
     Orientation.lockToPortrait();

@@ -45,9 +45,7 @@ export const UserPlaces: React.FC<UserPlacesProps> = ({}) => {
 
   const navigation = useNavigation();
 
-  const { state, dispatch } = useUser();
-
-  const location = useGeolocation();
+  const { state } = useUser();
 
   const fetchUserPlaces = async () => {
     await promisify(

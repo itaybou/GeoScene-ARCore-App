@@ -17,6 +17,7 @@ interface ThemeButtonProps {
   text?: string;
   icon?: string;
   disabled?: boolean;
+  cancelPress?: boolean;
   lean?: boolean;
   style?: StyleProp<ViewStyle>;
   supportRTL?: boolean;
@@ -32,6 +33,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
   lean = false,
   disabled = false,
   supportRTL = true,
+  cancelPress = false,
 }) => {
   const theme = useTheme();
   return (
@@ -47,7 +49,7 @@ export const ThemeButton: React.FC<ThemeButtonProps> = ({
             : theme.colors.accent_secondary,
         },
       ]}
-      disabled={disabled}
+      disabled={disabled || cancelPress}
       onPress={onPress}
       underlayColor={theme.colors.accent_secondary_dark}
       activeOpacity={0.2}>

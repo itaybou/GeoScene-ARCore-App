@@ -19,8 +19,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
-import { useComponentWillMount } from '../../../utils/hooks/Hooks';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
+import { useSettings } from '../../../utils/hooks/Hooks';
 import useTheme from '../../../utils/hooks/useTheme';
 
 interface LocationProps {
@@ -32,6 +32,7 @@ export function DownloadPlace({
   route,
 }: PlacesStackRouteNavProps<'DownloadPlace'>) {
   const theme = useTheme();
+  const { state } = useSettings();
   const location = useGeolocation();
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -146,6 +147,7 @@ export function DownloadPlace({
               zIndex: -1,
             }}>
             <NativeMapView
+              mapType={state.mapType}
               enableLocationTap={true}
               useObserverLocation={false}
               showBoundingCircle={true}

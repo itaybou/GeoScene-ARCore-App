@@ -6,6 +6,7 @@ import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeSlider } from '../../../components/input/ThemeSlider';
 import { ThemeText } from '../../../components/text/ThemeText';
 import { View } from 'react-native';
+import useSettings from '../../../utils/hooks/useSettings';
 
 interface IntersectionRecordModalProps {
   intersectionModalVisible: boolean;
@@ -27,6 +28,7 @@ export const IntersectionRecordModal: React.FC<IntersectionRecordModalProps> = (
   azimuth,
   onApprove,
 }) => {
+  const { state } = useSettings();
   const [azimuthDiff, setAzimuthDiff] = useState<number>(
     azimuth === null ? 0 : azimuth,
   );
@@ -92,6 +94,7 @@ export const IntersectionRecordModal: React.FC<IntersectionRecordModalProps> = (
             />
           </View>
           <NativeMapView
+            mapType={state.mapType}
             enableLocationTap={false}
             useObserverLocation={true}
             showBoundingCircle={false}

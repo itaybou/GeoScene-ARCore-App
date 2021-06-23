@@ -183,7 +183,7 @@ export function ARSceneView({
     if (!(await Permissions.checkIfDeviceSupportAR())) {
       setErrorMessage('Your device does not support AR.');
       setErrorModalShown(true);
-    } else Orientation.lockToLandscapeLeft();
+    } else await Orientation.lockToLandscapeLeft();
   });
 
   useEffect(() => {
@@ -275,7 +275,6 @@ export function ARSceneView({
             zIndex: 100,
             justifyContent: 'center',
             alignItems: 'center',
-            // backgroundColor: theme.colors.tabs,
             borderRadius: 10,
           }}>
           <View
@@ -624,6 +623,7 @@ export function ARSceneView({
               )}
               <NativeMapView
                 isShown={mapShown}
+                mapType={state.mapType}
                 enableZoom={true}
                 visibleLocations={mapLocations}
                 onLocationTap={(event) =>

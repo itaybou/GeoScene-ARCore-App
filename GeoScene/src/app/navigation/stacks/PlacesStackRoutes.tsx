@@ -70,7 +70,9 @@ function Places({ route, navigation }: PlacesStackRouteNavProps<'Places'>) {
         big={false}
         isVisible={addApprovalMessageVisible}
         showOnlyOk={true}
-        text={'Location add request sent, it will be visible in a short while.'}
+        text={
+          'Location add/update request sent, it will be visible in a short while.'
+        }
         onOK={() => {}}
         hide={() => setAddApprovalMessageVisible(false)}
       />

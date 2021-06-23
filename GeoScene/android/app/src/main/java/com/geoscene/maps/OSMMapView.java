@@ -30,6 +30,8 @@ import org.javatuples.Pair;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.MapBoxTileSource;
+import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
@@ -126,6 +128,19 @@ public class OSMMapView extends LinearLayout implements IOrientationConsumer, Li
         };
         map.invalidate();
 
+    }
+
+    public void setTileSource(String tileSource) {
+        switch(tileSource) {
+            case "topographic":
+                map.setTileSource(TileSourceFactory.OpenTopo);
+                break;
+            case "hike":
+                map.setTileSource(TileSourceFactory.HIKEBIKEMAP);
+                break;
+            default:
+                map.setTileSource(TileSourceFactory.MAPNIK);
+        }
     }
 
     public void setUseCompassOrientation(boolean useCompassOrientation) {

@@ -1,15 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 import * as React from 'react';
 
-import {
-  Alert,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Menu, MenuTrigger, renderers } from 'react-native-popup-menu';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { MenuItem } from '../../containers/screens/settings/SettingsScreen';
+import { ThemeButton } from '../input/ThemeButton';
 import { ThemeIcon } from '../assets/ThemeIcon';
 import { ThemeSwitch } from '../input/ThemeSwitch';
 import { ThemeText } from '../text/ThemeText';
@@ -35,6 +31,7 @@ export const SettingsListItem = ({
   chevron = true,
 }: Props) => {
   const theme = useTheme();
+  const { Popover } = renderers;
 
   return (
     <TouchableOpacity
@@ -55,7 +52,7 @@ export const SettingsListItem = ({
           : {},
       ]}
       activeOpacity={0.6}
-      disabled={item.switch || !item.onClick}
+      disabled={item.switch || !item.onClick || item.dropdown}
       onPress={item.onClick}>
       <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
         <ThemeText style={styles.title}>{item.title}</ThemeText>
@@ -71,7 +68,7 @@ export const SettingsListItem = ({
           alignItems: 'flex-end',
         }}>
         <View>
-          {!item.switch && (
+          {!item.switch && !item.dropdown && (
             <View
               style={{
                 flexDirection: 'row',
@@ -102,6 +99,27 @@ export const SettingsListItem = ({
               active={item.switchActive}
               onValueChange={item.onClick}
             />
+          )}
+          {item.dropdown && (
+            <Menu
+              renderer={Popover}
+              rendererProps={{
+                placement: 'bottom',
+                preferredPlacement: 'bottom',
+                anchorStyle: { backgroundColor: theme.colors.cards },
+              }}>
+              <MenuTrigger
+                customStyles={{ TriggerTouchableComponent: TouchableOpacity }}>
+                <ThemeButton
+                  text={item.additionalText}
+                  selected={true}
+                  onPress={() => null}
+                  cancelPress={true}
+                  lean={true}
+                />
+              </MenuTrigger>
+              {item.dropdownOptions}
+            </Menu>
           )}
         </View>
       </View>

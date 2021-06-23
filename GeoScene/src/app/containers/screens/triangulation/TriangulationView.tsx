@@ -27,6 +27,7 @@ import React, {
 import {
   useComponentWillMount,
   useGeolocation,
+  useSettings,
   useTheme,
 } from '../../../utils/hooks/Hooks';
 
@@ -89,6 +90,7 @@ export function TriangulationView({
   navigation,
 }: TriangulateStackRouteNavProps<'Triangulate'>) {
   const theme = useTheme();
+  const { state } = useSettings();
 
   const [ARDisplayed, setARDisplayed] = useState<boolean>(false);
   const [intersectionModalVisible, setIntersectionModalVisible] = useState<
@@ -152,11 +154,11 @@ export function TriangulationView({
     [location.latitude, location.longitude],
   );
 
+  useComponentWillMount(async () => await Orientation.lockToLandscapeLeft());
+
   useEffect(() => {
     fetchTriangulationData();
   }, [fetchTriangulationData]);
-
-  useComponentWillMount(() => Orientation.lockToLandscapeLeft());
 
   useEffect(() => {
     IdleTimerManager.setIdleTimerDisabled(true);
@@ -353,6 +355,7 @@ export function TriangulationView({
           )}
           <NativeMapView
             isShown={true}
+            mapType={state.mapType}
             enableLocationTap={false}
             useObserverLocation={true}
             showBoundingCircle={false}

@@ -1,11 +1,8 @@
 import * as React from 'react';
 
-import {
-  MenuItem,
-  SectionData,
-} from '../../containers/screens/settings/SettingsScreen';
 import { SectionList, StyleSheet, View } from 'react-native';
 
+import { SectionData } from '../../containers/screens/settings/SettingsScreen';
 import { SettingsListItem } from './SettingsListItem';
 import { SettingsListSectionHeader } from './SettingsListSectionHeader';
 import useTheme from '../../utils/hooks/useTheme';

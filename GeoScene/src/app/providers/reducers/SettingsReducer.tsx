@@ -1,8 +1,9 @@
 // @ts-nocheck
 
+import { MapType, SettingsType } from '../SettingsProvider';
+
 import type { ActionMap } from './ActionMap';
 import AsyncStorage from '@react-native-community/async-storage';
-import { SettingsType } from '../SettingsProvider';
 import { ThemesType } from '../../themes/Themes';
 import { name as appName } from '../../../../app.json';
 import { cloneObject } from '../../utils/object/ObjectUtils';
@@ -21,6 +22,7 @@ export enum SettingsActionTypes {
   CHANGE_MARKERS_REALISTIC,
   CHANGE_OFFSET_OVERLAP_MARKERS,
   CHANGE_SHOW_MAP_VISIBLE_MARKERS,
+  CHANGE_MAP_TYPE,
 }
 
 type SettingsPayload = {
@@ -58,6 +60,9 @@ type SettingsPayload = {
   };
   [SettingsActionTypes.CHANGE_SHOW_MAP_VISIBLE_MARKERS]: {
     showVisiblePlacesOnMap: boolean;
+  };
+  [SettingsActionTypes.CHANGE_MAP_TYPE]: {
+    mapType: MapType;
   };
 };
 
@@ -134,6 +139,14 @@ const SettingsReducer = (state: SettingsType, action: SettingsActions) => {
       const newState = {
         ...state,
         showVisiblePlacesOnMap: action.payload.showVisiblePlacesOnMap,
+      };
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
+      return newState;
+    }
+    case SettingsActionTypes.CHANGE_MAP_TYPE: {
+      const newState = {
+        ...state,
+        mapType: action.payload.mapType,
       };
       AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newState));
       return newState;

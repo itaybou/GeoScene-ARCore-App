@@ -75,6 +75,7 @@ function Maps({ route }: MapsStackRouteNavProps<'Maps'>) {
     <>
       <TabScreen disablePadding={true}>
         <NativeMapView
+          mapType={state.mapType}
           isShown={true}
           enableLocationTap={false}
           useObserverLocation={followLocation}

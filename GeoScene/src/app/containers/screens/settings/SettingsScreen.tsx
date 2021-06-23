@@ -1,5 +1,11 @@
+import { MenuOption, MenuOptions } from 'react-native-popup-menu';
+import {
+  PlaceTypes,
+  mapTypes,
+  placeTypes,
+} from '../../../providers/SettingsProvider';
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   useGeolocation,
   useSettings,
@@ -13,6 +19,7 @@ import { SettingsList } from '../../../components/settings/SettingsList';
 import { SettingsStackRouteNavProps } from '../../../navigation/params/RoutesParamList';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeIcon } from '../../../components/assets/ThemeIcon';
+import { ThemeText } from '../../../components/text/ThemeText';
 
 export type SectionData = {
   index: number;
@@ -24,6 +31,8 @@ export type SectionData = {
 
 export type MenuItem = {
   title: string;
+  dropdown?: boolean;
+  dropdownOptions?: typeof MenuOptions;
   additionalText?: string;
   sideComponent?: JSX.Element;
   switch: boolean;
@@ -42,6 +51,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
   'Settings'
 >> = ({ navigation }) => {
   const { state, dispatch } = useSettings();
+  const theme = useTheme();
   const [mapModalVisible, setMapModalVisible] = useState<boolean>(false);
   const [locationTypesModalVisible, setLocationTypesModalVisible] = useState<
     boolean
@@ -49,15 +59,19 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
 
   const location = useGeolocation();
 
+  const capitalizeFirstLetter = (text: string) => {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
   const activePlaceTypes = [
-    ...Object.keys(state.placeTypes['place']).filter(
-      (k) => state.placeTypes['place'][k].on,
+    ...Object.keys(state.placeTypes.place).filter(
+      (k) => state.placeTypes.place[k].on,
     ),
-    ...Object.keys(state.placeTypes['natural']).filter(
-      (k) => state.placeTypes['natural'][k].on,
+    ...Object.keys(state.placeTypes.natural).filter(
+      (k) => state.placeTypes.natural[k].on,
     ),
-    ...Object.keys(state.placeTypes['historic']).filter(
-      (k) => state.placeTypes['historic'][k].on,
+    ...Object.keys(state.placeTypes.historic).filter(
+      (k) => state.placeTypes.historic[k].on,
     ),
   ].length;
 
@@ -156,6 +170,50 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
           }),
       },
     },
+    map: {
+      mapType: {
+        title: 'Maps Type',
+        additionalText: `${capitalizeFirstLetter(state.mapType)}`,
+        switch: false,
+        dropdown: true,
+        dropdownOptions: (
+          <MenuOptions
+            customStyles={{
+              optionsWrapper: {
+                width: 150,
+                backgroundColor: theme.colors.cards,
+              },
+            }}>
+            {mapTypes.map((type) => (
+              <MenuOption
+                key={type}
+                onSelect={() =>
+                  dispatch({
+                    type: SettingsActionTypes.CHANGE_MAP_TYPE,
+                    payload: {
+                      mapType: type,
+                    },
+                  })
+                }>
+                <View style={{ flexDirection: 'row', padding: 4 }}>
+                  <View style={{ marginRight: 8 }}>
+                    <ThemeIcon
+                      name={'arrow-right'}
+                      size={15}
+                      color={theme.colors.text}
+                    />
+                  </View>
+                  <ThemeText>{capitalizeFirstLetter(type)}</ThemeText>
+                </View>
+              </MenuOption>
+            ))}
+          </MenuOptions>
+        ),
+        switchActive: null,
+        bottomText: false,
+        onClick: () => setMapModalVisible(true),
+      },
+    },
     ar_optimization: {
       offset_overlap: {
         title: 'Offset Overlaping Markers',
@@ -249,8 +307,15 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
       ],
     },
     {
+      title: 'Maps',
+      index: 3,
+      showHeader: true,
+      icon: (color: string) => <ThemeIcon name="map" size={18} color={color} />,
+      data: [menuItems.map.mapType],
+    },
+    {
       title: 'AR Optimizations',
-      index: 2,
+      index: 4,
       showHeader: true,
       icon: (color: string) => (
         <ThemeIcon name="wrench" size={18} color={color} />

@@ -182,6 +182,8 @@ export const updateNode = async (
     .up()
     .ele('tag', { k: 'description', v: description })
     .up()
+    .ele('tag', { k: 'timestamp', v: Math.floor(Date.now() / 1000) })
+    .up()
     .ele('tag', { k: 'created_by', v: 'GeoScene' })
     .end({ pretty: false, allowEmpty: false });
 

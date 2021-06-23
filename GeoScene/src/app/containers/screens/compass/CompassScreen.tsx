@@ -16,6 +16,7 @@ import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';
 import { useCallback } from 'react';
+import { useSettings } from '../../../utils/hooks/Hooks';
 import useTheme from '../../../utils/hooks/useTheme';
 
 interface CompassViewProps {}
@@ -29,7 +30,7 @@ const ANIMATION_TIMING_CONFIG = {
 export const CompassScreen: React.FC<CompassViewProps> = ({}) => {
   const [mapShown, setMapShown] = useState<boolean>(false);
   const [azimuth, setAzimuth] = useState<number>(0);
-  const theme = useTheme();
+  const { state } = useSettings();
   const mapRef = useRef<number | null>(null);
 
   const mapAnimation = useRef(new Animated.Value(0)).current;
@@ -115,6 +116,7 @@ export const CompassScreen: React.FC<CompassViewProps> = ({}) => {
         }}>
         <NativeMapView
           isShown={mapShown}
+          mapType={state.mapType}
           useObserverLocation={true}
           enableZoom={true}
           useTriangulation={true}

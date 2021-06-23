@@ -126,6 +126,11 @@ public class MapsViewManager extends SimpleViewManager<OSMMapView> {
         view.setEnableGetCenter(getCenter);
     }
 
+    @ReactProp(name = "mapType")
+    public void setMapType(OSMMapView view, String mapType) {
+        view.setTileSource(mapType);
+    }
+
     @ReactProp(name = "enableDistanceCalculation", defaultBoolean = true)
     public void setEnableDistanceCalculation(OSMMapView view, boolean enableDistanceCalculation) {
         view.setEnableDistanceCalculation(enableDistanceCalculation);

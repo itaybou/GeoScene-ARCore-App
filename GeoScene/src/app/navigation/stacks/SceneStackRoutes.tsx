@@ -11,6 +11,7 @@ import { CompassScreen } from '../../containers/screens/compass/CompassScreen';
 import Header from '../../containers/Header';
 import { LoadingModal } from '../../components/modals/LoadingModal';
 import { OptionModal } from '../../components/modals/OptionModal';
+import Orientation from 'react-native-orientation';
 import { ThemeButton } from '../../components/input/ThemeButton';
 import { ThemeCardButton } from '../../components/input/ThemeCardButton';
 import { TriangulateStackRoutes } from './triangulation/TriangulationStackRoutes';
@@ -37,14 +38,14 @@ const Scenes: React.FC<SceneStackRouteNavProps<'Scene'>> = ({ navigation }) => {
         text="AR Explore"
         description="Start Augmented Reality view and explore your surroundings."
         icon={'directions'}
-        onPress={() => navigation.navigate('AR')}
+        onPress={async () => navigation.navigate('AR')}
       />
       {checkPermissions(state, 'triangulate') && (
         <ThemeCardButton
           text="Triangulate"
           description="Perform triangulation in order to tag locations visible to you."
           icon={'size-actual'}
-          onPress={() => navigation.navigate('TriangulateStack')}
+          onPress={async () => navigation.navigate('TriangulateStack')}
         />
       )}
       <ThemeCardButton

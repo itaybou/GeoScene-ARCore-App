@@ -2,6 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { StyleSheet, UIManager, findNodeHandle } from 'react-native';
 
 import { NativeMapView } from '../../../native/NativeViewsBridge';
+import useSettings from '../../utils/hooks/useSettings';
 
 type MapActionTypes = 'bbox' | null;
 
@@ -15,6 +16,7 @@ export const MapView: React.FC<MapViewProps> = ({
   afterMapSingleTap,
 }) => {
   const mapRef = useRef<number | null>(null);
+  const { state } = useSettings();
   const MapsManager = useMemo(
     () => UIManager.getViewManagerConfig('MapView'),
     [],
@@ -41,6 +43,7 @@ export const MapView: React.FC<MapViewProps> = ({
   return (
     <NativeMapView
       style={styles.container}
+      mapType={state.mapType}
       enableLocationTap={true}
       useObserverLocation={false}
       enableZoom={true}

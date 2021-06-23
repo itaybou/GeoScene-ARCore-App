@@ -1,11 +1,7 @@
-import {
-  TriangulateRoutesParamList,
-  TriangulateStackRouteNavProps,
-} from '../../params/RoutesParamList';
-
 import { AddTriangulation } from '../../../containers/screens/triangulation/AddTriangulation';
 import Header from '../../../containers/Header';
 import React from 'react';
+import { TriangulateRoutesParamList } from '../../params/RoutesParamList';
 import { TriangulationView } from '../../../containers/screens/triangulation/TriangulationView';
 import { createStackNavigator } from '@react-navigation/stack';
 

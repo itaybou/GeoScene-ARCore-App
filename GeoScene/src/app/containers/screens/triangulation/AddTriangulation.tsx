@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { LoadingModal } from '../../../components/modals/LoadingModal';
 import { MapModal } from '../../../components/modals/MapModal';
-import { NativeMapView } from '../../../../native/NativeViewsBridge';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
 import { ThemeText } from '../../../components/text/ThemeText';

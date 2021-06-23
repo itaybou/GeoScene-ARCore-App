@@ -78,10 +78,12 @@ export const AddPlace = ({ navigation, route }) => {
           showAddMessage: true,
         });
       } else {
+        setLoadingModalVisible(false);
         setErrorMessage('Error while trying to approve location.');
         setErrorModalVisible(true);
       }
     } else {
+      setLoadingModalVisible(false);
       setErrorMessage('You must choose coordinates to add/update location.');
       setErrorModalVisible(true);
     }

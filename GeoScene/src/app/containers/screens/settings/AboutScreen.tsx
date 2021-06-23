@@ -28,7 +28,7 @@ export const AboutScreen: React.FC<AboutScreenProps> = ({}) => {
             users to gain spatial orientation.
           </ThemeText>
           <ThemeText>
-            The application will identify and present information about the POIs
+            GeoScene identifies and presents information about the POIs
             currently in the users FoV using marker-less geo-location based AR
             environment and the mobile device camera.
           </ThemeText>

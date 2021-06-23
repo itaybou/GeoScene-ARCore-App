@@ -35,8 +35,8 @@ interface StackProps {}
 
 const Stack = createStackNavigator<HomeRoutesParamList>();
 
-const REFRESH_LOCATIONS_SEC_INTERVAL = 20 * 60;
-const REFRESH_LOCATIONS_DISTANCE_M = 3 * 1000;
+const REFRESH_LOCATIONS_SEC_INTERVAL = 40 * 60;
+const REFRESH_LOCATIONS_DISTANCE_M = 4 * 1000;
 const REFRESH_LOCATIONS_RADIUS_DIFF = 4;
 
 function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
@@ -55,26 +55,6 @@ function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
     undefined,
   );
   const [cardsError, setCardsError] = useState<boolean>(false);
-
-  const checkForLocationsRefresh = useCallback(async (radius: number) => {
-    const time = Math.floor(Date.now() / 1000);
-    const locationData = await getStorage();
-    if (locationData) {
-      const { distance } = await Geography.distance({
-        latitude: locationData.latitude,
-        longitude: locationData.longitude,
-      });
-      // Check that REFRESH_LOCATIONS_SEC_INTERVAL minutes passed
-      // or that the distance interval is more than REFRESH_LOCATIONS_DISTANCE_M meter
-      if (
-        time > locationData.timestamp + REFRESH_LOCATIONS_SEC_INTERVAL ||
-        (distance && distance > REFRESH_LOCATIONS_DISTANCE_M) ||
-        Math.abs(locationData.radius - radius) >= REFRESH_LOCATIONS_RADIUS_DIFF
-      ) {
-        fetchLocationImages(time, radius);
-      } else setCardDetails(locationData);
-    } else fetchLocationImages(time, radius);
-  }, []);
 
   const fetchLocationImages = useCallback(
     async (timestamp: number, radius: number) => {
@@ -100,8 +80,28 @@ function Home({ route, navigation }: HomeStackRouteNavProps<'Home'>) {
           console.error(err);
         });
     },
-    [],
+    [settings.state.visibleRadius],
   );
+
+  const checkForLocationsRefresh = useCallback(async (radius: number) => {
+    const time = Math.floor(Date.now() / 1000);
+    const locationData = await getStorage();
+    if (locationData) {
+      const { distance } = await Geography.distance({
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+      });
+      // Check that REFRESH_LOCATIONS_SEC_INTERVAL minutes passed
+      // or that the distance interval is more than REFRESH_LOCATIONS_DISTANCE_M meter
+      if (
+        time > locationData.timestamp + REFRESH_LOCATIONS_SEC_INTERVAL ||
+        (distance && distance > REFRESH_LOCATIONS_DISTANCE_M) ||
+        Math.abs(locationData.radius - radius) >= REFRESH_LOCATIONS_RADIUS_DIFF
+      ) {
+        fetchLocationImages(time, radius);
+      } else setCardDetails(locationData);
+    } else fetchLocationImages(time, radius);
+  }, []);
 
   useEffect(() => {
     if (settings.state.initialized) {

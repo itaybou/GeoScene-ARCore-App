@@ -3,6 +3,7 @@ import UserReducer, { UserActionTypes } from './reducers/UserReducer';
 import { getActiveUser, isAuthorized } from '../auth/Authentication';
 
 import { Permissions } from '../../native/NativeModulesBridge';
+import SplashScreen from 'react-native-splash-screen';
 
 interface UserProviderProps {}
 export interface UserType {
@@ -67,16 +68,16 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const signIn = async () => {
     let userDetails: User | null = null;
-    isAuthorized().then(async (response) => {
-      if (response) {
-        userDetails = await getActiveUser(dispatch);
-      }
-
-      dispatch({
-        type: UserActionTypes.SIGN_IN,
-        payload: { user: userDetails ?? null },
-      });
+    const authorized = await isAuthorized();
+    if (authorized) {
+      userDetails = await getActiveUser(dispatch);
+    }
+    dispatch({
+      type: UserActionTypes.SIGN_IN,
+      payload: { user: userDetails ?? null },
     });
+
+    SplashScreen.hide();
   };
 
   useEffect(() => {
