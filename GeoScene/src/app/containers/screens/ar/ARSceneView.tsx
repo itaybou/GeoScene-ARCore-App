@@ -452,7 +452,7 @@ export function ARSceneView({
                     <ThemeText
                       style={{
                         fontSize: 12,
-                        marginStart: cacheUse ? 12 : 0,
+                        marginStart: cacheUse || localUse ? 12 : 0,
                       }}>
                       {locationCount === undefined ||
                       locationCount.locationCount === 0

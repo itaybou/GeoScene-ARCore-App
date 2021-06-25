@@ -8,6 +8,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ARModule } from '../../../../native/NativeModulesBridge';
+import { DOWNLOAD_RADIUS } from '../../../constants/Constants';
 import { ErrorModal } from '../../../components/modals/ErrorModal';
 import { LoadingModal } from '../../../components/modals/LoadingModal';
 import { LocationSearchBar } from '../../../components/input/LocationSearchBar';
@@ -18,6 +19,8 @@ import { PlacesStackRouteNavProps } from '../../../navigation/params/RoutesParam
 import { ScrollView } from 'react-native-gesture-handler';
 import { TabScreen } from '../../../components/layout/TabScreen';
 import { ThemeButton } from '../../../components/input/ThemeButton';
+import { ThemeSlider } from '../../../components/input/ThemeSlider';
+import { ThemeText } from '../../../components/text/ThemeText';
 import { ThemeTextInput } from '../../../components/input/ThemeTextInput';
 import useGeolocation from '../../../utils/hooks/useGeolocation';
 import { useSettings } from '../../../utils/hooks/Hooks';
@@ -39,7 +42,10 @@ export function DownloadPlace({
   const [downloadModalVisible, setShowDownloadModalVisible] = useState<boolean>(
     false,
   );
-  const [radius, setRadius] = useState<string>('15');
+  const [radius, setRadius] = useState<number>(15);
+  const [radiusTimeout, setRadiusTimeout] = useState<
+    NodeJS.Timeout | undefined
+  >(undefined);
   const [locationMarker, setLocationMarker] = useState<LocationProps>({
     longitude: location.longitude,
     latitude: location.latitude,
@@ -74,22 +80,18 @@ export function DownloadPlace({
     return () => downloadEventListener.remove();
   }, []);
 
-  const onChangeNumericTextInput = (text) => {
-    const numericRegex = /^([0-9]{1,3})$/;
-
-    if (numericRegex.test(text) || !text) {
-      setRadius(text);
-      const radius = parseInt(text, 10);
-
-      if (text && radius > 0) {
+  useEffect(() => {
+    const timeOutId = setTimeout(
+      () =>
         UIManager.dispatchViewManagerCommand(
           mapRef.current,
           MapsManager.Commands.ZOOM_SET_BBOX.toString(),
           [locationMarker.latitude, locationMarker.longitude, radius, false], // map referece, use compass orientation, use observe location
-        );
-      }
-    }
-  };
+        ),
+      150,
+    );
+    return () => clearTimeout(timeOutId);
+  }, [radius]);
 
   return (
     <>
@@ -107,14 +109,27 @@ export function DownloadPlace({
               value={description}
               onChangeText={setDescription}
             />
-
-            <ThemeTextInput
-              label="Radius KM"
-              numeric={true}
-              onChangeText={onChangeNumericTextInput}
-              value={String(radius) ?? 15}
-              maxLength={3}
-            />
+            <View style={{ marginTop: 4, padding: 8 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <ThemeText style={{ color: theme.colors.inactiveTint }}>
+                  Radius Km
+                </ThemeText>
+                <ThemeText style={{ color: theme.colors.inactiveTint }}>
+                  {`${radius} Km`}
+                </ThemeText>
+              </View>
+              <ThemeSlider
+                value={radius}
+                step={1}
+                range={DOWNLOAD_RADIUS}
+                onValueChange={(value: number) => setRadius(value)}
+              />
+            </View>
           </ScrollView>
         </View>
 
@@ -129,12 +144,7 @@ export function DownloadPlace({
                 UIManager.dispatchViewManagerCommand(
                   mapRef.current,
                   MapsManager.Commands.ZOOM_SET_BBOX.toString(),
-                  [
-                    place.lat as number,
-                    place.lon as number,
-                    parseInt(radius, 10),
-                    true,
-                  ], // map referece, use compass orientation, use observe location
+                  [place.lat as number, place.lon as number, radius, true], // map referece, use compass orientation, use observe location
                 );
               }}
             />
@@ -166,7 +176,7 @@ export function DownloadPlace({
                   [
                     locationMarker.latitude,
                     locationMarker.longitude,
-                    parseInt(radius, 10),
+                    radius,
                     false,
                   ], // map referece, use compass orientation, use observe location
                 );
@@ -191,7 +201,7 @@ export function DownloadPlace({
                 description,
                 locationMarker.latitude,
                 locationMarker.longitude,
-                parseInt(radius, 10),
+                radius,
               );
             }}
           />

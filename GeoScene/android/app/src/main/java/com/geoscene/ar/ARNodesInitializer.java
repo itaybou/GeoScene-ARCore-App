@@ -307,6 +307,7 @@ public class ARNodesInitializer {
                         locationScene.mLocationMarkers.add(layoutLocationMarker);
 
                         // Start location scene when created all renderables
+
                         if (locationScene.mLocationMarkers.size() == visibleLocations.size()) {
                             startLocationScene(observer, locationScene.mLocationMarkers.size());
                         }
@@ -333,6 +334,7 @@ public class ARNodesInitializer {
                     (int) Math.ceil(LocationUtils.distance(observer.getLat(), maxMarker.latitude, observer.getLon(), maxMarker.longitude, 0, 0)),
                     true,
                     locationCount - 1 < DISTANCE_GROUP_SIZE);
+
             if(showPlacesOnMap) {
                 if(locationScene.mLocationMarkers.isEmpty()) {
                     arFragment.dispatchMapLocations(new ArrayList<>());
@@ -343,6 +345,7 @@ public class ARNodesInitializer {
                 }
             }
         }
+
         locationScene.start();
         arFragment.dispatchLocationCount(Math.min(locationCount, DISTANCE_GROUP_SIZE), locationCount);
         arFragment.dispatchReady(true);

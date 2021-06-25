@@ -148,8 +148,6 @@ public class LocationScene {
      */
     public void setAnchorRefreshInterval(int anchorRefreshInterval) {
         this.anchorRefreshInterval = anchorRefreshInterval;
-        stopCalculationTask();
-        startCalculationTask();
     }
 
     public void clearMarkers() {

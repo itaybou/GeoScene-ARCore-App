@@ -211,7 +211,7 @@ export const SettingsScreen: React.FC<SettingsStackRouteNavProps<
         ),
         switchActive: null,
         bottomText: false,
-        onClick: () => setMapModalVisible(true),
+        onClick: () => {},
       },
     },
     ar_optimization: {

@@ -3,18 +3,14 @@ import { ExternalStackRoutes } from './stacks/ExternalStackRoutes';
 import { NavigationContainer } from '@react-navigation/native';
 import { PermissionStackRoutes } from './stacks/PermissionStackRoutes';
 import React from 'react';
-import SplashScreen from 'react-native-splash-screen';
 import { TabRoutes } from './TabRoutes';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useEffect } from 'react';
 
 const Stack = createStackNavigator<AppRoutesParamList>();
 
 interface NavigationProps {}
 
 export const Navigation: React.FC<NavigationProps> = ({}) => {
-  useEffect(() => SplashScreen.hide(), []);
-
   return (
     <NavigationContainer>
       <Stack.Navigator
